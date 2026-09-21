@@ -274,7 +274,7 @@ Generate a synthetic campus (dev/staging only) with planted communities and chec
 - WCAG 2.2 AA, full keyboard use, 44 px touch targets, `prefers-reduced-motion` respected.
 - Performance budgets in CI: LCP < 2.5 s on mid-range phone over 4G, CLS < 0.1, initial JS < 200 KB per route.
 - Installable PWA; iOS Safari, Samsung Internet and current Chrome/Firefox/Edge.
-- **Korean-first:** all UI, legal text and emails in Korean with English for international students; subset a Korean web font (e.g. Pretendard) to protect performance; test in the KakaoTalk and Naver in-app browsers, since shared links open there.
+- **Korean-first:** all UI, legal text and emails in Korean with English for international students; self-host only the Latin Pretendard slice and use system Korean fonts (Hangul webfont slices cost about 230 KiB per page); test in the KakaoTalk and Naver in-app browsers, since shared links open there.
 
 **Usability gate (compressed for the 30-day build):** build the 8 key flows directly in the design system (BUILD_PLAN S02, S07, S12), then test them with 5 students on staging in Week 3 (target task success ≥ 90%). Full 8–10 student SUS testing follows in Month 2.
 

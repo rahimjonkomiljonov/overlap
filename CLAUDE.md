@@ -19,6 +19,14 @@ Build it step by step from `docs/BUILD_PLAN.md`. The full product spec is `docs/
 - Every server action and route handler checks authorization itself; the proxy only routes locales.
 - Synthetic users exist only in dev and staging.
 
+## Gotchas (learned the hard way)
+
+- Every page and layout calls `setRequestLocale(locale)` before next-intl server APIs so it stays static. `loading.tsx` cannot, so anything it renders that uses next-intl must be a client component, otherwise the whole route becomes dynamic.
+- Korean uses system fonts; only the Latin Pretendard slice is self-hosted (`src/app/fonts/README.md`). Do not add the Hangul webfont slices.
+- Windows: never `taskkill /IM <image>`, it kills the owner's own programs (this closed their Chrome once). Stop only PIDs you started yourself. If `.next` is locked (`EBUSY`), find what holds it first.
+- Lighthouse: set `CHROME_PATH` to Playwright's Chromium and use `C:/...` style paths for Node on Windows.
+- Auth is not in place until S05; the `(app)` pages are placeholders.
+
 ## Commands
 
 - `npm run dev` starts the app, `npm run check` runs lint, typecheck and unit tests, `npm run e2e` runs Playwright.

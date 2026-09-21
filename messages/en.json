@@ -3,10 +3,54 @@
     "title": "Overlap",
     "description": "Meet the people your campus life already overlaps with."
   },
+  "Common": {
+    "skipToContent": "Skip to content"
+  },
   "Home": {
     "title": "Overlap",
     "tagline": "Meet the people your campus life already overlaps with.",
     "status": "Opening soon.",
     "switchLanguage": "한국어"
+  },
+  "Nav": {
+    "label": "Main menu",
+    "picks": "Picks",
+    "waves": "Waves",
+    "matches": "Matches",
+    "me": "Me"
+  },
+  "Picks": {
+    "title": "Today's picks",
+    "emptyTitle": "Today's picks are on their way",
+    "emptyBody": "Every day at noon we introduce people whose campus life overlaps with yours."
+  },
+  "Waves": {
+    "title": "Waves for you",
+    "emptyTitle": "No waves yet",
+    "emptyBody": "When someone shows interest, it will appear here."
+  },
+  "Matches": {
+    "title": "Matches",
+    "emptyTitle": "No matches yet",
+    "emptyBody": "When you wave at each other it becomes a match and you can start chatting."
+  },
+  "Me": {
+    "title": "Me",
+    "display": "Display",
+    "theme": "Appearance",
+    "theme_light": "Light",
+    "theme_dark": "Dark",
+    "theme_system": "System",
+    "language": "Language",
+    "switchLanguage": "한국어"
+  },
+  "States": {
+    "loading": "Loading",
+    "errorTitle": "Something went wrong",
+    "errorBody": "Please try again in a moment. If it keeps happening, let us know.",
+    "retry": "Try again",
+    "notFoundTitle": "Page not found",
+    "notFoundBody": "The address may have changed or the page no longer exists.",
+    "backHome": "Back to home"
   }
 }

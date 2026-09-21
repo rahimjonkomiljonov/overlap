@@ -22,5 +22,7 @@ export default defineConfig({
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    // Enables the development-only /dev/ui design-system gallery for the tests.
+    env: { ENABLE_DEV_UI: "true" },
   },
 });
