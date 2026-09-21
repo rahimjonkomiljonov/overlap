@@ -75,7 +75,7 @@ You need a launchable app in **one month at most**, and the work is too big for 
 
 - [x] **S00 · Split this file** (Day 1, 15 min). `git init`; write everything above the `SPLIT-HERE` line to `docs/BUILD_PLAN.md` and everything below to `docs/REQUIREMENTS.md` (a `head`/`tail` command, no retyping).
   *Done when:* both files exist and the plan file is unchanged.
-- [ ] **S01 · Bootstrap** (Day 1–2, ~3 h). Next.js App Router, strict TypeScript, Tailwind, shadcn/ui, next-intl (Korean default, English), ESLint/Prettier, Vitest, Playwright, GitHub Actions (lint, typecheck, unit, build, e2e smoke), `.env.example`, folders `src/server/{auth,matching,chat,safety,privacy,admin}`.
+- [x] **S01 · Bootstrap** (Day 1–2, ~3 h). Next.js App Router, strict TypeScript, Tailwind, shadcn/ui, next-intl (Korean default, English), ESLint/Prettier, Vitest, Playwright, GitHub Actions (lint, typecheck, unit, build, e2e smoke), `.env.example`, folders `src/server/{auth,matching,chat,safety,privacy,admin}`.
   *Done when:* CI is green on a bilingual hello page.
 - [ ] **S02 · Design system and app shell** (Day 2–3, ~4 h). Tokens (color, type with a subset Pretendard, spacing, radius), light/dark, base components, mobile bottom-tab shell (Picks · Waves · Matches · Me), skeleton/empty/error patterns, `/dev/ui` gallery.
   *Done when:* axe is clean, Lighthouse a11y ≥ 95 and perf ≥ 90 on the shell, no horizontal scroll at 360 px.
@@ -193,6 +193,7 @@ Waitlist first (S04) so growth starts on Day 5 while the rest is built. Matching
 | Date | Step | Result | Deviations / accepted risks |
 |---|---|---|---|
 | 2026-09-21 | S00 | Plan split into `docs/BUILD_PLAN.md` (209 lines) and `docs/REQUIREMENTS.md` (567 lines); `git init` done | None |
+| 2026-09-22 | S01 | Next.js 16.3.5 + React 19.2.8, Tailwind 4, shadcn/ui (Radix), next-intl (ko at `/`, en at `/en`, `src/proxy.ts`), Vitest, Playwright, prettier, CI workflow, `CLAUDE.md` with the working protocol. Local run of the CI steps: lint, typecheck, 2 unit tests, build, 8 e2e (desktop + mobile), format check all pass | Remote CI run pending until the GitHub repo exists (owner task O3); npm instead of pnpm; `@types/node` 22 to match Node 22; dropped unmaintained `vite-tsconfig-paths` for a plain alias; shadcn now uses its own `cn` package (verified official); next-intl detects language from the browser, so `/` shows English to English browsers (intended, tests set the browser locale) |
 
 ---
 
