@@ -13,6 +13,8 @@ const schema = z.object({
   DATABASE_URL: z.url(),
   EMAIL_HASH_PEPPER: z.string().min(32, "EMAIL_HASH_PEPPER must be at least 32 characters"),
   CRON_SECRET: z.string().min(16, "CRON_SECRET must be at least 16 characters"),
+  BETTER_AUTH_SECRET: z.string().min(32, "BETTER_AUTH_SECRET must be at least 32 characters"),
+  BETTER_AUTH_URL: z.url(),
   NEXT_PUBLIC_SUPABASE_URL: z.url().optional(),
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().optional(),
   SUPABASE_SECRET_KEY: z.string().optional(),

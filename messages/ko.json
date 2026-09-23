@@ -49,7 +49,12 @@
     "theme_dark": "다크",
     "theme_system": "시스템",
     "language": "언어",
-    "switchLanguage": "English"
+    "switchLanguage": "English",
+    "account": "계정",
+    "datingAvailable": "데이팅 모드: 사용 가능",
+    "datingUnavailable": "데이팅 모드: 사용 안 함 (동의 필요)",
+    "signOutEverywhere": "모든 기기에서 로그아웃",
+    "signOutDone": "로그아웃했어요"
   },
   "States": {
     "loading": "불러오는 중",
@@ -93,5 +98,55 @@
     "error_INCORRECT_CODE": "코드가 올바르지 않아요.",
     "error_INCORRECT_CODE_attempts": "코드가 올바르지 않아요. {count}번 더 시도할 수 있어요.",
     "error_UNKNOWN": "문제가 생겼어요. 잠시 후 다시 시도해 주세요."
+  },
+  "Login": {
+    "title": "로그인",
+    "subtitle": "학교 이메일로 로그인하거나 계정을 만들어요.",
+    "emailLabel": "학교 이메일",
+    "emailPlaceholder": "you@school.ac.kr",
+    "submit": "인증 코드 받기",
+    "submitting": "보내는 중…",
+    "codeLabel": "인증 코드",
+    "codeHelper": "{email}로 보낸 6자리 코드를 입력하세요.",
+    "codeHelperDev": "지금은 로컬 개발 단계라 이메일 대신 서버 콘솔(터미널)에 코드가 출력돼요.",
+    "verify": "확인",
+    "verifying": "확인하는 중…",
+    "useDifferentEmail": "다른 이메일 사용하기",
+    "error_INVALID_INPUT": "입력한 내용을 다시 확인해 주세요.",
+    "error_INVALID_DOMAIN": "가입 가능한 학교 이메일이 아니에요.",
+    "error_RATE_LIMITED": "요청이 너무 많아요. 잠시 후 다시 시도해 주세요.",
+    "error_INCORRECT_CODE": "코드가 올바르지 않아요.",
+    "error_UNKNOWN": "문제가 생겼어요. 잠시 후 다시 시도해 주세요."
+  },
+  "Onboarding": {
+    "title": "몇 가지만 더 확인할게요",
+    "ageLegend": "나이 확인",
+    "birthYearLabel": "태어난 연도",
+    "attestedAdultLabel": "저는 만 19세 이상이에요.",
+    "consentLegend": "약관 동의",
+    "termsPrivacyLabel": "이용약관과 개인정보 처리방침에 동의해요. (초안, 검토 중)",
+    "readTerms": "이용약관 보기",
+    "readPrivacy": "개인정보 처리방침 보기",
+    "sensitiveLegend": "데이팅 모드 (선택)",
+    "sensitiveBody": "데이팅 모드를 사용하려면 \"어떤 사람을 만나고 싶은지\"를 공유하는 것에 별도로 동의해야 해요. 동의하지 않아도 계정은 만들어지고, 친구·스터디 모드는 그대로 사용할 수 있어요.",
+    "sensitivePreferenceLabel": "데이팅 모드를 위해 상대방 선호 정보를 공유하는 것에 동의해요.",
+    "submit": "완료",
+    "submitting": "저장하는 중…",
+    "error_INVALID_INPUT": "입력한 내용을 다시 확인해 주세요.",
+    "error_UNAUTHENTICATED": "먼저 로그인해 주세요.",
+    "error_INVALID_DOMAIN": "학교 이메일 확인 중 문제가 생겼어요.",
+    "error_IMPLAUSIBLE_YEAR": "태어난 연도를 다시 확인해 주세요.",
+    "error_NOT_ATTESTED": "19세 이상 확인란에 체크해 주세요.",
+    "error_TOO_YOUNG": "만 19세 이상만 가입할 수 있어요.",
+    "error_UNKNOWN": "문제가 생겼어요. 잠시 후 다시 시도해 주세요.",
+    "successTitle": "가입이 완료됐어요!",
+    "goToPicks": "추천 보러 가기"
+  },
+  "Legal": {
+    "draftNotice": "초안이에요. 아직 변호사 검토(S13)를 거치지 않았어요.",
+    "termsTitle": "이용약관",
+    "termsPlaceholder": "정식 이용약관은 법률 검토 후 이 페이지에 게시돼요.",
+    "privacyTitle": "개인정보 처리방침",
+    "privacyPlaceholder": "정식 개인정보 처리방침은 법률 검토 후 이 페이지에 게시돼요."
   }
 }

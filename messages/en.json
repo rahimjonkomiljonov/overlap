@@ -49,7 +49,12 @@
     "theme_dark": "Dark",
     "theme_system": "System",
     "language": "Language",
-    "switchLanguage": "한국어"
+    "switchLanguage": "한국어",
+    "account": "Account",
+    "datingAvailable": "Dating mode: available",
+    "datingUnavailable": "Dating mode: unavailable (consent needed)",
+    "signOutEverywhere": "Sign out everywhere",
+    "signOutDone": "Signed out"
   },
   "States": {
     "loading": "Loading",
@@ -93,5 +98,55 @@
     "error_INCORRECT_CODE": "That code isn't right.",
     "error_INCORRECT_CODE_attempts": "That code isn't right. {count} attempts left.",
     "error_UNKNOWN": "Something went wrong. Please try again in a moment."
+  },
+  "Login": {
+    "title": "Sign in",
+    "subtitle": "Sign in or create an account with your campus email.",
+    "emailLabel": "Campus email",
+    "emailPlaceholder": "you@school.ac.kr",
+    "submit": "Get verification code",
+    "submitting": "Sending…",
+    "codeLabel": "Verification code",
+    "codeHelper": "Enter the 6-digit code sent to {email}.",
+    "codeHelperDev": "This is local development, so the code is printed to the server console instead of emailed.",
+    "verify": "Verify",
+    "verifying": "Verifying…",
+    "useDifferentEmail": "Use a different email",
+    "error_INVALID_INPUT": "Please check what you entered.",
+    "error_INVALID_DOMAIN": "That's not an eligible campus email.",
+    "error_RATE_LIMITED": "Too many requests. Please try again in a bit.",
+    "error_INCORRECT_CODE": "That code isn't right.",
+    "error_UNKNOWN": "Something went wrong. Please try again in a moment."
+  },
+  "Onboarding": {
+    "title": "Just a couple more things",
+    "ageLegend": "Age check",
+    "birthYearLabel": "Birth year",
+    "attestedAdultLabel": "I am 19 or older.",
+    "consentLegend": "Terms",
+    "termsPrivacyLabel": "I agree to the Terms of Service and Privacy Policy. (draft, under legal review)",
+    "readTerms": "Read Terms",
+    "readPrivacy": "Read Privacy Policy",
+    "sensitiveLegend": "Dating mode (optional)",
+    "sensitiveBody": "Using Dating mode needs a separate agreement to share who you'd like to meet. Declining still creates your account, and Friends/Study modes work either way.",
+    "sensitivePreferenceLabel": "I agree to share my match preferences for Dating mode.",
+    "submit": "Finish",
+    "submitting": "Saving…",
+    "error_INVALID_INPUT": "Please check what you entered.",
+    "error_UNAUTHENTICATED": "Please sign in first.",
+    "error_INVALID_DOMAIN": "There was a problem confirming your campus email.",
+    "error_IMPLAUSIBLE_YEAR": "Please check your birth year.",
+    "error_NOT_ATTESTED": "Please confirm you are 19 or older.",
+    "error_TOO_YOUNG": "You must be 19 or older to join.",
+    "error_UNKNOWN": "Something went wrong. Please try again in a moment.",
+    "successTitle": "You're all set!",
+    "goToPicks": "See your picks"
+  },
+  "Legal": {
+    "draftNotice": "This is a draft. It has not been reviewed by a lawyer yet (S13).",
+    "termsTitle": "Terms of Service",
+    "termsPlaceholder": "The final Terms of Service will be published here after legal review.",
+    "privacyTitle": "Privacy Policy",
+    "privacyPlaceholder": "The final Privacy Policy will be published here after legal review."
   }
 }

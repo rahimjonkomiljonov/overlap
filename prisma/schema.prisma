@@ -10,8 +10,9 @@ datasource db {
   provider = "postgresql"
 }
 
-// --- S03 scope only: Campus, EmailDomain, User, Consent, Waitlist, Cohort, InviteCode,
-// Referral, AuditLog, RateLimit. Profile/Course/Match/etc. are later steps (S06+). ---
+// --- S03/S04/S05 scope: Campus, EmailDomain, User (+ Better Auth's Session, Account,
+// Verification), Consent, Waitlist, Cohort, InviteCode, Referral, AuditLog, RateLimit.
+// Profile/Course/Match/etc. are later steps (S06+). ---
 
 model Campus {
   id              String   @id @default(uuid())
@@ -50,19 +51,32 @@ enum UserStatus {
   DELETED
 }
 
+/// Identity fields (name/email/emailVerified/image) plus sessions/accounts are managed
+/// by Better Auth (src/server/auth/auth.ts), which expects a model literally named
+/// `User` exposing exactly those fields and relations — this is why they're plain
+/// fields here rather than under some nested "auth" concern. Everything else
+/// (campusId, birthYear, ageVerifiedAt, status, trustScore) is our own domain data,
+/// written by our own code (never by Better Auth), not declared to it as
+/// `additionalFields` — see docs/BUILD_PLAN.md S05 for why.
+///
+/// TODO(S16/S19): when account deletion/banning is built, record a keyed hash of the
+/// deleted email (src/server/auth/hash.ts) in a separate table before purging it, so a
+/// banned identity can be blocked from re-registering (A3) without keeping the
+/// plaintext email around. Not needed yet — no deletion flow exists.
 model User {
-  id       String @id @default(uuid())
-  campusId String
-  campus   Campus @relation(fields: [campusId], references: [id])
+  id            String  @id @default(uuid())
+  name          String
+  email         String  @unique
+  emailVerified Boolean @default(false)
+  image         String?
 
-  /// HMAC-SHA256(lowercased email, EMAIL_HASH_PEPPER) — see src/server/auth/hash.ts.
-  /// Never a plain or unkeyed hash: campus emails are guessable/enumerable, so an
-  /// unkeyed hash would let anyone confirm whether a given address has an account.
-  /// This is a lookup key and the re-registration-after-ban check, not the login
-  /// mechanism — S05 picks the actual auth/session provider.
-  emailHash String @unique
+  /// Null only in the brief window between account creation and onboarding finishing
+  /// (every user must end up with a campus; there is no sensible default to fall back
+  /// on the way there is for status/trustScore).
+  campusId String?
+  campus   Campus? @relation(fields: [campusId], references: [id])
 
-  /// Set once at verification (A2). Never a full date of birth.
+  /// Set once at the age gate (A2). Never a full date of birth.
   birthYear     Int?
   ageVerifiedAt DateTime?
 
@@ -72,6 +86,8 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  sessions            Session[]
+  accounts            Account[]
   consents            Consent[]
   auditLogEntries     AuditLog[]
   referralsAsReferrer Referral[] @relation("ReferrerUser")
@@ -79,6 +95,64 @@ model User {
 
   @@index([campusId])
   @@map("users")
+}
+
+/// Better Auth's session table. "Sign out everywhere" (A5) = deleting every row for a
+/// user (authClient.revokeSessions()); Better Auth handles that itself.
+model Session {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+/// Better Auth's account table (one row per sign-in method per user). We only use
+/// email OTP in Month 1, so accessToken/refreshToken/idToken/password/scope stay null
+/// — the table exists because Better Auth's schema contract expects it.
+model Account {
+  id         String @id @default(uuid())
+  accountId  String
+  providerId String
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("accounts")
+}
+
+/// Better Auth's OTP/verification-token table (email-otp plugin). Distinct from
+/// Waitlist's own OTP fields, which predate account creation entirely.
+model Verification {
+  id         String   @id @default(uuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verifications")
 }
 
 enum ConsentType {

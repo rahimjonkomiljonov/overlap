@@ -1,16 +1,31 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageHeader } from "@/components/states/page-header";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { buttonVariants } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link } from "@/i18n/navigation";
+import { Link, redirect } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
+import { signOutEverywhere } from "@/server/auth/actions";
+import { getActor } from "@/server/auth/session";
+import { canUseDatingMode } from "@/server/consent/consent";
+import { prisma } from "@/server/db";
 
 export default async function MePage({ params }: PageProps<"/[locale]/me">) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("Me");
   const otherLocale = routing.locales.find((l) => l !== locale) ?? routing.defaultLocale;
+
+  // The (app) layout already redirects signed-out visitors, so an actor always exists here.
+  const actor = await getActor();
+  const datingAvailable = actor ? await canUseDatingMode(prisma, actor.userId) : false;
+
+  async function signOutAction() {
+    "use server";
+    await signOutEverywhere();
+    redirect({ href: "/login", locale });
+  }
 
   return (
     <>
@@ -34,6 +49,21 @@ export default async function MePage({ params }: PageProps<"/[locale]/me">) {
               {t("switchLanguage")}
             </Link>
           </div>
+        </CardContent>
+      </Card>
+      <Card className="mt-4">
+        <CardHeader>
+          <CardTitle>{t("account")}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Badge variant={datingAvailable ? "default" : "secondary"}>
+            {t(datingAvailable ? "datingAvailable" : "datingUnavailable")}
+          </Badge>
+          <form action={signOutAction}>
+            <Button type="submit" variant="outline">
+              {t("signOutEverywhere")}
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </>

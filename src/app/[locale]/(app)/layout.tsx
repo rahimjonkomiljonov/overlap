@@ -1,13 +1,24 @@
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/app-shell/app-shell";
-import { routing } from "@/i18n/routing";
+import { redirect } from "@/i18n/navigation";
+import { getActor, needsOnboarding } from "@/server/auth/session";
 
-// Prerender the shell pages per locale. Once real per-user data arrives (S05+) they become dynamic.
-export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
-}
+// Reads the session per-request (auth.api.getSession), so this can no longer be
+// statically prerendered — see the (removed) generateStaticParams this layout had
+// before S05.
+export default async function AppLayout({
+  children,
+  params,
+}: LayoutProps<"/[locale]"> & { children: ReactNode }) {
+  const { locale } = await params;
 
-// Sign-in protection is added in S05; until then these are layout placeholders.
-export default function AppLayout({ children }: { children: ReactNode }) {
+  const actor = await getActor();
+  if (!actor) {
+    redirect({ href: "/login", locale });
+  }
+  if (needsOnboarding(actor)) {
+    redirect({ href: "/onboarding", locale });
+  }
+
   return <AppShell>{children}</AppShell>;
 }

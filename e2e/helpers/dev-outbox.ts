@@ -9,10 +9,18 @@ type OutboxEntry = { to: string; subject: string; text: string; sentAt: string }
 
 /**
  * Reads the 6-digit OTP code most recently "sent" (logged to the dev outbox) to
- * `email`. Each test uses a unique, freshly generated email, so the most recent entry
- * for it is unambiguous — no need to reset the file between tests.
+ * `email`, optionally only counting entries sent after `after`. Most callers use a
+ * unique, freshly generated email per attempt, where the most recent entry is
+ * unambiguous — but a test that signs in twice with the *same* email (e.g. sign out,
+ * then sign back in) needs `after` set to the instant right before requesting the
+ * second code, or this could return the earlier, now-stale one instead of waiting for
+ * the new entry to actually be written.
  */
-export async function readLastOtpCode(email: string, timeoutMs = 5000): Promise<string> {
+export async function readLastOtpCode(
+  email: string,
+  options: { timeoutMs?: number; after?: Date } = {},
+): Promise<string> {
+  const timeoutMs = options.timeoutMs ?? 5000;
   const deadline = Date.now() + timeoutMs;
 
   while (Date.now() < deadline) {
@@ -22,7 +30,9 @@ export async function readLastOtpCode(email: string, timeoutMs = 5000): Promise<
         .split("\n")
         .filter(Boolean)
         .map((line) => JSON.parse(line));
-      const match = entries.filter((e) => e.to === email).pop();
+      const match = entries
+        .filter((e) => e.to === email && (!options.after || new Date(e.sentAt) > options.after))
+        .pop();
       const code = match?.text.match(/code is (\d{6})/)?.[1];
       if (code) return code;
     } catch {

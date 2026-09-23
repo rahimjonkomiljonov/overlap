@@ -11,6 +11,8 @@ import { createHash, randomInt, timingSafeEqual } from "node:crypto";
  */
 
 export const OTP_TTL_MS = 10 * 60 * 1000;
+/** Same value in seconds, for libraries (e.g. Better Auth's emailOTP plugin) that want it that way. */
+export const OTP_TTL_SECONDS = OTP_TTL_MS / 1000;
 export const OTP_MAX_ATTEMPTS = 5;
 export const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
 

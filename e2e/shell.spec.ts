@@ -1,11 +1,17 @@
 import { expect, test } from "@playwright/test";
+import { signInAndOnboard } from "./helpers/auth";
 
 test.use({ locale: "ko-KR" });
 
 const shellRoutes = ["/picks", "/waves", "/matches", "/me"];
-const allRoutes = ["/", "/en", "/dev/ui", "/waitlist", ...shellRoutes, "/does-not-exist"];
+const publicRoutes = ["/", "/en", "/dev/ui", "/waitlist", "/does-not-exist"];
 
 test.describe("app shell", () => {
+  // Every route these tests exercise is behind the (app) layout's auth guard (S05).
+  test.beforeEach(async ({ page }) => {
+    await signInAndOnboard(page, { emailPrefix: "shell" });
+  });
+
   test("bottom navigation switches between the four tabs", async ({ page }) => {
     await page.goto("/picks");
     const nav = page.getByRole("navigation", { name: "주요 메뉴" });
@@ -21,6 +27,8 @@ test.describe("app shell", () => {
   test("navigation targets are at least 44px", async ({ page }) => {
     await page.goto("/picks");
     const links = page.getByRole("navigation", { name: "주요 메뉴" }).getByRole("link");
+    const count = await links.count();
+    expect(count).toBe(4); // guards against this test passing vacuously on an empty locator
     for (const link of await links.all()) {
       const box = await link.boundingBox();
       expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
@@ -44,7 +52,9 @@ test.describe("app shell", () => {
     await page.goto("/picks");
     await expect(page.locator("html")).toHaveClass(/dark/);
   });
+});
 
+test.describe("not found", () => {
   test("unknown paths show the localized not-found page", async ({ page }) => {
     await page.goto("/does-not-exist");
     await expect(page.getByRole("heading", { name: "페이지를 찾을 수 없어요" })).toBeVisible();
@@ -54,14 +64,26 @@ test.describe("app shell", () => {
 test.describe("responsive", () => {
   test.use({ viewport: { width: 360, height: 740 } });
 
-  for (const route of allRoutes) {
+  async function expectNoOverflow(page: import("@playwright/test").Page) {
+    await page.waitForLoadState("networkidle");
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(0);
+  }
+
+  for (const route of publicRoutes) {
     test(`${route} has no horizontal scroll at 360px`, async ({ page }) => {
       await page.goto(route);
-      await page.waitForLoadState("networkidle");
-      const overflow = await page.evaluate(
-        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-      );
-      expect(overflow).toBeLessThanOrEqual(0);
+      await expectNoOverflow(page);
+    });
+  }
+
+  for (const route of shellRoutes) {
+    test(`${route} (signed in) has no horizontal scroll at 360px`, async ({ page }) => {
+      await signInAndOnboard(page, { emailPrefix: "responsive" });
+      await page.goto(route);
+      await expectNoOverflow(page);
     });
   }
 });
