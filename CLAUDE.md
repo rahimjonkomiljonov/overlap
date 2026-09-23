@@ -14,6 +14,7 @@ Build it step by step from `docs/BUILD_PLAN.md`. The full product spec is `docs/
 
 ## Hard rules (privacy and safety)
 
+- **Local-only phase (standing, until the owner says "publish"):** no domain purchase, no Vercel/production deploy, no real email or SMS sending, no Sentry, no signing up new paid services. Build and test against `localhost` only. This overrides any build-plan step that assumes those exist (e.g. S04's email step falls back to logging OTP codes to the server console when `RESEND_API_KEY` is unset). Lift this only when the owner explicitly says to publish/deploy/go live — not implied by finishing a step.
 - Never commit secrets. Keys live in `.env.local`; `.env.example` lists names only.
 - Never store resident registration numbers. Never log, track or send to a third party: `interested_in`, selfies, chat text.
 - Every server action and route handler checks authorization itself; the proxy only routes locales.
