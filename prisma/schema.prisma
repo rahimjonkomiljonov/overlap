@@ -1,0 +1,219 @@
+// Prisma 7: no connection URL here. The Prisma CLI (migrate, studio) gets its URL from
+// prisma.config.ts (DIRECT_URL); the running app builds its own adapter from DATABASE_URL
+// (the pooled connection) in src/server/db.ts. See docs/BUILD_PLAN.md S03.
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// --- S03 scope only: Campus, EmailDomain, User, Consent, Waitlist, Cohort, InviteCode,
+// Referral, AuditLog, RateLimit. Profile/Course/Match/etc. are later steps (S06+). ---
+
+model Campus {
+  id              String   @id @default(uuid())
+  name            String
+  timeZone        String   @default("Asia/Seoul")
+  /// Emergency numbers etc. (G6). Shape finalized and populated in S06/S16.
+  safetyResources Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  emailDomains EmailDomain[]
+  users        User[]
+  cohorts      Cohort[]
+  waitlist     Waitlist[]
+
+  @@map("campuses")
+}
+
+model EmailDomain {
+  id        String   @id @default(uuid())
+  campusId  String
+  campus    Campus   @relation(fields: [campusId], references: [id], onDelete: Cascade)
+  /// Lowercase, no leading "@", e.g. "yonsei.ac.kr".
+  domain    String   @unique
+  createdAt DateTime @default(now())
+
+  @@index([campusId])
+  @@map("email_domains")
+}
+
+enum UserStatus {
+  ACTIVE
+  PAUSED
+  SUSPENDED
+  BANNED
+  DELETED
+}
+
+model User {
+  id       String @id @default(uuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+
+  /// HMAC-SHA256(lowercased email, EMAIL_HASH_PEPPER) — see src/server/auth/hash.ts.
+  /// Never a plain or unkeyed hash: campus emails are guessable/enumerable, so an
+  /// unkeyed hash would let anyone confirm whether a given address has an account.
+  /// This is a lookup key and the re-registration-after-ban check, not the login
+  /// mechanism — S05 picks the actual auth/session provider.
+  emailHash String @unique
+
+  /// Set once at verification (A2). Never a full date of birth.
+  birthYear     Int?
+  ageVerifiedAt DateTime?
+
+  status     UserStatus @default(ACTIVE)
+  trustScore Int        @default(100)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  consents            Consent[]
+  auditLogEntries     AuditLog[]
+  referralsAsReferrer Referral[] @relation("ReferrerUser")
+  referralAsReferred  Referral?  @relation("ReferredUser")
+
+  @@index([campusId])
+  @@map("users")
+}
+
+enum ConsentType {
+  TERMS
+  PRIVACY_POLICY
+  /// "Who I'd like to meet" — separate, optional, sensitive under PIPA Art. 23.
+  SENSITIVE_PREFERENCE
+  /// Deferred: no promotional messages in the local-only / Month-1 phase.
+  MARKETING
+  MARKETING_NIGHT
+  /// Only where the outsourcing-disclosure route in the privacy policy doesn't cover
+  /// a given processor (see REQUIREMENTS.md §15.5).
+  OVERSEAS_TRANSFER
+}
+
+model Consent {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  type          ConsentType
+  /// e.g. "2026-09-23" — the policy/consent-copy version shown when this was recorded.
+  policyVersion String
+  /// Both grants and explicit declines are recorded; declining is never itself an error.
+  granted       Boolean
+  grantedAt     DateTime    @default(now())
+  withdrawnAt   DateTime?
+  /// Where consent was captured, e.g. "onboarding", "settings/privacy".
+  source        String
+
+  @@index([userId, type])
+  @@map("consents")
+}
+
+model Cohort {
+  id       String @id @default(uuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+
+  name       String
+  /// Density gate (§6/§15): Dating mode opens per cohort only once it qualifies.
+  datingOpen Boolean @default(false)
+
+  createdAt   DateTime     @default(now())
+  inviteCodes InviteCode[]
+
+  @@index([campusId])
+  @@map("cohorts")
+}
+
+model InviteCode {
+  id       String @id @default(uuid())
+  cohortId String
+  cohort   Cohort @relation(fields: [cohortId], references: [id])
+
+  code      String    @unique
+  maxUses   Int       @default(1)
+  useCount  Int       @default(0)
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([cohortId])
+  @@map("invite_codes")
+}
+
+model Waitlist {
+  id       String @id @default(uuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+
+  /// Lowercased .ac.kr address. Not sensitive information under PIPA; kept plain (not
+  /// hashed) because S04/O8 needs it to send invite emails and to de-duplicate signups.
+  email      String
+  verifiedAt DateTime?
+
+  /// Pre-account attribution only (who clicked whose link before an account existed).
+  /// Confirmed, rewardable referrals are recorded separately in Referral once the
+  /// referred person becomes a verified User.
+  referredById String?
+  referredBy   Waitlist?  @relation("WaitlistReferral", fields: [referredById], references: [id])
+  referrals    Waitlist[] @relation("WaitlistReferral")
+
+  /// Required notice/consent checkbox (S04); always set at creation.
+  consentedAt DateTime
+  createdAt   DateTime @default(now())
+
+  @@unique([campusId, email])
+  @@index([referredById])
+  @@map("waitlist_signups")
+}
+
+model Referral {
+  id         String @id @default(uuid())
+  code       String @unique
+  referrerId String
+  referrer   User   @relation("ReferrerUser", fields: [referrerId], references: [id])
+
+  /// Set once the referred person completes verification (S05+). Rewards (badges/event
+  /// access, never extra visibility — J3) are granted by Month-2 features on top of this.
+  referredUserId String?   @unique
+  referredUser   User?     @relation("ReferredUser", fields: [referredUserId], references: [id])
+  rewardedAt     DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([referrerId])
+  @@map("referrals")
+}
+
+/// Every admin/moderator action (H3). TODO(S20): REVOKE UPDATE/DELETE for the app's DB
+/// role on this table so it is append-only at the database level, not just by convention.
+model AuditLog {
+  id      String  @id @default(uuid())
+  actorId String?
+  actor   User?   @relation(fields: [actorId], references: [id])
+
+  action     String
+  targetType String
+  targetId   String
+  reason     String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([actorId])
+  @@index([targetType, targetId])
+  @@map("audit_log")
+}
+
+/// Fixed-window counters for rate limiting (Month-1 choice: Postgres, not Redis — see
+/// REQUIREMENTS.md §9). Application logic lives in src/server/auth/rate-limit.ts.
+model RateLimit {
+  /// e.g. "otp:<emailHash>" or "wave:<userId>:2026-09-23".
+  key        String   @id
+  count      Int      @default(0)
+  windowEnds DateTime
+
+  @@map("rate_limits")
+}

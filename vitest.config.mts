@@ -8,7 +8,9 @@ export default defineConfig({
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
   test: {
-    environment: "jsdom",
+    // Default to node: most tests are server-side logic (src/server/**). Component
+    // tests opt into the DOM with a `// @vitest-environment jsdom` docblock.
+    environment: "node",
     setupFiles: ["./vitest.setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
   },
