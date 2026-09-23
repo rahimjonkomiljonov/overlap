@@ -9,8 +9,15 @@
   "Home": {
     "title": "Overlap",
     "tagline": "Meet the people your campus life already overlaps with.",
-    "status": "Opening soon.",
-    "switchLanguage": "한국어"
+    "cta": "Join the waitlist",
+    "switchLanguage": "한국어",
+    "whatTitle": "What makes it different",
+    "whatBody": "We introduce you to people based on campus life you actually overlap with — the same class, the same club, similar free time. Not just a photo to swipe past, but a reason you'd get along.",
+    "whyTitle": "6 a day, with reasons",
+    "whyBody": "Instead of endless swiping, we introduce 6 carefully picked people every day at noon. Each one comes with the reasons you overlap, so you can find people who actually share your interests, faster.",
+    "safetyTitle": "Safety comes first",
+    "safetyBody": "Only verified students can be matched with, and you can block or report anyone at any time. When it's time to meet, we suggest public spots on campus.",
+    "statusNote": "We're still building this. Join the waitlist and we'll email you the moment we open."
   },
   "Nav": {
     "label": "Main menu",
@@ -52,5 +59,39 @@
     "notFoundTitle": "Page not found",
     "notFoundBody": "The address may have changed or the page no longer exists.",
     "backHome": "Back to home"
+  },
+  "Waitlist": {
+    "title": "Waitlist",
+    "subtitle": "Sign up with your campus email and we'll email you the moment we open.",
+    "counter": "{count} people have already joined",
+    "counterZero": "Be the first to join",
+    "emailLabel": "Campus email",
+    "emailPlaceholder": "you@school.ac.kr",
+    "consentLabel": "I agree to my email being stored to join the waitlist and be notified when Overlap opens.",
+    "submit": "Get verification code",
+    "submitting": "Sending…",
+    "codeLabel": "Verification code",
+    "codeHelper": "Enter the 6-digit code sent to {email}.",
+    "codeHelperDev": "This is local development, so the code is printed to the server console instead of emailed.",
+    "verify": "Verify",
+    "verifying": "Verifying…",
+    "useDifferentEmail": "Use a different email",
+    "successTitle": "You're on the list!",
+    "successBody": "We'll email you the moment we open.",
+    "alreadyVerifiedTitle": "You're already on the list",
+    "alreadyVerifiedBody": "This email is already on the waitlist.",
+    "referralLabel": "Share with a friend",
+    "copyLink": "Copy link",
+    "copied": "Copied",
+    "error_INVALID_INPUT": "Please check what you entered.",
+    "error_INVALID_DOMAIN": "That's not an eligible campus email.",
+    "error_RATE_LIMITED": "Too many requests. Please try again in a bit.",
+    "error_COOLDOWN": "Please wait a moment before requesting another code.",
+    "error_NOT_FOUND": "We couldn't find that signup. Please start again.",
+    "error_EXPIRED": "That code expired. Enter your email again to get a new one.",
+    "error_TOO_MANY_ATTEMPTS": "Too many attempts. Please request a new code.",
+    "error_INCORRECT_CODE": "That code isn't right.",
+    "error_INCORRECT_CODE_attempts": "That code isn't right. {count} attempts left.",
+    "error_UNKNOWN": "Something went wrong. Please try again in a moment."
   }
 }

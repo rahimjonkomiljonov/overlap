@@ -27,8 +27,14 @@ Build it step by step from `docs/BUILD_PLAN.md`. The full product spec is `docs/
 - Windows: never `taskkill /IM <image>`, it kills the owner's own programs (this closed their Chrome once). Stop only PIDs you started yourself. If `.next` is locked (`EBUSY`), find what holds it first.
 - Lighthouse: set `CHROME_PATH` to Playwright's Chromium and use `C:/...` style paths for Node on Windows.
 - Auth is not in place until S05; the `(app)` pages are placeholders.
+- Prisma 7 requires a driver adapter for every DB (`@prisma/adapter-pg`) and loads no env file on its own — `prisma.config.ts` loads `.env.local` explicitly. Use `process.env.X` directly there, never `prisma/config`'s `env()` helper: it throws immediately if unset, which breaks `prisma generate` (it needs no DB connection at all) on every clean install, including CI's and Vercel's.
+- `prisma migrate dev` does not run `prisma generate` automatically in Prisma 7 — run it explicitly after every schema change or the generated client silently goes stale (wrong fields, confusing type errors).
+- No real campus data exists yet (O4). `prisma/seed.ts` creates a dev-only Campus + `test.ac.kr` EmailDomain for local/CI testing; it refuses to run when `NODE_ENV=production`.
+- If you edit server code (actions, `sendEmail`, etc.) after already starting `npm run build`/`npm run start`, the running server is still serving the old build — rebuild and restart before trusting any test result. A test that fails for a suspiciously infrastructural reason (missing file, stale behavior) is worth checking against a fresh build before assuming it's a logic bug.
+- CI uses its own throwaway `postgres:17-alpine` service (see `.github/workflows/ci.yml`), never the real Seoul database — don't add real DB credentials as GitHub secrets.
 
 ## Commands
 
 - `npm run dev` starts the app, `npm run check` runs lint, typecheck and unit tests, `npm run e2e` runs Playwright.
+- `npm run db:migrate -- --name X` after a schema change, then `npx prisma generate`. `npm run db:seed` for the dev fixture. `npm run db:studio` to browse the database.
 - Next.js 16: `src/proxy.ts` replaces `middleware.ts`. Korean is served at `/`, English at `/en`.

@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test.use({ locale: "ko-KR" });
 
 const shellRoutes = ["/picks", "/waves", "/matches", "/me"];
-const allRoutes = ["/", "/en", "/dev/ui", ...shellRoutes, "/does-not-exist"];
+const allRoutes = ["/", "/en", "/dev/ui", "/waitlist", ...shellRoutes, "/does-not-exist"];
 
 test.describe("app shell", () => {
   test("bottom navigation switches between the four tabs", async ({ page }) => {

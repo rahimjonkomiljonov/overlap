@@ -13,6 +13,30 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      # Throwaway Postgres for this run only — never the real Supabase database (see
+      # docs/BUILD_PLAN.md S04: local-only phase keeps real DB credentials out of CI).
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      # All dummy, CI-only values — not our real Seoul project's secrets. Safe to commit.
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/postgres
+      EMAIL_HASH_PEPPER: ci-only-dummy-pepper-never-used-for-real-data-000000
+      FIELD_ENCRYPTION_KEY_V1: Ee/hV3KueyPxUUxpNfi4REpz2B16L5mszNl/f7lNlsM=
+      CRON_SECRET: ci-only-dummy-cron-secret-0000000000000000
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -23,6 +47,8 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+      - run: npx prisma migrate deploy
+      - run: npx prisma db seed
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run e2e

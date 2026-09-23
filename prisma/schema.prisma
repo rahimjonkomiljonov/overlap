@@ -154,6 +154,15 @@ model Waitlist {
   email      String
   verifiedAt DateTime?
 
+  /// SHA-256 of the 6-digit code (src/server/auth/otp.ts). Cleared once verified.
+  /// Security here is the short expiry + attempt cap, not hash secrecy, so a plain
+  /// hash is enough — unlike emailHash, there is no enumeration concern for a code
+  /// that's random per row and expires in minutes.
+  otpCodeHash   String?
+  otpExpiresAt  DateTime?
+  otpAttempts   Int       @default(0)
+  otpLastSentAt DateTime?
+
   /// Pre-account attribution only (who clicked whose link before an account existed).
   /// Confirmed, rewardable referrals are recorded separately in Referral once the
   /// referred person becomes a verified User.
