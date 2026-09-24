@@ -29,7 +29,33 @@
   "Picks": {
     "title": "Today's picks",
     "emptyTitle": "Today's picks are on their way",
-    "emptyBody": "Every day at noon we introduce people whose campus life overlaps with yours."
+    "emptyBody": "Every day at noon we introduce people whose campus life overlaps with yours.",
+    "caughtUpTitle": "You're all caught up",
+    "caughtUpBody": "Come back tomorrow at noon for more picks.",
+    "reasonsHeading": "Why you overlap",
+    "reason_course": "You're both in {label}",
+    "reason_club": "You're both in {label}",
+    "reason_interest": "You both like {label}",
+    "reason_freeTime": "You're both free {day} {block}",
+    "reason_values": "Your values line up",
+    "pass": "Pass",
+    "wave": "Wave",
+    "reactPhoto": "React to this photo",
+    "reactPrompt": "React to this answer",
+    "composerTitle": "Send a wave",
+    "composerHint": "Your wave will mention what you reacted to.",
+    "notePlaceholder": "Add a short note (optional)",
+    "noteCount": "{count}/140",
+    "send": "Send wave",
+    "cancel": "Cancel",
+    "howMatchingWorksLink": "How matching works",
+    "errors": {
+      "UNAUTHENTICATED": "Please sign in first.",
+      "INVALID_INPUT": "Something about that wasn't valid. Please try again.",
+      "NOT_FOUND": "That pick isn't available anymore.",
+      "ALREADY_DECIDED": "You've already acted on this pick.",
+      "UNKNOWN": "Something went wrong. Please try again in a moment."
+    }
   },
   "Waves": {
     "title": "Waves for you",
@@ -325,5 +351,24 @@
       "UNAUTHENTICATED": "Please sign in first.",
       "UNKNOWN": "Something went wrong. Please try again in a moment."
     }
+  },
+  "HowMatchingWorks": {
+    "title": "How matching works",
+    "intro": "Your daily picks are chosen by a set of rules we run on our own servers — not by a person browsing profiles, and not by machine learning or generative AI. Every match is based on things you and the other person both entered: your courses, clubs, free time, interests and a short values quiz.",
+    "signalsTitle": "What we compare",
+    "signalCourses": "Shared courses — sharing a small class counts for more than sharing something everyone takes.",
+    "signalClubs": "Shared clubs and organizations, weighted the same way.",
+    "signalTime": "Overlapping free time, plus any hangout spots you've both opted into.",
+    "signalInterests": "Shared interests from the tag list — rarer interests count for more.",
+    "signalValues": "How close your answers are on the 8-item values quiz.",
+    "weightsTitle": "It depends on what you're looking for",
+    "weightsBody": "Which of these matters most changes with the mode you're browsing in: study buddy leans on shared courses and free time; friends leans on clubs and interests; dating weighs values and interests more heavily. A match only counts if it looks good from both sides — one person being a great fit for the other isn't enough on its own.",
+    "batchTitle": "Your 6 daily picks",
+    "batchBody": "Every day at noon we put together 6 people per mode you're active in: your 4 best matches, one person ranked a bit further down the list so you don't only ever see the same kind of profile, and one recent newcomer. No one profile can appear in more than 25 people's picks on the same day, so early or popular profiles don't crowd everyone else out.",
+    "explanationsTitle": "Why you overlap",
+    "explanationsBody": "Each pick shows up to 3 concrete reasons — the specific course, club, interest, free-time overlap or values fit behind the score. We only ever show something you both actually have; nothing about anyone's private preferences is ever revealed this way.",
+    "rightsTitle": "Your rights",
+    "rightsBody": "This is an automated process, which you have the right to ask about. If you'd like an explanation for a specific match, or a human to review how your picks are put together, contact us and we'll follow up.",
+    "contactCta": "Contact us"
   }
 }

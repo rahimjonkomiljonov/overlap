@@ -138,6 +138,8 @@ model User {
   hideRulesTargeting  HideRule[]   @relation("HideRuleTarget")
   dailyBatches        DailyBatch[]
   batchAppearances    BatchItem[]  @relation("BatchItemCandidate")
+  wavesSent           Wave[]       @relation("WaveSender")
+  wavesReceived       Wave[]       @relation("WaveRecipient")
 
   @@index([campusId])
   @@map("users")
@@ -838,6 +840,17 @@ model DailyBatch {
   @@map("daily_batches")
 }
 
+// --- S12: picks UI (wave/pass). BatchItem.decision is the *only* place "seen and acted
+// on" lives — the candidate query (S10) already excludes anything shown in the last 30
+// days by BatchItem existing at all, regardless of decision, so this isn't a second
+// exclusion mechanism, just what /picks uses to know which of today's items are still
+// actionable ("you're caught up" = none are). ---
+
+enum PickDecision {
+  WAVED
+  PASSED
+}
+
 /// One ranked candidate within a DailyBatch. `reasons` holds structured explanation data
 /// (never rendered text — §5.2: "top 3 contributing terms are rendered from templates"),
 /// so locale/copy changes never require a backfill. `rank` is the position S11's
@@ -857,9 +870,57 @@ model BatchItem {
   reasons Json
   rank    Int
 
+  /// Null = still in the user's queue. Set once by src/server/picks/actions.ts and never
+  /// changed after — a decision is final for this pick, matching REQUIREMENTS.md's Wave
+  /// entity, not a preference toggle.
+  decision  PickDecision?
+  decidedAt DateTime?
+
+  wave Wave?
+
   createdAt DateTime @default(now())
 
   @@unique([dailyBatchId, candidateUserId])
   @@index([candidateUserId])
   @@map("batch_items")
+}
+
+/// A wave sent from one pick (S12). Reciprocal-wave → match detection, the 8/day send
+/// cap, the waves inbox and the matches list are S14's job ("Waves and matches") — this
+/// is only the compose-and-send half, which S12 needs to make its wave composer real
+/// rather than a UI mock. `status` starts and stays PENDING until S14 adds the logic that
+/// changes it.
+enum WaveStatus {
+  PENDING
+  MATCHED
+  DECLINED
+}
+
+model Wave {
+  id String @id @default(uuid())
+
+  /// The pick this wave was sent from — lets a future inbox show the same "why you
+  /// overlap" context the sender saw, and makes a wave impossible without a real,
+  /// currently-actionable pick (enforced in src/server/picks/actions.ts, not here).
+  batchItemId String @unique
+  batchItem   BatchItem @relation(fields: [batchItemId], references: [id], onDelete: Cascade)
+
+  fromUserId String
+  fromUser   User   @relation("WaveSender", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUserId   String
+  toUser     User   @relation("WaveRecipient", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  /// What was reacted to — a specific photo or prompt answer, or a generic profile-level
+  /// wave. Structured, like BatchItem.reasons, so the recipient's UI (S14) can render it
+  /// in either locale without a backfill.
+  targetElement Json
+  /// ≤140 chars, optional (src/server/picks/schema.ts).
+  note   String?
+  status WaveStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+
+  @@unique([fromUserId, toUserId])
+  @@index([toUserId])
+  @@map("waves")
 }

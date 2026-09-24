@@ -106,6 +106,59 @@ export async function runDailyBatchForCampus(
   return { campusId, batchDate: batchDate.toISOString().slice(0, 10), intents: intentSummaries };
 }
 
+/**
+ * The on-demand counterpart to `runDailyBatchForCampus`, for src/server/picks/queries.ts:
+ * ensures today's batch exists for one specific user+intent, computing and persisting it
+ * right now if the cron hasn't gotten to them yet (or hasn't run at all — the case for
+ * every fresh dev/e2e signup). Reuses the exact same pool-loading, scoring, composing and
+ * persisting logic as the campus-wide run, so a user who visits /picks before noon KST
+ * sees the identical batch the cron would have given them, and — thanks to `DailyBatch`'s
+ * unique constraint — the cron run later that day is a no-op for them either way.
+ *
+ * A user who isn't in the pool yet themselves (not verified, profile incomplete — the
+ * same eligibility this function's candidates are held to) gets nothing persisted at
+ * all, deliberately: writing an empty batch now would idempotently block a real one from
+ * ever generating later today once they do become eligible.
+ */
+export async function ensureTodaysBatchForUser(
+  db: RunDailyBatchDb,
+  userId: string,
+  campusId: string,
+  intent: IntentMode,
+  options: RunDailyBatchOptions = {},
+): Promise<void> {
+  const now = options.now ?? new Date();
+  const batchDate = seoulCalendarDate(now);
+
+  const existing = await db.dailyBatch.findUnique({
+    where: { userId_intent_batchDate: { userId, intent, batchDate } },
+    select: { id: true },
+  });
+  if (existing) return;
+
+  await computeIdfStats(db, campusId);
+  const idfRows = await db.idfStat.findMany({
+    where: { campusId },
+    select: { featureType: true, featureId: true, idf: true },
+  });
+  const idf = buildIdfLookup(idfRows);
+
+  const pool = await loadCampusMatchPool(db, campusId, intent, { now });
+  if (!pool.profiles.some((p) => p.userId === userId)) return;
+
+  const results = computeCampusMatches(pool, intent, idf);
+  const joinedAtByUserId = new Map(pool.profiles.map((p) => [p.userId, p.joinedAt]));
+  const exposureCounts = await loadTodayExposureCounts(db, campusId, batchDate);
+
+  const composed = composeBatch(results.get(userId) ?? [], {
+    joinedAtByUserId,
+    now,
+    exposureCounts,
+    exposureCap: options.exposureCap,
+  });
+  await persistBatch(db, userId, intent, batchDate, composed);
+}
+
 async function persistBatch(
   db: RunDailyBatchDb,
   userId: string,

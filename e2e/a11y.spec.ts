@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { signIn, signInAndOnboard } from "./helpers/auth";
 import { uniqueTestEmail } from "./helpers/dev-outbox";
-import { promoteToRole, Role } from "./helpers/db";
+import { deleteTestUser, promoteToRole, Role, shareCourseAndClub, verifyUser } from "./helpers/db";
 
 const wcagTags = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
@@ -27,6 +27,7 @@ const publicRoutes = [
   "/login",
   "/terms",
   "/privacy",
+  "/how-matching-works",
   "/en/waitlist",
   "/does-not-exist",
 ];
@@ -123,6 +124,34 @@ for (const colorScheme of ["light", "dark"] as const) {
       await page.goto("/admin/verification");
       await expect(page.getByRole("heading", { name: "인증 대기열" })).toBeVisible();
       await assertNoViolations(page, colorScheme);
+    });
+
+    test("/picks (populated with a real pick card + open wave composer, S12) has no WCAG A/AA violations", async ({
+      page,
+      browser,
+    }) => {
+      const firstName = `a11y-picks-${Date.now()}`;
+      const emailA = await signInAndOnboard(page, { emailPrefix: "a11y-picks-a", firstName: "a11yViewer" });
+      const contextB = await browser.newContext();
+      const pageB = await contextB.newPage();
+      const emailB = await signInAndOnboard(pageB, { emailPrefix: "a11y-picks-b", firstName });
+      await verifyUser(emailA);
+      await verifyUser(emailB);
+      await shareCourseAndClub(emailA, emailB);
+
+      try {
+        await page.goto("/picks");
+        const card = page.locator('[data-slot="card"]').filter({ hasText: firstName });
+        await expect(card).toHaveCount(1);
+        await card.getByRole("button", { name: "이 사진에 반응하기" }).first().click();
+        await expect(card.getByText("웨이브 보내기").first()).toBeVisible();
+
+        await assertNoViolations(page, colorScheme);
+      } finally {
+        await contextB.close();
+        await deleteTestUser(emailA);
+        await deleteTestUser(emailB);
+      }
     });
   });
 }
