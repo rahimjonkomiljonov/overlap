@@ -1,3 +1,4 @@
+import { IntentMode } from "@/generated/prisma/enums";
 import { describe, expect, it } from "vitest";
 import { planSyntheticCampus, type SyntheticReferenceData } from "./plan";
 
@@ -61,6 +62,21 @@ describe("planSyntheticCampus", () => {
     const distinctValuesAnswers = new Set(community0.map((u) => u.valuesAnswers.join(",")));
     // With ~20 members and independent jitter per person, cloning everyone identically would be implausible.
     expect(distinctValuesAnswers.size).toBeGreaterThan(1);
+  });
+
+  it("sets interestedIn only for users whose intents include DATING, mirroring the real onboarding invariant", () => {
+    const plan = planSyntheticCampus({ ...BASE_OPTIONS, userCount: 300 }, REFERENCE);
+    const daters = plan.users.filter((u) => u.intents.includes(IntentMode.DATING));
+    const nonDaters = plan.users.filter((u) => !u.intents.includes(IntentMode.DATING));
+    expect(daters.length).toBeGreaterThan(0);
+    expect(nonDaters.length).toBeGreaterThan(0);
+    for (const user of daters) {
+      expect(user.interestedIn).not.toBeNull();
+      expect(user.interestedIn!.length).toBeGreaterThan(0);
+    }
+    for (const user of nonDaters) {
+      expect(user.interestedIn).toBeNull();
+    }
   });
 
   it("keeps every valuesAnswers entry within the 1-5 Likert range", () => {

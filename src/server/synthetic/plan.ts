@@ -37,6 +37,8 @@ export interface SyntheticUserPlan {
   year: number;
   major: string;
   intents: IntentMode[];
+  /** Only set when `intents` includes DATING — mirrors the real onboarding invariant (src/server/profile/actions.ts's DATING_REQUIRES_CONSENT) that this can't exist otherwise. */
+  interestedIn: Gender[] | null;
   freeTimeSlots: number[];
   valuesAnswers: number[];
   courseIds: string[];
@@ -133,6 +135,12 @@ function planOneUser(
 ): SyntheticUserPlan {
   const paddedIndex = String(index).padStart(6, "0");
   const promptCount = Math.min(3, promptIds.length);
+  const intents = pickN(rng, INTENTS, nextInt(rng, 1, 2));
+  // Deliberately not correlated with `gender`: this is test data for exercising the
+  // matching engine's overlap signals (S10), not a realistic orientation distribution —
+  // a wide, uncorrelated spread just keeps the Dating gender hard filter from
+  // degenerately excluding almost everyone.
+  const interestedIn = intents.includes(IntentMode.DATING) ? pickN(rng, GENDERS, nextInt(rng, 1, 3)) : null;
 
   return {
     index,
@@ -143,7 +151,8 @@ function planOneUser(
     birthYear: currentYear - nextInt(rng, 19, 25),
     year: nextInt(rng, 1, 4),
     major: pick(rng, MAJORS),
-    intents: pickN(rng, INTENTS, nextInt(rng, 1, 2)),
+    intents,
+    interestedIn,
     freeTimeSlots: jitterSlots(rng, template.baseFreeTimeSlots),
     valuesAnswers: template.baseValues.map((v) => clamp(v + (nextInt(rng, 0, 2) - 1), 1, 5)),
     courseIds: template.courseIds,

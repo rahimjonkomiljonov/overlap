@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@/generated/prisma/client";
+import { encryptField } from "@/server/privacy/encryption";
 import type { SyntheticCampusPlan } from "./plan";
 
 export type SyntheticPersistDb = Pick<PrismaClient, "user">;
@@ -42,6 +43,7 @@ export async function persistSyntheticCampus(
             year: user.year,
             major: user.major,
             intents: user.intents,
+            interestedIn: user.interestedIn ? encryptField(JSON.stringify(user.interestedIn)) : null,
             freeTimeSlots: user.freeTimeSlots,
             valuesAnswers: user.valuesAnswers,
             onboardingStep: FINAL_ONBOARDING_STEP,

@@ -4,6 +4,9 @@ import { prisma } from "@/server/db";
 import { auth } from "./auth";
 import type { Actor } from "./authz";
 
+/** How stale `lastActiveAt` must be before getActor() bothers writing it again. */
+const ACTIVITY_TOUCH_THROTTLE_MS = 60 * 60 * 1000;
+
 /**
  * Who is signed in, for server components/actions. Better Auth's own session payload
  * only carries the identity fields it manages (id/name/email/...) — our domain fields
@@ -18,9 +21,16 @@ export async function getActor(): Promise<Actor> {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { campusId: true, status: true, trustScore: true, role: true },
+    select: { campusId: true, status: true, trustScore: true, role: true, lastActiveAt: true },
   });
   if (!user) return null;
+
+  if (Date.now() - user.lastActiveAt.getTime() > ACTIVITY_TOUCH_THROTTLE_MS) {
+    // Fire-and-forget: this is the "active in the last 14 days" candidate-generation
+    // filter's only writer (src/server/matching/candidates.ts), and it must never make a
+    // page render wait on an extra write.
+    void prisma.user.update({ where: { id: session.user.id }, data: { lastActiveAt: new Date() } }).catch(() => {});
+  }
 
   return {
     userId: session.user.id,

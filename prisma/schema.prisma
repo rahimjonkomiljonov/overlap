@@ -115,6 +115,11 @@ model User {
   /// pairs. Null for every real user and meaningless unless `isSynthetic` is true.
   syntheticCommunity Int?
 
+  /// Touched (throttled to once/hour) by getActor() on every authenticated request.
+  /// Backs the "active in the last 14 days" candidate-generation hard filter
+  /// (REQUIREMENTS.md §5.1/C5) — src/server/matching/candidates.ts is the only reader.
+  lastActiveAt DateTime @default(now())
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -127,6 +132,12 @@ model User {
   profile             Profile?
   selfies             Selfie[]   @relation("SelfieOwner")
   selfieDecisions     Selfie[]   @relation("SelfieDecidedBy")
+  blocksMade          Block[]      @relation("BlockerUser")
+  blocksReceived      Block[]      @relation("BlockedUser")
+  hideRulesOwned      HideRule[]   @relation("HideRuleOwner")
+  hideRulesTargeting  HideRule[]   @relation("HideRuleTarget")
+  dailyBatches        DailyBatch[]
+  batchAppearances    BatchItem[]  @relation("BatchItemCandidate")
 
   @@index([campusId])
   @@map("users")
@@ -759,4 +770,96 @@ model IdfStat {
   @@unique([campusId, featureType, featureId])
   @@index([campusId, featureType])
   @@map("idf_stats")
+}
+
+// --- S10: matching engine. Candidate generation and scoring themselves are code
+// (src/server/matching/), not tables — these four models are what that code reads
+// (Block/HideRule, as hard filters) and writes (DailyBatch/BatchItem, the persisted
+// result). S10 only builds the scoring/candidate pipeline as pure functions plus a
+// migration for these tables; S11 is what actually calls them daily per user/intent and
+// persists rows here. ---
+
+/// Mutual: either side may have created the row, and it excludes the pair in both
+/// directions (REQUIREMENTS.md §5.1: "not blocked ... either way") — unlike HideRule,
+/// which is one-directional.
+model Block {
+  id String @id @default(uuid())
+
+  blockerId String
+  blocker   User   @relation("BlockerUser", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockedId String
+  blocked   User   @relation("BlockedUser", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@unique([blockerId, blockedId])
+  @@index([blockedId])
+  @@map("blocks")
+}
+
+/// One-directional: only removes `hiddenUser` from `user`'s own candidate pool, unlike
+/// Block. REQUIREMENTS.md §10 describes this as "hide by course/club/email" — read as
+/// three ways a future settings UI could let someone *find* who to hide (search by
+/// shared course, club, or a known email), not three different filter shapes to store;
+/// what's persisted is always just the resolved target user; §5.1's hard-filter list
+/// only needs "is this specific person hidden", regardless of how they were found.
+model HideRule {
+  id String @id @default(uuid())
+
+  userId       String
+  user         User   @relation("HideRuleOwner", fields: [userId], references: [id], onDelete: Cascade)
+  hiddenUserId String
+  hiddenUser   User   @relation("HideRuleTarget", fields: [hiddenUserId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, hiddenUserId])
+  @@map("hide_rules")
+}
+
+/// One user's picks for one intent on one day (§5.3's "daily batch composition" — S11
+/// builds the composition itself; this is just where it lands). The unique constraint is
+/// what makes generating a batch idempotent per user/intent/day (S11's own "Done when").
+model DailyBatch {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  intent IntentMode
+
+  /// Calendar date only (Asia/Seoul), not a timestamp — "one batch per day" per §5.3.
+  batchDate DateTime @db.Date
+  createdAt DateTime @default(now())
+
+  items BatchItem[]
+
+  @@unique([userId, intent, batchDate])
+  @@map("daily_batches")
+}
+
+/// One ranked candidate within a DailyBatch. `reasons` holds structured explanation data
+/// (never rendered text — §5.2: "top 3 contributing terms are rendered from templates"),
+/// so locale/copy changes never require a backfill. `rank` is the position S11's
+/// composition logic (4 top + 1 adjacent + 1 newcomer) placed this candidate at, not
+/// necessarily its raw score order.
+model BatchItem {
+  id String @id @default(uuid())
+
+  dailyBatchId String
+  dailyBatch   DailyBatch @relation(fields: [dailyBatchId], references: [id], onDelete: Cascade)
+
+  candidateUserId String
+  candidate       User   @relation("BatchItemCandidate", fields: [candidateUserId], references: [id], onDelete: Cascade)
+
+  /// 0-100, from src/server/matching/score.ts's S(a,b) (§5.2).
+  score   Float
+  reasons Json
+  rank    Int
+
+  createdAt DateTime @default(now())
+
+  @@unique([dailyBatchId, candidateUserId])
+  @@index([candidateUserId])
+  @@map("batch_items")
 }
