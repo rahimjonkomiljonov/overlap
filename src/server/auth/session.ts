@@ -18,16 +18,14 @@ export async function getActor(): Promise<Actor> {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { campusId: true, status: true, trustScore: true },
+    select: { campusId: true, status: true, trustScore: true, role: true },
   });
   if (!user) return null;
 
   return {
     userId: session.user.id,
     campusId: user.campusId ?? "",
-    // TODO(S08): no role column exists yet (admin console hasn't landed). Every
-    // account is "user" until admin/moderator/ambassador role assignment is built.
-    role: "user",
+    role: user.role,
     status: user.status,
   };
 }

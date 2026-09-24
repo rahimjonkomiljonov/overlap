@@ -54,7 +54,9 @@
     "datingAvailable": "데이팅 모드: 사용 가능",
     "datingUnavailable": "데이팅 모드: 사용 안 함 (동의 필요)",
     "signOutEverywhere": "모든 기기에서 로그아웃",
-    "signOutDone": "로그아웃했어요"
+    "signOutDone": "로그아웃했어요",
+    "verificationTitle": "본인 인증",
+    "verificationCta": "인증하러 가기"
   },
   "States": {
     "loading": "불러오는 중",
@@ -285,5 +287,43 @@
     "termsPlaceholder": "정식 이용약관은 법률 검토 후 이 페이지에 게시돼요.",
     "privacyTitle": "개인정보 처리방침",
     "privacyPlaceholder": "정식 개인정보 처리방침은 법률 검토 후 이 페이지에 게시돼요."
+  },
+  "Verify": {
+    "title": "본인 인증",
+    "hint": "얼굴이 잘 보이는 셀피를 올려줘. 모더레이터가 검토한 뒤에는 삭제되고, \"인증됨\" 상태만 남아요.",
+    "status_unsubmitted": "아직 제출하지 않았어요",
+    "status_pending": "검토 중이에요 (보통 12시간 이내)",
+    "status_rejected": "거절되었어요: {reason}",
+    "status_verified": "인증 완료",
+    "upload": "셀피 업로드",
+    "uploading": "업로드 중…",
+    "resubmit": "다시 제출하기",
+    "errors": {
+      "UNAUTHENTICATED": "먼저 로그인해 주세요.",
+      "INVALID_INPUT": "사진을 선택해 주세요.",
+      "FILE_TOO_LARGE": "파일이 너무 커요 (최대 8MB).",
+      "INVALID_FILE_TYPE": "이미지 파일만 올릴 수 있어요.",
+      "ALREADY_PENDING": "이미 검토 중인 제출이 있어요.",
+      "UNKNOWN": "문제가 생겼어요. 잠시 후 다시 시도해 주세요."
+    }
+  },
+  "Admin": {
+    "verificationQueueTitle": "인증 대기열",
+    "empty": "대기 중인 인증이 없어요.",
+    "approve": "승인",
+    "reject": "거절",
+    "reasonLabel": "거절 사유 (거절할 때 필수)",
+    "reasonPlaceholder": "예: 셀피가 프로필 사진과 일치하지 않아요",
+    "submittedAt": "{date} 제출",
+    "profileSection": "프로필 정보",
+    "noProfile": "아직 프로필 정보가 없어요.",
+    "forbidden": "권한이 없어요.",
+    "errors": {
+      "FORBIDDEN": "권한이 없어요.",
+      "INVALID_INPUT": "입력한 내용을 다시 확인해 주세요.",
+      "NOT_FOUND": "이미 처리되었거나 찾을 수 없는 항목이에요.",
+      "UNAUTHENTICATED": "먼저 로그인해 주세요.",
+      "UNKNOWN": "문제가 생겼어요. 잠시 후 다시 시도해 주세요."
+    }
   }
 }

@@ -57,6 +57,16 @@ enum UserStatus {
   DELETED
 }
 
+/// H4: least-privilege admin roles. AMBASSADOR is declared now (matches
+/// src/server/auth/authz.ts's existing `Role` vocabulary from S03) but nothing grants
+/// it or checks for it yet — that's J4 (ambassador dashboard), a later fast-follow.
+enum Role {
+  USER
+  AMBASSADOR
+  MODERATOR
+  ADMIN
+}
+
 /// Identity fields (name/email/emailVerified/image) plus sessions/accounts are managed
 /// by Better Auth (src/server/auth/auth.ts), which expects a model literally named
 /// `User` exposing exactly those fields and relations — this is why they're plain
@@ -88,6 +98,12 @@ model User {
 
   status     UserStatus @default(ACTIVE)
   trustScore Int        @default(100)
+  role       Role       @default(USER)
+
+  /// Set once a moderator approves a selfie submission (S08/A4). Null = not verified;
+  /// unverified users are excluded from appearing in others' picks or sending waves
+  /// (enforced by the matching engine, S10 — the candidate query doesn't exist yet).
+  verifiedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -99,6 +115,8 @@ model User {
   referralsAsReferrer Referral[] @relation("ReferrerUser")
   referralAsReferred  Referral?  @relation("ReferredUser")
   profile             Profile?
+  selfies             Selfie[]   @relation("SelfieOwner")
+  selfieDecisions     Selfie[]   @relation("SelfieDecidedBy")
 
   @@index([campusId])
   @@map("users")
@@ -657,4 +675,43 @@ model Photo {
   @@unique([profileId, sortOrder])
   @@index([profileId])
   @@map("photos")
+}
+
+// --- S08: photo verification (A4, H2). A dedicated model rather than reusing Photo:
+// selfies have a completely different lifecycle (private, moderator-only, purged
+// within 7 days of the decision — REQUIREMENTS.md §15.4), so sharing a table would mean
+// every query on either concern needs to filter the other one out. ---
+
+enum VerificationDecision {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+/// One verification attempt. A user can resubmit after a rejection, so this is a log of
+/// attempts, not a single row per user — the queue (H2) works the latest PENDING one per
+/// user. `storageKey` is nulled by the purge job once `purgedAt` is set; the row itself
+/// (decision, reason, timestamps) is kept for the audit trail (H3) and appeal record.
+model Selfie {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation("SelfieOwner", fields: [userId], references: [id], onDelete: Cascade)
+
+  storageKey  String?
+  submittedAt DateTime @default(now())
+
+  decision    VerificationDecision @default(PENDING)
+  decidedAt   DateTime?
+  decidedById String?
+  decidedBy   User?                @relation("SelfieDecidedBy", fields: [decidedById], references: [id])
+  /// Required on rejection (shown to the user so they know what to fix); optional on
+  /// approval.
+  reason      String?
+
+  /// Set when the purge job deletes the underlying image (≤ 7 days after `decidedAt`).
+  purgedAt DateTime?
+
+  @@index([userId])
+  @@index([decision, submittedAt])
+  @@map("selfies")
 }

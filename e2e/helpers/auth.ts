@@ -2,7 +2,17 @@ import type { Page } from "@playwright/test";
 import { readLastOtpCode, uniqueTestEmail } from "./dev-outbox";
 import { completeProfileWizard } from "./profile";
 
-/** Drives the full email + OTP sign-in flow. Leaves the browser signed in. */
+/**
+ * Drives the full email + OTP sign-in flow. Leaves the browser signed in, settled on
+ * wherever a successful verify lands (LoginForm always pushes to /onboarding first;
+ * that page itself forwards on to /picks once account onboarding is done, and (app)'s
+ * layout guard forwards again to /onboarding/profile if the profile isn't). Waiting
+ * for one of those final URLs here — rather than returning right after the click and
+ * leaving every caller to discover this — matters because that redirect chain is
+ * client-side and asynchronous: a caller that immediately does something
+ * non-DOM-dependent (e.g. a direct DB write) with no intervening page interaction can
+ * otherwise race it, as a plain `goto()` right after can get bounced back mid-chain.
+ */
 export async function signIn(page: Page, email: string): Promise<void> {
   await page.goto("/login");
   await page.getByLabel("학교 이메일").fill(email);
@@ -13,6 +23,7 @@ export async function signIn(page: Page, email: string): Promise<void> {
   const code = await readLastOtpCode(email, { after: requestedAt });
   await page.getByLabel("인증 코드").fill(code);
   await page.getByRole("button", { name: "확인" }).click();
+  await page.waitForURL(/\/(onboarding(\/profile)?|picks)$/);
 }
 
 /**
@@ -29,7 +40,7 @@ export async function signIn(page: Page, email: string): Promise<void> {
  */
 export async function signInAndOnboard(
   page: Page,
-  options: { emailPrefix?: string; grantSensitive?: boolean } = {},
+  options: { emailPrefix?: string; grantSensitive?: boolean; firstName?: string } = {},
 ): Promise<string> {
   const email = uniqueTestEmail(options.emailPrefix ?? "e2e");
   await signIn(page, email);
@@ -41,6 +52,9 @@ export async function signInAndOnboard(
   }
   await page.getByRole("button", { name: "완료" }).click();
   await page.getByRole("link", { name: "추천 보러 가기" }).click();
-  await completeProfileWizard(page, { intent: options.grantSensitive ? "데이팅" : "친구" });
+  await completeProfileWizard(page, {
+    intent: options.grantSensitive ? "데이팅" : "친구",
+    firstName: options.firstName,
+  });
   return email;
 }

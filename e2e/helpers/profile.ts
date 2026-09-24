@@ -12,15 +12,20 @@ const PHOTO_FIXTURE = path.join(process.cwd(), "e2e/fixtures/photo-with-exif.jpg
  * `intent` picks which mode to select on the Intents step; "DATING" requires the
  * caller to have granted the sensitive consent during account onboarding first, or
  * the step will reject it (src/server/profile/actions.ts's DATING_REQUIRES_CONSENT).
+ *
+ * `firstName` defaults to a fixed value; pass a unique one when a test needs to find
+ * *its own* profile among others that may exist in a shared, long-lived dev database
+ * (e.g. picking one card out of an admin queue that could otherwise hold leftovers
+ * from other runs).
  */
 export async function completeProfileWizard(
   page: Page,
-  options: { intent?: "친구" | "스터디" | "데이팅" | "다 열려있어요" } = {},
+  options: { intent?: "친구" | "스터디" | "데이팅" | "다 열려있어요"; firstName?: string } = {},
 ): Promise<void> {
   await expect(page).toHaveURL(/\/onboarding\/profile$/);
 
   // Basics
-  await page.getByLabel("이름 (닉네임 가능)").fill("테스트유저");
+  await page.getByLabel("이름 (닉네임 가능)").fill(options.firstName ?? "테스트유저");
   await page.getByRole("radio", { name: "여성" }).check();
   await page.getByLabel("학년").fill("2");
   await page.getByLabel("전공").fill("컴퓨터공학");

@@ -2,6 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { signIn, signInAndOnboard } from "./helpers/auth";
 import { uniqueTestEmail } from "./helpers/dev-outbox";
+import { promoteToRole, Role } from "./helpers/db";
 
 const wcagTags = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
@@ -29,7 +30,7 @@ const publicRoutes = [
   "/en/waitlist",
   "/does-not-exist",
 ];
-const protectedRoutes = ["/picks", "/waves", "/matches", "/me", "/en/picks", "/en/me"];
+const protectedRoutes = ["/picks", "/waves", "/matches", "/me", "/verify", "/en/picks", "/en/me"];
 
 async function assertNoViolations(
   page: import("@playwright/test").Page,
@@ -112,6 +113,15 @@ for (const colorScheme of ["light", "dark"] as const) {
       }
       await expect(page.getByRole("heading", { name: "언제 시간이 나?" })).toBeVisible();
 
+      await assertNoViolations(page, colorScheme);
+    });
+
+    test("/admin/verification (moderator, S08) has no WCAG A/AA violations", async ({ page }) => {
+      const email = uniqueTestEmail("a11y-moderator");
+      await signIn(page, email);
+      await promoteToRole(email, Role.MODERATOR);
+      await page.goto("/admin/verification");
+      await expect(page.getByRole("heading", { name: "인증 대기열" })).toBeVisible();
       await assertNoViolations(page, colorScheme);
     });
   });

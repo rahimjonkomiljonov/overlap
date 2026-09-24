@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { UserStatus } from "@/generated/prisma/enums";
-import { type Actor, AuthError, can, requireRole, requireUser } from "./authz";
+import { type Actor, AuthError, can, Role, requireRole, requireUser } from "./authz";
 
 function actor(overrides: Partial<NonNullable<Actor>> = {}): Actor {
   return {
     userId: "u1",
     campusId: "c1",
-    role: "user",
+    role: Role.USER,
     status: UserStatus.ACTIVE,
     ...overrides,
   };
@@ -42,13 +42,13 @@ describe("requireUser", () => {
 
 describe("requireRole", () => {
   it("allows a role at or above the required rank", () => {
-    expect(() => requireRole(actor({ role: "moderator" }), "moderator")).not.toThrow();
-    expect(() => requireRole(actor({ role: "admin" }), "moderator")).not.toThrow();
+    expect(() => requireRole(actor({ role: Role.MODERATOR }), Role.MODERATOR)).not.toThrow();
+    expect(() => requireRole(actor({ role: Role.ADMIN }), Role.MODERATOR)).not.toThrow();
   });
 
   it("throws FORBIDDEN for a role below the required rank", () => {
     try {
-      requireRole(actor({ role: "user" }), "moderator");
+      requireRole(actor({ role: Role.USER }), Role.MODERATOR);
       expect.unreachable();
     } catch (e) {
       expect(e).toBeInstanceOf(AuthError);
@@ -58,7 +58,7 @@ describe("requireRole", () => {
 
   it("still checks authentication first", () => {
     try {
-      requireRole(null, "user");
+      requireRole(null, Role.USER);
       expect.unreachable();
     } catch (e) {
       expect((e as AuthError).code).toBe("UNAUTHENTICATED");
@@ -68,8 +68,8 @@ describe("requireRole", () => {
 
 describe("can", () => {
   it("returns true/false instead of throwing", () => {
-    expect(can(actor({ role: "admin" }), "moderator")).toBe(true);
-    expect(can(actor({ role: "user" }), "moderator")).toBe(false);
-    expect(can(null, "user")).toBe(false);
+    expect(can(actor({ role: Role.ADMIN }), Role.MODERATOR)).toBe(true);
+    expect(can(actor({ role: Role.USER }), Role.MODERATOR)).toBe(false);
+    expect(can(null, Role.USER)).toBe(false);
   });
 });

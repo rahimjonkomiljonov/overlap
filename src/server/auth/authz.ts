@@ -1,13 +1,16 @@
-import { UserStatus } from "@/generated/prisma/enums";
+import { Role, UserStatus } from "@/generated/prisma/enums";
 
 /**
  * Central authorization helper (S03). This is the shared vocabulary and the pure
  * decision logic; wiring an `Actor` to a real session is S05's job (auth/session
  * provider not chosen yet). Every server action and route handler must call one of
  * these guards itself — the proxy (src/proxy.ts) only routes locales, per CLAUDE.md.
+ *
+ * `Role` is the Prisma enum (S08) rather than a parallel string union, so the DB column
+ * and this file's vocabulary can never drift apart.
  */
 
-export type Role = "user" | "ambassador" | "moderator" | "admin";
+export { Role };
 
 export type Actor = {
   userId: string;
@@ -31,7 +34,12 @@ export class AuthError extends Error {
 /** Statuses that may act normally. Paused/suspended/banned/deleted users cannot. */
 const ACTIVE_STATUSES: ReadonlySet<UserStatus> = new Set([UserStatus.ACTIVE]);
 
-const ROLE_RANK: Record<Role, number> = { user: 0, ambassador: 1, moderator: 2, admin: 3 };
+const ROLE_RANK: Record<Role, number> = {
+  [Role.USER]: 0,
+  [Role.AMBASSADOR]: 1,
+  [Role.MODERATOR]: 2,
+  [Role.ADMIN]: 3,
+};
 
 /**
  * Throws unless there is a signed-in, active actor. Narrows the type so callers get a

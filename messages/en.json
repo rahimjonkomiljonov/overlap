@@ -54,7 +54,9 @@
     "datingAvailable": "Dating mode: available",
     "datingUnavailable": "Dating mode: unavailable (consent needed)",
     "signOutEverywhere": "Sign out everywhere",
-    "signOutDone": "Signed out"
+    "signOutDone": "Signed out",
+    "verificationTitle": "Photo verification",
+    "verificationCta": "Verify now"
   },
   "States": {
     "loading": "Loading",
@@ -285,5 +287,43 @@
     "termsPlaceholder": "The final Terms of Service will be published here after legal review.",
     "privacyTitle": "Privacy Policy",
     "privacyPlaceholder": "The final Privacy Policy will be published here after legal review."
+  },
+  "Verify": {
+    "title": "Photo verification",
+    "hint": "Upload a selfie with your face clearly visible. Once a moderator reviews it, the image is deleted — only the \"verified\" flag is kept.",
+    "status_unsubmitted": "Not submitted yet",
+    "status_pending": "Under review (usually within 12 hours)",
+    "status_rejected": "Rejected: {reason}",
+    "status_verified": "Verified",
+    "upload": "Upload selfie",
+    "uploading": "Uploading…",
+    "resubmit": "Resubmit",
+    "errors": {
+      "UNAUTHENTICATED": "Please sign in first.",
+      "INVALID_INPUT": "Please choose a photo.",
+      "FILE_TOO_LARGE": "That file is too large (max 8MB).",
+      "INVALID_FILE_TYPE": "Only image files are allowed.",
+      "ALREADY_PENDING": "You already have a submission under review.",
+      "UNKNOWN": "Something went wrong. Please try again in a moment."
+    }
+  },
+  "Admin": {
+    "verificationQueueTitle": "Verification queue",
+    "empty": "No pending verifications.",
+    "approve": "Approve",
+    "reject": "Reject",
+    "reasonLabel": "Rejection reason (required to reject)",
+    "reasonPlaceholder": "e.g. Selfie doesn't match the profile photos",
+    "submittedAt": "Submitted {date}",
+    "profileSection": "Profile",
+    "noProfile": "No profile yet.",
+    "forbidden": "You don't have access to this page.",
+    "errors": {
+      "FORBIDDEN": "You don't have access to this.",
+      "INVALID_INPUT": "Please check what you entered.",
+      "NOT_FOUND": "Already handled, or couldn't be found.",
+      "UNAUTHENTICATED": "Please sign in first.",
+      "UNKNOWN": "Something went wrong. Please try again in a moment."
+    }
   }
 }

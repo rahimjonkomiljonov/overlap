@@ -10,16 +10,19 @@ import { signOutEverywhere } from "@/server/auth/actions";
 import { getActor } from "@/server/auth/session";
 import { canUseDatingMode } from "@/server/consent/consent";
 import { prisma } from "@/server/db";
+import { getMyVerificationStatus } from "@/server/verification/queries";
 
 export default async function MePage({ params }: PageProps<"/[locale]/me">) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("Me");
+  const tVerify = await getTranslations("Verify");
   const otherLocale = routing.locales.find((l) => l !== locale) ?? routing.defaultLocale;
 
   // The (app) layout already redirects signed-out visitors, so an actor always exists here.
   const actor = await getActor();
   const datingAvailable = actor ? await canUseDatingMode(prisma, actor.userId) : false;
+  const verification = actor ? await getMyVerificationStatus(actor.userId) : null;
 
   async function signOutAction() {
     "use server";
@@ -66,6 +69,25 @@ export default async function MePage({ params }: PageProps<"/[locale]/me">) {
           </form>
         </CardContent>
       </Card>
+      {verification && (
+        <Card className="mt-4">
+          <CardHeader>
+            <CardTitle>{t("verificationTitle")}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between gap-4">
+            <Badge variant={verification.state === "verified" ? "default" : "secondary"}>
+              {tVerify(`status_${verification.state}`, {
+                reason: verification.state === "rejected" ? (verification.reason ?? "") : "",
+              })}
+            </Badge>
+            {verification.state !== "verified" && (
+              <Link href="/verify" className={buttonVariants({ variant: "outline", size: "sm" })}>
+                {t("verificationCta")}
+              </Link>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </>
   );
 }
