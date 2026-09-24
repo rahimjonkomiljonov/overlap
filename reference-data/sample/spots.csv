@@ -1,0 +1,7 @@
+name,name_en,kind,is_safe_spot,description
+중앙도서관 카페,Central Library Cafe,CAFE,true,"학교 중앙도서관 1층, 항상 사람이 많아요"
+학생회관 식당,Student Union Dining Hall,DINING,true,점심/저녁 붐비는 학생 식당
+중앙광장 잔디밭,Central Square Lawn,OUTDOOR,true,날씨 좋은 날 학생들이 모이는 야외 공간
+공학관 라운지,Engineering Building Lounge,LOUNGE,false,"공학관 지하 라운지, 저녁엔 한산해요"
+체육관 앞 벤치,Gym Entrance Benches,OUTDOOR,true,"체육관 정문 앞, CCTV와 경비 상주"
+정문 앞 카페거리,Main Gate Cafe Street,CAFE,true,정문 바로 앞 번화한 카페 거리

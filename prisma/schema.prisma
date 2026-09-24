@@ -18,7 +18,10 @@ model Campus {
   id              String   @id @default(uuid())
   name            String
   timeZone        String   @default("Asia/Seoul")
-  /// Emergency numbers etc. (G6). Shape finalized and populated in S06/S16.
+  /// Campus-specific safety contacts (G6): security office, counselling, sexual-violence
+  /// / human-rights center. Shape and validation: src/server/reference/schemas.ts
+  /// (`safetyResourcesSchema`); written only by the S06 importer. National numbers
+  /// (112, 119, 1366, ...) are code constants in src/server/safety/emergency.ts.
   safetyResources Json?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -27,6 +30,9 @@ model Campus {
   users        User[]
   cohorts      Cohort[]
   waitlist     Waitlist[]
+  courses      Course[]
+  clubs        Club[]
+  spots        Spot[]
 
   @@map("campuses")
 }
@@ -299,4 +305,164 @@ model RateLimit {
   windowEnds DateTime
 
   @@map("rate_limits")
+}
+
+// --- S06: reference data (imported from CSV by scripts/import-reference.ts, never
+// edited by users). Rows are deactivated, not deleted, when they disappear from a
+// re-import, because S07+ user data (enrollments, memberships, answers) will point at
+// them. `searchText` is a normalized copy of the searchable fields for autocomplete
+// (src/server/reference/normalize.ts), backed by a trigram index so `contains`
+// queries (LIKE '%q%') don't scan the table. ---
+
+/// One catalog course per campus and term, e.g. CSE2010 in 2026-2. Sections (and their
+/// instructors) hang off it, so shared-course matching (C) can count "same course"
+/// and give the same-section bonus separately.
+model Course {
+  id       String @id @default(uuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id], onDelete: Cascade)
+
+  /// "2026-1" / "2026-2" for regular semesters, "2026-S" / "2026-W" for the summer and
+  /// winter sessions (src/server/reference/term.ts).
+  term       String
+  code       String
+  title      String
+  titleEn    String?
+  searchText String
+  active     Boolean @default(true)
+
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  sections  CourseSection[]
+
+  @@unique([campusId, term, code])
+  @@index([searchText(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@map("courses")
+}
+
+model CourseSection {
+  id       String @id @default(uuid())
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  section      String
+  instructor   String?
+  /// As printed in the public timetable (e.g. "월 10:30-12:00, 수 10:30-12:00"); kept as
+  /// text in Month 1 — nothing computes on it yet.
+  meetingTimes String?
+  active       Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([courseId, section])
+  @@map("course_sections")
+}
+
+/// A club or student organization (동아리/학회). Clubs whose name reveals a sensitive
+/// category (religion, politics, ...) are skipped at import — membership would be
+/// sensitive information under PIPA Art. 23 (see src/server/reference/sensitive.ts).
+model Club {
+  id       String @id @default(uuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id], onDelete: Cascade)
+
+  name        String
+  nameEn      String?
+  category    String?
+  description String?
+  searchText  String
+  active      Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([campusId, name])
+  @@index([searchText(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@map("clubs")
+}
+
+enum SpotKind {
+  CAFE
+  LIBRARY
+  DINING
+  LOUNGE
+  OUTDOOR
+  SPORTS
+  OTHER
+}
+
+/// A curated campus place (B6). `isSafeSpot` = public and staffed/busy enough to
+/// suggest for a first meetup (E1); the planner only ever proposes safe spots.
+model Spot {
+  id       String @id @default(uuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id], onDelete: Cascade)
+
+  name        String
+  nameEn      String?
+  kind        SpotKind
+  isSafeSpot  Boolean  @default(false)
+  description String?
+  searchText  String
+  active      Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([campusId, name])
+  @@index([searchText(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@map("spots")
+}
+
+/// Allowed interest categories. A closed enum on purpose: there is no category a
+/// religion/politics/health/sexual-life tag could be filed under (B8), at the database
+/// level as well as in the importer's word guard.
+enum InterestCategory {
+  ARTS
+  MUSIC
+  SPORTS
+  OUTDOORS
+  FOOD
+  GAMES
+  TECH
+  READING
+  FILM_TV
+  TRAVEL
+  LEARNING
+  SOCIAL
+  LIFESTYLE
+}
+
+/// Non-sensitive interest taxonomy (B8), shared by every campus.
+model InterestTag {
+  id         String           @id @default(uuid())
+  slug       String           @unique
+  category   InterestCategory
+  labelKo    String
+  labelEn    String
+  searchText String
+  active     Boolean          @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([searchText(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@map("interest_tags")
+}
+
+/// Profile prompt library (B9), shared by every campus. Answers (S07) are ≤ 200 chars.
+model Prompt {
+  id        String  @id @default(uuid())
+  key       String  @unique
+  category  String
+  textKo    String
+  textEn    String
+  sortOrder Int     @default(0)
+  active    Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("prompts")
 }
