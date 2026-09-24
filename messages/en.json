@@ -235,7 +235,15 @@
     "freeTime": {
       "title": "When are you free?",
       "hint": "Only the overlap with someone else is ever shown. (optional)",
-      "days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      "days": [
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun"
+      ],
       "blocks": [
         "12–2am",
         "2–4am",
@@ -269,7 +277,13 @@
     "valuesQuiz": {
       "title": "A few things about how you are",
       "hint": "Rate each from 1 (strongly disagree) to 5 (strongly agree).",
-      "scale": ["Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree"]
+      "scale": [
+        "Strongly disagree",
+        "Disagree",
+        "Neutral",
+        "Agree",
+        "Strongly agree"
+      ]
     },
     "photos": {
       "title": "Add your photos",
@@ -308,11 +322,312 @@
     }
   },
   "Legal": {
-    "draftNotice": "This is a draft. It has not been reviewed by a lawyer yet (S13).",
+    "draftNotice": "This page is a draft. It has not been reviewed by legal counsel yet (O6). Not legal advice.",
     "termsTitle": "Terms of Service",
-    "termsPlaceholder": "The final Terms of Service will be published here after legal review.",
+    "terms": {
+      "intro": "These Terms set out the conditions for using Overlap (the \"Service\"), provided by the operator (legal entity to be designated, owner task O1; the \"Company\").",
+      "sections": {
+        "purpose": {
+          "heading": "1. Purpose of the Service",
+          "body": "The Service helps students on the same campus find friends, study partners and dates based on shared courses, clubs, free time and interests. It is free and is not a paid matchmaking service."
+        },
+        "eligibility": {
+          "heading": "2. Eligibility",
+          "body": "Only people who are 19 or older, hold a campus email address (.ac.kr), and pass identity checks (age verification, photo verification) may use the Service. Minors may not use it."
+        },
+        "accounts": {
+          "heading": "3. Accounts and verification",
+          "body": "Each email address may create only one account. Verification selfies are deleted within 7 days of a moderator's decision; only a \"verified\" flag remains afterward. A banned account's identity is retained only as an irreversible hash, to prevent re-registration."
+        },
+        "obligations": {
+          "heading": "4. User obligations",
+          "body": "You must follow the Community Guidelines. Capturing, sharing or distributing another user's photos or conversations without consent; creating, distributing or possessing non-consensual intimate images or deepfakes (a criminal offense, subject to immediate permanent ban and evidence preservation); commercial advertising, spam or contact-list uploads; and registering false information are all prohibited."
+        },
+        "datingMode": {
+          "heading": "5. Dating mode and sensitive information",
+          "body": "\"Who I'd like to meet\" reveals sexual orientation, which is sensitive information, and is only collected with separate, explicit consent. Declining it still leaves Friends and Study Buddy modes available; only Dating mode is unavailable. Recommendations are rule-based; see the How matching works page for details."
+        },
+        "content": {
+          "heading": "6. Rights in content",
+          "body": "You retain the rights to photos, prompt answers and other content you post. The Company uses it only as needed to provide the Service (recommendations, profile display). Content confirmed to violate the Guidelines after a report may be removed."
+        },
+        "enforcement": {
+          "heading": "7. Enforcement and account restrictions",
+          "body": "Violations follow a warning → 7-day suspension → permanent ban ladder. Every suspension or ban is decided by a human moderator with a stated reason, and you can appeal it; no account is suspended or banned by an algorithm alone. Serious violations such as non-consensual images or deepfakes can result in an immediate permanent ban without going through the earlier steps."
+        },
+        "serviceChanges": {
+          "heading": "8. Changes to and termination of the Service",
+          "body": "The Company may change or discontinue parts of the Service with advance notice. You may delete your account at any time; deleted data is handled per the retention table in the Privacy Policy."
+        },
+        "liability": {
+          "heading": "9. Limitation of liability",
+          "body": "The Service is a tool for helping people meet and does not guarantee any outcome. In-person meetups happen at your own responsibility; see the Safety page for guidance the Company provides."
+        },
+        "disputes": {
+          "heading": "10. Dispute resolution and jurisdiction",
+          "body": "These Terms are governed by the laws of the Republic of Korea. The competent court will be specified once the operating entity is designated (to be confirmed)."
+        },
+        "termsChanges": {
+          "heading": "11. Changes to these Terms",
+          "body": "Changes are announced in advance; changes that materially affect your rights require renewed consent."
+        },
+        "contact": {
+          "heading": "12. Contact",
+          "body": "Please use the CPO contact listed in the Privacy Policy (designation pending)."
+        }
+      }
+    },
     "privacyTitle": "Privacy Policy",
-    "privacyPlaceholder": "The final Privacy Policy will be published here after legal review."
+    "privacy": {
+      "intro": "Overlap collects, uses, stores and deletes personal information under this policy. The processor and cross-border transfer register also lives in docs/data-flow.md and is kept identical to the table below.",
+      "sections": {
+        "whatWeCollect": {
+          "heading": "1. What we collect and why",
+          "body": "We collect the items in the table below for signup, profile creation, matching and safety operations. We never collect resident registration numbers or CI."
+        },
+        "sensitiveConsent": {
+          "heading": "2. Separate consent for sensitive information",
+          "body": "\"Who I'd like to meet\" (sexual orientation) and, if introduced, an automated face-comparison result (biometric data) are collected only with separate, explicit consent. Declining leaves the rest of the Service available. This data is field-level encrypted, never displayed, and used only for matching."
+        },
+        "automatedProcessing": {
+          "heading": "3. Automated processing notice",
+          "body": "Daily picks are decided by a rule-based algorithm we run on our own servers, not by a person browsing profiles and not by generative AI. See How matching works for the signals used and why, and you have the right to ask for an explanation or a human review of a specific recommendation (PIPA Art. 37-2)."
+        },
+        "chatAndReports": {
+          "heading": "4. Chat and report handling",
+          "body": "No one reads chat content as a matter of course. When a report is filed, a moderator reviews only the recent messages (up to 50) the reporter themselves attaches — this is the only way chat content ever reaches a human. Uploaded photos are automatically screened for inappropriate content; chat text is checked only against in-house spam/scam/phone-number patterns and is never sent to an outside service."
+        }
+      },
+      "itemsTableCaption": "Data we collect and why",
+      "itemsTable": {
+        "campusEmail": {
+          "item": "Campus email",
+          "purpose": "Login, notifications",
+          "note": "Required"
+        },
+        "ageVerification": {
+          "item": "Birth year, age-verification result",
+          "purpose": "Confirming you're 19+",
+          "note": "Required"
+        },
+        "selfie": {
+          "item": "Verification selfie",
+          "purpose": "Photo verification (moderator review)",
+          "note": "Required (deleted after review)"
+        },
+        "photosPrompts": {
+          "item": "Profile photos, prompt answers",
+          "purpose": "Displaying your profile",
+          "note": "Required"
+        },
+        "interestedIn": {
+          "item": "\"Who I'd like to meet\"",
+          "purpose": "Dating-mode matching",
+          "note": "Optional, sensitive (separate consent)"
+        },
+        "coursesClubsSpots": {
+          "item": "Courses, clubs, hangout spots, free time",
+          "purpose": "Matching",
+          "note": "Optional"
+        },
+        "interestsValues": {
+          "item": "Interest tags, values-quiz answers",
+          "purpose": "Matching",
+          "note": "Optional"
+        },
+        "chatMessages": {
+          "item": "Chat messages",
+          "purpose": "Providing the chat feature",
+          "note": "Required if you chat"
+        },
+        "reports": {
+          "item": "Reports and moderation records",
+          "purpose": "Safety operations",
+          "note": "Generated automatically as you use the Service"
+        },
+        "accessLogs": {
+          "item": "Access and usage logs",
+          "purpose": "Security, abuse prevention",
+          "note": "Generated automatically"
+        }
+      },
+      "retentionTableCaption": "Retention periods",
+      "retentionTable": {
+        "campusEmail": {
+          "item": "Campus email",
+          "sensitivity": "Normal",
+          "retention": "Account life + 30 days"
+        },
+        "ageVerification": {
+          "item": "Birth year, age-verified flag",
+          "sensitivity": "Normal",
+          "retention": "Account life + 30 days"
+        },
+        "rrn": {
+          "item": "Resident registration number, CI",
+          "sensitivity": "Not collected",
+          "retention": "N/A"
+        },
+        "selfie": {
+          "item": "Verification selfie",
+          "sensitivity": "Personal (biometric if automated)",
+          "retention": "Deleted within 7 days of review"
+        },
+        "photosPrompts": {
+          "item": "Profile photos, prompts",
+          "sensitivity": "Normal",
+          "retention": "Account life + 30 days"
+        },
+        "interestedIn": {
+          "item": "\"Who I'd like to meet\"",
+          "sensitivity": "Sensitive",
+          "retention": "Until withdrawn or account deletion; field-encrypted"
+        },
+        "coursesClubsSpots": {
+          "item": "Courses, clubs, spots, free time",
+          "sensitivity": "Normal (behavioral)",
+          "retention": "Until term end, then re-confirm or purge after 30 days"
+        },
+        "chatMessages": {
+          "item": "Chat messages",
+          "sensitivity": "Confidential communication",
+          "retention": "30 days after unmatch/deletion; 90 days if attached to a report"
+        },
+        "reports": {
+          "item": "Reports and moderation records",
+          "sensitivity": "Normal",
+          "retention": "90 days after closure; ban-strike records up to 3 years"
+        },
+        "bannedHash": {
+          "item": "Banned-identity hash",
+          "sensitivity": "Normal",
+          "retention": "3 years"
+        },
+        "auditLogs": {
+          "item": "Access and admin audit logs",
+          "sensitivity": "Normal",
+          "retention": "At least 1 year (exact threshold to be confirmed)"
+        },
+        "analytics": {
+          "item": "Analytics events",
+          "sensitivity": "Pseudonymous",
+          "retention": "13 months; no personal or sensitive fields"
+        },
+        "consentLedger": {
+          "item": "Consent ledger",
+          "sensitivity": "Normal",
+          "retention": "Account life + limitation period (counsel to confirm)"
+        }
+      },
+      "processorsIntro": "The processors and cross-border transfers below are kept identical to the register in docs/data-flow.md. The Service currently runs only on localhost (local-only phase); anything marked \"not yet active\" is not actually sending data anywhere.",
+      "processorsTableCaption": "Processors and cross-border transfers",
+      "processorsTable": {
+        "supabase": {
+          "name": "Supabase (Postgres, Storage)",
+          "sees": "Core data, photos, verification selfies (deleted after review)",
+          "location": "Seoul region"
+        },
+        "vercel": {
+          "name": "Vercel",
+          "sees": "Requests made while using the Service",
+          "location": "Seoul function region (to be confirmed) — not yet active"
+        },
+        "resend": {
+          "name": "Resend",
+          "sees": "Notification email recipients and content",
+          "location": "US — not yet active (currently logged to the server console instead)"
+        },
+        "upstashRedis": {
+          "name": "Upstash Redis",
+          "sees": "Hashed identifiers for rate limiting only",
+          "location": "To be confirmed — not yet active"
+        },
+        "imageModerationApi": {
+          "name": "Image-moderation API",
+          "sees": "Profile and chat images (automated inappropriate-content screening)",
+          "location": "To be confirmed — not yet active"
+        },
+        "identityVerificationAgency": {
+          "name": "Identity-verification agency",
+          "sees": "Age-verification result",
+          "location": "Korean provider — not yet active"
+        },
+        "sentry": {
+          "name": "Sentry",
+          "sees": "Error information, scrubbed of personal data",
+          "location": "EU region — not yet active"
+        },
+        "postHog": {
+          "name": "PostHog",
+          "sees": "Pseudonymous usage statistics",
+          "location": "EU region — not yet active"
+        }
+      },
+      "rightsHeading": "Your rights",
+      "rightsBody": "You can request access, correction, deletion (account closure), consent withdrawal, or suspension of processing. We aim to respond within 10 days of a request (exact statutory deadline to be confirmed). Send requests to the CPO contact below.",
+      "cpoHeading": "Chief Privacy Officer (CPO)",
+      "cpoBody": "Designation pending (owner task O1). Once designated, their name and contact details will be published here and reported to the PIPC.",
+      "securityHeading": "Security measures",
+      "securityBody": "Field-level encryption for sensitive fields, TLS everywhere, one-way hashing of credentials, role-based admin access, access logs kept at least 1 year, and no personal or sensitive data sent to error-tracking or analytics tools.",
+      "changesHeading": "Changes to this policy",
+      "changesBody": "Changes are announced in advance; changes that expand what we collect or why require renewed consent.",
+      "itemsHeaders": [
+        "Item",
+        "Purpose",
+        "Note"
+      ],
+      "retentionHeaders": [
+        "Item",
+        "Sensitivity",
+        "Retention"
+      ],
+      "processorsHeaders": [
+        "Processor",
+        "What it sees",
+        "Location / status"
+      ],
+      "howMatchingWorksLinkCta": "See how matching works"
+    }
+  },
+  "CommunityGuidelines": {
+    "draftNotice": "This page is a draft. It has not been reviewed by legal counsel yet (O6).",
+    "title": "Community Guidelines",
+    "intro": "Overlap is a space for students on the same campus to meet with respect for each other. These rules apply to everyone, and breaking them can lead to anything from a warning to a permanent ban.",
+    "respectTitle": "Respect each other",
+    "respectBody": "Take \"no\" or silence as an answer. Continuing to contact someone after they've blocked or hidden you, or trying to get around a block or hide setting, is against the rules.",
+    "prohibitedTitle": "Never okay",
+    "prohibitedImages": "Taking or sharing photos or videos without consent, and non-consensual intimate images or deepfakes (making, distributing or even just possessing them is a criminal offense and results in an immediate ban and a report).",
+    "prohibitedCapture": "Screenshotting another user's photos, profile or conversations and taking them outside the Service.",
+    "prohibitedHarassment": "Harassment, threats, hate speech, sexual harassment.",
+    "prohibitedSpam": "Spam, scams, pushing people to outside links or phone numbers, commercial advertising, asking people to upload contact lists.",
+    "prohibitedImpersonation": "Impersonating someone else, fake profiles, use by minors.",
+    "enforcementTitle": "What happens if you break a rule",
+    "enforcementBody": "Violations follow a warning → 7-day suspension → permanent ban ladder. Every suspension and ban is decided by a moderator who reviews the reason personally, and you can appeal it. Serious violations like non-consensual images or deepfakes can go straight to a permanent ban without the earlier steps.",
+    "reportingTitle": "How to report",
+    "reportingBody": "You can report from any card, message or profile in two taps. Reporting immediately hides you from the other person, and urgent reports (non-consensual images, deepfakes, threats) are reviewed within 2 hours. See the Safety page for more.",
+    "safetyLinkCta": "See the Safety page"
+  },
+  "Safety": {
+    "draftNotice": "This page is a draft. It has not been reviewed by legal counsel yet (O6).",
+    "title": "Safety",
+    "intro": "Some guidance for staying safe while chatting online and meeting up in person.",
+    "beforeMeetingTitle": "Before you meet",
+    "beforeMeetingVerify": "Check that the other person is verified, and get to know them a bit before agreeing to meet up.",
+    "beforeMeetingPlanner": "Use the meetup planner (coming soon) to pick a time from your shared free windows and a place from the curated safe-spots list.",
+    "beforeMeetingShare": "Use \"Share my plans\" (coming soon) to let someone you trust know your first name, the place and the time. It never shares your precise location.",
+    "duringMeetingTitle": "While you're meeting",
+    "duringMeetingBody": "Meet in a public place with other people around, and it's always okay to leave if something feels off. You don't need to rush to share private details like your home address, student ID or exact class schedule.",
+    "afterMeetingTitle": "After you meet",
+    "afterMeetingBody": "You can leave a quick note on how it went in the app, and choosing \"made me uncomfortable\" takes you straight into the report flow.",
+    "reportTitle": "Reporting and blocking",
+    "reportBody": "You can report or block from any card, message or profile in two taps. Blocking makes you invisible to each other, permanently unless you undo it. You can also hide yourself from specific courses, clubs or email addresses. See the Community Guidelines for the full rules.",
+    "emergencyTitle": "If it's an emergency",
+    "emergencyPolice": "112 — Police",
+    "emergencyAmbulance": "119 — Ambulance",
+    "emergencyWomen": "1366 — Women's emergency hotline",
+    "emergencyDigitalSexCrime": "Digital sex-crime victim support center — for non-consensual images and deepfakes",
+    "emergencyCampus": "Campus security and sexual-violence/human-rights center contacts vary by school and will be added here once campus data is registered (to be confirmed).",
+    "communityLinkCta": "See the Community Guidelines"
   },
   "Verify": {
     "title": "Photo verification",

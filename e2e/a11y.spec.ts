@@ -27,6 +27,8 @@ const publicRoutes = [
   "/login",
   "/terms",
   "/privacy",
+  "/community-guidelines",
+  "/safety",
   "/how-matching-works",
   "/en/waitlist",
   "/does-not-exist",
