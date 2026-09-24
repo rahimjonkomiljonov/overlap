@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { signIn } from "./helpers/auth";
 import { uniqueTestEmail } from "./helpers/dev-outbox";
+import { completeProfileWizard } from "./helpers/profile";
 
 test.use({ locale: "ko-KR" });
 
@@ -40,12 +41,16 @@ test.describe("sign-in and onboarding", () => {
 
     await expect(page.getByRole("heading", { name: "가입이 완료됐어요!" })).toBeVisible();
     await page.getByRole("link", { name: "추천 보러 가기" }).click();
-    await expect(page).toHaveURL(/\/picks$/);
+    // The account exists and is usable (proven by reaching the profile wizard, the
+    // next stage of onboarding — see CLAUDE.md's gotcha on newly-protected routes).
+    await expect(page).toHaveURL(/\/onboarding\/profile$/);
 
-    // The account exists and is usable (proven by reaching /picks); Dating mode is
-    // specifically unavailable because the sensitive consent was declined.
-    await page.goto("/me");
-    await expect(page.getByText("데이팅 모드: 사용 안 함")).toBeVisible();
+    // Dating mode is specifically unavailable because the sensitive consent was
+    // declined: the wizard's basics step shows the no-consent notice instead of the
+    // "who I'd like to meet" picker (src/server/profile/actions.ts's
+    // `canUseDatingMode` check).
+    await expect(page.getByText(/데이팅 모드를 쓰려면 온보딩 동의 화면에서/)).toBeVisible();
+    await expect(page.getByText("어떤 사람을 만나고 싶어?")).not.toBeVisible();
   });
 
   test("granting the sensitive consent makes Dating mode available", async ({ page }) => {
@@ -59,8 +64,12 @@ test.describe("sign-in and onboarding", () => {
     await page.getByRole("button", { name: "완료" }).click();
 
     await expect(page.getByRole("heading", { name: "가입이 완료됐어요!" })).toBeVisible();
-    await page.goto("/me");
-    await expect(page.getByText("데이팅 모드: 사용 가능")).toBeVisible();
+    await page.getByRole("link", { name: "추천 보러 가기" }).click();
+    await expect(page).toHaveURL(/\/onboarding\/profile$/);
+
+    // Dating mode is available: the wizard's basics step offers the "who I'd like to
+    // meet" picker instead of the no-consent notice.
+    await expect(page.getByText("어떤 사람을 만나고 싶어?")).toBeVisible();
   });
 
   test("blocks onboarding for someone under 19", async ({ page }) => {
@@ -86,7 +95,7 @@ test.describe("sign-in and onboarding", () => {
     await page.getByRole("checkbox", { name: /이용약관과 개인정보 처리방침에 동의해요/ }).check();
     await page.getByRole("button", { name: "완료" }).click();
     await page.getByRole("link", { name: "추천 보러 가기" }).click();
-    await expect(page).toHaveURL(/\/picks$/);
+    await completeProfileWizard(page);
 
     // Sign out, then sign back in with the same email.
     await page.goto("/me");
@@ -105,6 +114,7 @@ test.describe("sign-in and onboarding", () => {
     await page.getByRole("checkbox", { name: /이용약관과 개인정보 처리방침에 동의해요/ }).check();
     await page.getByRole("button", { name: "완료" }).click();
     await page.getByRole("link", { name: "추천 보러 가기" }).click();
+    await completeProfileWizard(page);
 
     await page.goto("/login");
     await expect(page).toHaveURL(/\/picks$/);

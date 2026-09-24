@@ -54,3 +54,7 @@ next-env.d.ts
 
 # dev-only email outbox (src/server/email/send.ts), read by e2e/waitlist.spec.ts
 /.dev-outbox.jsonl
+
+# dev-only photo storage fallback (src/server/storage/photos.ts) when Supabase Storage
+# isn't configured
+/.dev-storage/

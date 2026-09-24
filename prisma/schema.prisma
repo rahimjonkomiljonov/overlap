@@ -98,6 +98,7 @@ model User {
   auditLogEntries     AuditLog[]
   referralsAsReferrer Referral[] @relation("ReferrerUser")
   referralAsReferred  Referral?  @relation("ReferredUser")
+  profile             Profile?
 
   @@index([campusId])
   @@map("users")
@@ -334,6 +335,7 @@ model Course {
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
   sections  CourseSection[]
+  enrollees ProfileCourse[]
 
   @@unique([campusId, term, code])
   @@index([searchText(ops: raw("gin_trgm_ops"))], type: Gin)
@@ -352,8 +354,9 @@ model CourseSection {
   meetingTimes String?
   active       Boolean @default(true)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  enrollees ProfileCourse[]
 
   @@unique([courseId, section])
   @@map("course_sections")
@@ -374,8 +377,9 @@ model Club {
   searchText  String
   active      Boolean @default(true)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  members   ProfileClub[]
 
   @@unique([campusId, name])
   @@index([searchText(ops: raw("gin_trgm_ops"))], type: Gin)
@@ -407,8 +411,9 @@ model Spot {
   searchText  String
   active      Boolean  @default(true)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  optedIn   ProfileSpot[]
 
   @@unique([campusId, name])
   @@index([searchText(ops: raw("gin_trgm_ops"))], type: Gin)
@@ -444,8 +449,9 @@ model InterestTag {
   searchText String
   active     Boolean          @default(true)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+  profiles  ProfileInterestTag[]
 
   @@index([searchText(ops: raw("gin_trgm_ops"))], type: Gin)
   @@map("interest_tags")
@@ -461,8 +467,194 @@ model Prompt {
   sortOrder Int     @default(0)
   active    Boolean @default(true)
 
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  answers   PromptAnswer[]
+
+  @@map("prompts")
+}
+
+// --- S07: onboarding profile (B1-B10, B12). Account-level onboarding (age gate,
+// campus, consent — S05) must finish first; this can be saved incrementally and
+// resumed, and several of its steps are optional per B1. Course/club/spot/interest
+// picks stay relational (referential integrity against the S06 reference tables); S10
+// derives its own denormalized integer-array feature sets from these at batch time
+// (§5.1), rather than this step doing it prematurely. ---
+
+enum Gender {
+  WOMAN
+  MAN
+  NONBINARY
+  OTHER
+}
+
+enum IntentMode {
+  FRIENDS
+  STUDY
+  DATING
+  OPEN
+}
+
+model Profile {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  firstName String?
+  gender    Gender?
+  pronouns  String?
+  year      Int?
+  major     String?
+
+  /// Multi-select (B3); per-mode visibility is checked at query time by later steps,
+  /// not stored here.
+  intents IntentMode[] @default([])
+
+  /// "Who I'd like to meet" (B2) — sensitive information under PIPA Art. 23 (reveals
+  /// sexual orientation). Field-encrypted (src/server/privacy/encryption.ts): a
+  /// serialized JSON array of Gender values, present only when the user granted
+  /// ConsentType.SENSITIVE_PREFERENCE (S05). Decrypted only inside the matching worker
+  /// (S10) or this profile's own owner-facing edit form — never rendered anywhere
+  /// another user or a moderator can see (G9). Named `interestedIn` (not e.g.
+  /// "lookingFor") so a stray log of a Profile object still hits scrub.ts's existing
+  /// redaction key.
+  interestedIn String?
+
+  /// Flat slot indices 0-83: day (0=Mon..6=Sun) * 12 + two-hour block (0-11). Private;
+  /// only the overlap with another user is ever revealed (B7).
+  freeTimeSlots Int[] @default([])
+
+  /// 8 Likert answers (1-5), same order as src/server/profile/values-quiz.ts, the only
+  /// source of question text — never user-authored, so B10's "no religion/politics/
+  /// health/sex-life items" rule can't be bypassed by data.
+  valuesAnswers Int[] @default([])
+
+  /// Free-text interests (B8), moderated at write time with the same word guard S06
+  /// uses on imported clubs/tags (src/server/reference/sensitive.ts), but never scored
+  /// — only the taxonomy tags in `interests` are (REQUIREMENTS.md B8).
+  interestsFreeText String[] @default([])
+
+  /// Furthest wizard step reached, so /onboarding/profile can resume here (B1: "saves
+  /// progress"). A UI resume point only — completion is `completedAt`, not this.
+  onboardingStep Int @default(0)
+
+  /// Set once every required step (basics, >=1 intent, values quiz, 3 prompts, 3-6
+  /// photos) is done. Null = still onboarding; the (app) layout guard redirects to
+  /// /onboarding/profile until this is set.
+  completedAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("prompts")
+  courses       ProfileCourse[]
+  clubs         ProfileClub[]
+  spots         ProfileSpot[]
+  interests     ProfileInterestTag[]
+  promptAnswers PromptAnswer[]
+  photos        Photo[]
+
+  @@map("profiles")
+}
+
+/// Courses this term (B4). `sectionId` is optional — a user may know only the course,
+/// not the section — but is needed for C's same-section bonus (§5.2) when given.
+model ProfileCourse {
+  id        String         @id @default(uuid())
+  profileId String
+  profile   Profile        @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  courseId  String
+  course    Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  sectionId String?
+  section   CourseSection? @relation(fields: [sectionId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([profileId, courseId])
+  @@index([courseId])
+  @@map("profile_courses")
+}
+
+/// Clubs/orgs (B5).
+model ProfileClub {
+  id        String  @id @default(uuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  clubId    String
+  club      Club    @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([profileId, clubId])
+  @@index([clubId])
+  @@map("profile_clubs")
+}
+
+/// Opt-in hangout spots (B6) — "only ever shown as an overlap", never as a location.
+model ProfileSpot {
+  id        String  @id @default(uuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  spotId    String
+  spot      Spot    @relation(fields: [spotId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([profileId, spotId])
+  @@index([spotId])
+  @@map("profile_spots")
+}
+
+/// Taxonomy interest picks (B8), capped at 12 by Zod at write time (src/server/profile).
+model ProfileInterestTag {
+  id            String      @id @default(uuid())
+  profileId     String
+  profile       Profile     @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  interestTagId String
+  interestTag   InterestTag @relation(fields: [interestTagId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([profileId, interestTagId])
+  @@index([interestTagId])
+  @@map("profile_interest_tags")
+}
+
+/// One answer to one library prompt (B9), <= 200 chars, enforced by Zod at write time.
+model PromptAnswer {
+  id        String  @id @default(uuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  promptId  String
+  prompt    Prompt  @relation(fields: [promptId], references: [id])
+
+  answer    String
+  sortOrder Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([profileId, promptId])
+  @@index([promptId])
+  @@map("prompt_answers")
+}
+
+/// 3-6 ordered profile photos (B9). `storageKey` is a private-bucket path, not a public
+/// URL (src/server/storage/photos.ts resolves it to a short-lived signed URL, or the
+/// local-only dev fallback's guarded route, at render time) — resized and EXIF-stripped
+/// by sharp before it ever reaches storage.
+model Photo {
+  id        String  @id @default(uuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  storageKey String
+  sortOrder  Int
+  width      Int
+  height     Int
+
+  createdAt DateTime @default(now())
+
+  @@unique([profileId, sortOrder])
+  @@index([profileId])
+  @@map("photos")
 }

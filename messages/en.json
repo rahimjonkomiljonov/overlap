@@ -142,6 +142,143 @@
     "successTitle": "You're all set!",
     "goToPicks": "See your picks"
   },
+  "ProfileOnboarding": {
+    "pageTitle": "Build your profile",
+    "progress": "Step {current} of {total}",
+    "back": "Back",
+    "next": "Next",
+    "skip": "Skip for now",
+    "saving": "Saving…",
+    "steps": {
+      "basics": "Basics",
+      "intents": "What you're here for",
+      "courses": "Courses",
+      "clubs": "Clubs",
+      "spots": "Hangout spots",
+      "freeTime": "Free time",
+      "interests": "Interests",
+      "prompts": "Prompts",
+      "valuesQuiz": "Values",
+      "photos": "Photos",
+      "preview": "Preview"
+    },
+    "common": {
+      "searchPlaceholder": "Search…",
+      "remove": "Remove",
+      "empty": "Nothing added yet.",
+      "add": "Add"
+    },
+    "basics": {
+      "title": "Tell us about you",
+      "firstNameLabel": "First name (a nickname is fine)",
+      "genderLabel": "Gender",
+      "gender_WOMAN": "Woman",
+      "gender_MAN": "Man",
+      "gender_NONBINARY": "Nonbinary",
+      "gender_OTHER": "Other",
+      "pronounsLabel": "Pronouns (optional)",
+      "yearLabel": "Year",
+      "majorLabel": "Major",
+      "interestedInLabel": "Who would you like to meet?",
+      "interestedInHint": "This is encrypted and used only for matching — never shown to anyone else.",
+      "noSensitiveConsent": "To use Dating mode, go back to the consent step and agree to share your preference."
+    },
+    "intents": {
+      "title": "What are you here for?",
+      "hint": "Pick as many as you like.",
+      "option_FRIENDS": "Friends",
+      "option_STUDY": "Study buddy",
+      "option_DATING": "Dating",
+      "option_OPEN": "Open to anything",
+      "datingLocked": "Dating mode needs the sensitive-preference consent first."
+    },
+    "courses": {
+      "title": "Courses this term",
+      "hint": "Used to find people in your classes. (optional)"
+    },
+    "clubs": {
+      "title": "Clubs",
+      "hint": "Add the clubs you're in. (optional)"
+    },
+    "spots": {
+      "title": "Hangout spots",
+      "hint": "Only ever shown as an overlap with someone else. (optional)"
+    },
+    "freeTime": {
+      "title": "When are you free?",
+      "hint": "Only the overlap with someone else is ever shown. (optional)",
+      "days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      "blocks": [
+        "12–2am",
+        "2–4am",
+        "4–6am",
+        "6–8am",
+        "8–10am",
+        "10am–12pm",
+        "12–2pm",
+        "2–4pm",
+        "4–6pm",
+        "6–8pm",
+        "8–10pm",
+        "10pm–12am"
+      ]
+    },
+    "interests": {
+      "title": "Interests",
+      "hint": "Pick up to 12. (optional)",
+      "freeTextLabel": "Not on the list?",
+      "freeTextPlaceholder": "Type your own…",
+      "maxReached": "You can pick up to 12."
+    },
+    "prompts": {
+      "title": "Answer 3 prompts",
+      "hint": "Up to 200 characters each.",
+      "choosePlaceholder": "Choose a prompt…",
+      "answerPlaceholder": "Write your answer…",
+      "charsRemaining": "{count} characters left",
+      "duplicate": "You can't pick the same prompt twice."
+    },
+    "valuesQuiz": {
+      "title": "A few things about how you are",
+      "hint": "Rate each from 1 (strongly disagree) to 5 (strongly agree).",
+      "scale": ["Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree"]
+    },
+    "photos": {
+      "title": "Add your photos",
+      "hint": "Upload 3 to 6 photos.",
+      "upload": "Add photo",
+      "uploading": "Uploading…",
+      "remove": "Remove",
+      "count": "{count}/6 photos"
+    },
+    "preview": {
+      "title": "How others see you",
+      "strength": "Profile strength: {percent}%",
+      "missingTitle": "Still missing",
+      "missing_basics": "Basics",
+      "missing_intents": "What you're here for",
+      "missing_valuesQuiz": "Values quiz",
+      "missing_prompts": "3 prompts",
+      "missing_photos": "At least 3 photos",
+      "finish": "Finish",
+      "doneTitle": "Your profile is complete!",
+      "goToPicks": "See your picks"
+    },
+    "errors": {
+      "INVALID_INPUT": "Please check what you entered.",
+      "UNAUTHENTICATED": "Please sign in first.",
+      "DATING_REQUIRES_CONSENT": "Dating mode needs the sensitive-preference consent first.",
+      "TOO_MANY_INTERESTS": "You can pick up to 12 interests.",
+      "SENSITIVE_CONTENT": "That looks like it touches a sensitive topic — please rephrase.",
+      "DUPLICATE_PROMPT": "You can't pick the same prompt twice.",
+      "INVALID_PROMPT": "We couldn't find that prompt.",
+      "FILE_TOO_LARGE": "That file is too large (max 8MB).",
+      "INVALID_FILE_TYPE": "Only image files are allowed.",
+      "TOO_MANY_PHOTOS": "You can upload up to 6 photos.",
+      "NOT_FOUND": "We couldn't find that.",
+      "UNKNOWN": "Something went wrong. Please try again in a moment."
+    }
+  },
   "Legal": {
     "draftNotice": "This is a draft. It has not been reviewed by a lawyer yet (S13).",
     "termsTitle": "Terms of Service",

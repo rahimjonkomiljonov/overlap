@@ -142,6 +142,143 @@
     "successTitle": "가입이 완료됐어요!",
     "goToPicks": "추천 보러 가기"
   },
+  "ProfileOnboarding": {
+    "pageTitle": "프로필 만들기",
+    "progress": "{current}/{total} 단계",
+    "back": "이전",
+    "next": "다음",
+    "skip": "나중에 할게요",
+    "saving": "저장하는 중…",
+    "steps": {
+      "basics": "기본 정보",
+      "intents": "만남의 방식",
+      "courses": "수강 과목",
+      "clubs": "동아리",
+      "spots": "자주 가는 곳",
+      "freeTime": "시간표",
+      "interests": "관심사",
+      "prompts": "프롬프트",
+      "valuesQuiz": "가치관",
+      "photos": "사진",
+      "preview": "미리보기"
+    },
+    "common": {
+      "searchPlaceholder": "검색…",
+      "remove": "삭제",
+      "empty": "아직 추가한 게 없어요.",
+      "add": "추가"
+    },
+    "basics": {
+      "title": "너에 대해 알려줘",
+      "firstNameLabel": "이름 (닉네임 가능)",
+      "genderLabel": "성별",
+      "gender_WOMAN": "여성",
+      "gender_MAN": "남성",
+      "gender_NONBINARY": "논바이너리",
+      "gender_OTHER": "기타",
+      "pronounsLabel": "대명사 (선택)",
+      "yearLabel": "학년",
+      "majorLabel": "전공",
+      "interestedInLabel": "어떤 사람을 만나고 싶어?",
+      "interestedInHint": "이 정보는 암호화되어 매칭에만 쓰이고, 다른 사람에게 보이지 않아요.",
+      "noSensitiveConsent": "데이팅 모드를 쓰려면 온보딩 동의 화면에서 상대방 선호 정보 공유에 동의해야 해요."
+    },
+    "intents": {
+      "title": "여기서 뭘 하고 싶어?",
+      "hint": "여러 개를 고를 수 있어요.",
+      "option_FRIENDS": "친구",
+      "option_STUDY": "스터디",
+      "option_DATING": "데이팅",
+      "option_OPEN": "다 열려있어요",
+      "datingLocked": "데이팅 모드는 상대방 선호 정보 동의가 필요해요."
+    },
+    "courses": {
+      "title": "이번 학기 수강 과목",
+      "hint": "같은 수업을 듣는 사람을 찾는 데 쓰여요. (선택)"
+    },
+    "clubs": {
+      "title": "동아리",
+      "hint": "가입한 동아리를 추가해줘. (선택)"
+    },
+    "spots": {
+      "title": "자주 가는 곳",
+      "hint": "겹치는 경우에만 서로에게 보여요. (선택)"
+    },
+    "freeTime": {
+      "title": "언제 시간이 나?",
+      "hint": "다른 사람과 겹치는 시간만 공개돼요. (선택)",
+      "days": ["월", "화", "수", "목", "금", "토", "일"],
+      "blocks": [
+        "00–02시",
+        "02–04시",
+        "04–06시",
+        "06–08시",
+        "08–10시",
+        "10–12시",
+        "12–14시",
+        "14–16시",
+        "16–18시",
+        "18–20시",
+        "20–22시",
+        "22–24시"
+      ]
+    },
+    "interests": {
+      "title": "관심사",
+      "hint": "최대 12개까지 고를 수 있어요. (선택)",
+      "freeTextLabel": "목록에 없는 관심사",
+      "freeTextPlaceholder": "직접 입력…",
+      "maxReached": "최대 12개까지만 고를 수 있어요."
+    },
+    "prompts": {
+      "title": "프롬프트 3개를 골라 답해줘",
+      "hint": "최대 200자까지 쓸 수 있어요.",
+      "choosePlaceholder": "프롬프트 선택…",
+      "answerPlaceholder": "답을 적어줘…",
+      "charsRemaining": "{count}자 남음",
+      "duplicate": "같은 프롬프트를 두 번 고를 수 없어요."
+    },
+    "valuesQuiz": {
+      "title": "가치관을 알려줘",
+      "hint": "1(전혀 그렇지 않다)부터 5(매우 그렇다)까지 답해줘.",
+      "scale": ["전혀 그렇지 않다", "그렇지 않다", "보통이다", "그렇다", "매우 그렇다"]
+    },
+    "photos": {
+      "title": "사진을 추가해줘",
+      "hint": "3장에서 6장까지 올릴 수 있어요.",
+      "upload": "사진 추가",
+      "uploading": "업로드 중…",
+      "remove": "삭제",
+      "count": "{count}/6장"
+    },
+    "preview": {
+      "title": "이렇게 보여요",
+      "strength": "프로필 완성도 {percent}%",
+      "missingTitle": "아직 남은 항목",
+      "missing_basics": "기본 정보",
+      "missing_intents": "만남의 방식",
+      "missing_valuesQuiz": "가치관 질문",
+      "missing_prompts": "프롬프트 3개",
+      "missing_photos": "사진 3장 이상",
+      "finish": "완료",
+      "doneTitle": "프로필이 완성됐어요!",
+      "goToPicks": "추천 보러 가기"
+    },
+    "errors": {
+      "INVALID_INPUT": "입력한 내용을 다시 확인해 주세요.",
+      "UNAUTHENTICATED": "먼저 로그인해 주세요.",
+      "DATING_REQUIRES_CONSENT": "데이팅 모드는 상대방 선호 정보 동의가 필요해요.",
+      "TOO_MANY_INTERESTS": "관심사는 최대 12개까지 고를 수 있어요.",
+      "SENSITIVE_CONTENT": "민감한 내용이 포함된 것 같아요. 다시 써줘.",
+      "DUPLICATE_PROMPT": "같은 프롬프트를 두 번 고를 수 없어요.",
+      "INVALID_PROMPT": "선택한 프롬프트를 확인할 수 없어요.",
+      "FILE_TOO_LARGE": "파일이 너무 커요 (최대 8MB).",
+      "INVALID_FILE_TYPE": "이미지 파일만 올릴 수 있어요.",
+      "TOO_MANY_PHOTOS": "사진은 최대 6장까지 올릴 수 있어요.",
+      "NOT_FOUND": "찾을 수 없어요.",
+      "UNKNOWN": "문제가 생겼어요. 잠시 후 다시 시도해 주세요."
+    }
+  },
   "Legal": {
     "draftNotice": "초안이에요. 아직 변호사 검토(S13)를 거치지 않았어요.",
     "termsTitle": "이용약관",

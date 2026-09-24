@@ -1,0 +1,122 @@
+"use client";
+
+import { useActionState, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
+import { Gender } from "@/generated/prisma/enums";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import { saveBasics, type StepState } from "@/server/profile/actions";
+import { StepShell } from "./step-shell";
+
+const GENDERS = [Gender.WOMAN, Gender.MAN, Gender.NONBINARY, Gender.OTHER] as const;
+
+const initialState: StepState = { status: "idle" };
+
+export function BasicsStep({
+  stepIndex,
+  totalSteps,
+  onNext,
+  canUseDating,
+  initial,
+}: {
+  stepIndex: number;
+  totalSteps: number;
+  onNext: () => void;
+  canUseDating: boolean;
+  initial: {
+    firstName: string;
+    gender: string | null;
+    pronouns: string;
+    year: number | null;
+    major: string;
+    interestedIn: string[];
+  };
+}) {
+  const t = useTranslations("ProfileOnboarding");
+  const [state, formAction] = useActionState(saveBasics, initialState);
+  const [interestedIn, setInterestedIn] = useState<string[]>(initial.interestedIn);
+
+  useEffect(() => {
+    if (state.status === "success") onNext();
+  }, [state, onNext]);
+
+  function toggleInterestedIn(value: string) {
+    setInterestedIn((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]));
+  }
+
+  return (
+    <StepShell
+      formAction={formAction}
+      progressLabel={t("progress", { current: stepIndex + 1, total: totalSteps })}
+      progressCurrent={stepIndex + 1}
+      progressTotal={totalSteps}
+      title={t("basics.title")}
+      error={state.status === "error" ? t(`errors.${state.code}` as never) : undefined}
+      nextLabel={t("next")}
+      savingLabel={t("saving")}
+    >
+      <div className="space-y-2">
+        <Label htmlFor="firstName">{t("basics.firstNameLabel")}</Label>
+        <Input id="firstName" name="firstName" defaultValue={initial.firstName} maxLength={50} required />
+      </div>
+
+      <fieldset className="space-y-2">
+        <legend className="text-sm font-medium">{t("basics.genderLabel")}</legend>
+        <RadioGroup name="gender" defaultValue={initial.gender ?? undefined} required>
+          {GENDERS.map((g) => (
+            <label key={g} className="flex min-h-11 cursor-pointer items-center gap-3">
+              <RadioGroupItem value={g} id={`gender-${g}`} />
+              {t(`basics.gender_${g}` as never)}
+            </label>
+          ))}
+        </RadioGroup>
+      </fieldset>
+
+      <div className="space-y-2">
+        <Label htmlFor="pronouns">{t("basics.pronounsLabel")}</Label>
+        <Input id="pronouns" name="pronouns" defaultValue={initial.pronouns} maxLength={30} />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-2">
+          <Label htmlFor="year">{t("basics.yearLabel")}</Label>
+          <Input
+            id="year"
+            name="year"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={8}
+            defaultValue={initial.year ?? undefined}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="major">{t("basics.majorLabel")}</Label>
+          <Input id="major" name="major" defaultValue={initial.major} maxLength={100} required />
+        </div>
+      </div>
+
+      {canUseDating ? (
+        <fieldset className="space-y-2">
+          <legend className="text-sm font-medium">{t("basics.interestedInLabel")}</legend>
+          <p className="text-sm text-muted-foreground">{t("basics.interestedInHint")}</p>
+          {GENDERS.map((g) => (
+            <label key={g} className="flex min-h-11 cursor-pointer items-center gap-3">
+              <Checkbox
+                checked={interestedIn.includes(g)}
+                onCheckedChange={() => toggleInterestedIn(g)}
+              />
+              {interestedIn.includes(g) && <input type="hidden" name="interestedIn" value={g} />}
+              {t(`basics.gender_${g}` as never)}
+            </label>
+          ))}
+        </fieldset>
+      ) : (
+        <p className="text-sm text-muted-foreground">{t("basics.noSensitiveConsent")}</p>
+      )}
+    </StepShell>
+  );
+}

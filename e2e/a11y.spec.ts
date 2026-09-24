@@ -76,5 +76,43 @@ for (const colorScheme of ["light", "dark"] as const) {
       await page.goto("/onboarding");
       await assertNoViolations(page, colorScheme);
     });
+
+    test("/onboarding/profile (basics step, S07) has no WCAG A/AA violations", async ({ page }) => {
+      const email = uniqueTestEmail("a11y-profile");
+      await signIn(page, email);
+      await page.getByLabel("태어난 연도").fill("1995");
+      await page.getByRole("checkbox", { name: "저는 만 19세 이상이에요." }).check();
+      await page.getByRole("checkbox", { name: /이용약관과 개인정보 처리방침에 동의해요/ }).check();
+      await page.getByRole("button", { name: "완료" }).click();
+      await page.getByRole("link", { name: "추천 보러 가기" }).click();
+      await expect(page).toHaveURL(/\/onboarding\/profile$/);
+      await assertNoViolations(page, colorScheme);
+    });
+
+    test("/onboarding/profile (free-time grid step, S07) has no WCAG A/AA violations", async ({
+      page,
+    }) => {
+      const email = uniqueTestEmail("a11y-profile-freetime");
+      await signIn(page, email);
+      await page.getByLabel("태어난 연도").fill("1995");
+      await page.getByRole("checkbox", { name: "저는 만 19세 이상이에요." }).check();
+      await page.getByRole("checkbox", { name: /이용약관과 개인정보 처리방침에 동의해요/ }).check();
+      await page.getByRole("button", { name: "완료" }).click();
+      await page.getByRole("link", { name: "추천 보러 가기" }).click();
+
+      await page.getByLabel("이름 (닉네임 가능)").fill("테스트유저");
+      await page.getByRole("radio", { name: "여성" }).check();
+      await page.getByLabel("학년").fill("2");
+      await page.getByLabel("전공").fill("컴퓨터공학");
+      await page.getByRole("button", { name: "다음" }).click();
+      await page.getByRole("checkbox", { name: "친구" }).check();
+      await page.getByRole("button", { name: "다음" }).click();
+      for (let i = 0; i < 3; i++) {
+        await page.getByRole("button", { name: "나중에 할게요" }).click();
+      }
+      await expect(page.getByRole("heading", { name: "언제 시간이 나?" })).toBeVisible();
+
+      await assertNoViolations(page, colorScheme);
+    });
   });
 }

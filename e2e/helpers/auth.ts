@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { readLastOtpCode, uniqueTestEmail } from "./dev-outbox";
+import { completeProfileWizard } from "./profile";
 
 /** Drives the full email + OTP sign-in flow. Leaves the browser signed in. */
 export async function signIn(page: Page, email: string): Promise<void> {
@@ -15,10 +16,16 @@ export async function signIn(page: Page, email: string): Promise<void> {
 }
 
 /**
- * Signs in as a brand-new user and completes onboarding, landing on /picks. For tests
- * that just need *some* authenticated, fully-onboarded session (e.g. checking the app
- * shell or a protected route's accessibility) rather than testing sign-in/onboarding
- * itself — see e2e/auth.spec.ts for that.
+ * Signs in as a brand-new user, completes account onboarding (S05: age gate, campus,
+ * consent) *and* the profile wizard (S07: basics through photos), landing on /picks.
+ * For tests that just need *some* authenticated, fully-onboarded session (e.g.
+ * checking the app shell or a protected route's accessibility) rather than testing
+ * sign-in/onboarding itself — see e2e/auth.spec.ts for that.
+ *
+ * Both onboarding stages gate every route under the (app) layout (src/app/[locale]/
+ * (app)/layout.tsx) — skipping either one here would land on /onboarding or
+ * /onboarding/profile instead of the protected route a test actually wants to exercise
+ * (see CLAUDE.md's gotcha about vacuously-passing tests on a redirect target).
  */
 export async function signInAndOnboard(
   page: Page,
@@ -34,5 +41,6 @@ export async function signInAndOnboard(
   }
   await page.getByRole("button", { name: "완료" }).click();
   await page.getByRole("link", { name: "추천 보러 가기" }).click();
+  await completeProfileWizard(page, { intent: options.grantSensitive ? "데이팅" : "친구" });
   return email;
 }
