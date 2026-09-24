@@ -33,6 +33,7 @@ model Campus {
   courses      Course[]
   clubs        Club[]
   spots        Spot[]
+  idfStats     IdfStat[]
 
   @@map("campuses")
 }
@@ -104,6 +105,15 @@ model User {
   /// unverified users are excluded from appearing in others' picks or sending waves
   /// (enforced by the matching engine, S10 — the candidate query doesn't exist yet).
   verifiedAt DateTime?
+
+  /// True only for rows created by scripts/generate-synthetic-campus.ts (S09),
+  /// dev/staging only (CLAUDE.md: "Synthetic users exist only in dev and staging").
+  /// src/server/synthetic/guard.ts asserts none exist wherever `NODE_ENV=production`.
+  isSynthetic Boolean @default(false)
+  /// Which planted community (0-indexed) a synthetic user belongs to — lets S10's
+  /// offline evaluation (REQUIREMENTS.md §5.5) check precision@6 against known-good
+  /// pairs. Null for every real user and meaningless unless `isSynthetic` is true.
+  syntheticCommunity Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -714,4 +724,39 @@ model Selfie {
   @@index([userId])
   @@index([decision, submittedAt])
   @@map("selfies")
+}
+
+// --- S09: IDF statistics feeding the matching engine's C/K/I terms (§5.2). Computed by
+// src/server/matching/idf.ts, scoped per campus since the candidate pool (and therefore
+// what counts as "rare") is per-campus, not global. Refreshed nightly once a cron job
+// exists (S11); S09 just builds the job function and a CLI to run it by hand. ---
+
+enum IdfFeatureType {
+  COURSE
+  CLUB
+  INTEREST
+}
+
+/// One row per (campus, feature). `count` is n_x — how many eligible (verified,
+/// profile-complete) users on this campus have this feature; `idf` is
+/// `log(N / (1 + n_x))` capped at 0 (REQUIREMENTS.md §5.2), where N is that campus's
+/// eligible-user count. featureId points at a Course/Club/InterestTag id depending on
+/// featureType, but isn't a foreign key — a stale stat for a since-deactivated feature
+/// is harmless (S10's scoring only ever looks up stats for features a candidate
+/// actually has) and this avoids three nullable FK columns for one row shape.
+model IdfStat {
+  id       String @id @default(uuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id], onDelete: Cascade)
+
+  featureType IdfFeatureType
+  featureId   String
+  count       Int
+  idf         Float
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([campusId, featureType, featureId])
+  @@index([campusId, featureType])
+  @@map("idf_stats")
 }
