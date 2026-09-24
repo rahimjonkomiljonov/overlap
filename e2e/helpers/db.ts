@@ -91,3 +91,61 @@ export async function shareCourseAndClub(emailA: string, emailB: string): Promis
     );
   }
 }
+
+/** Blocks `blockedEmail` from `blockerEmail`'s side, direct via SQL (no UI path exists yet — S16 builds one). */
+export async function blockUser(blockerEmail: string, blockedEmail: string): Promise<void> {
+  await pool.query(
+    `INSERT INTO blocks (id, "blockerId", "blockedId")
+     VALUES ($1, (SELECT id FROM users WHERE email = $2), (SELECT id FROM users WHERE email = $3))`,
+    [randomUUID(), blockerEmail.toLowerCase(), blockedEmail.toLowerCase()],
+  );
+}
+
+/** How many `Match` rows exist between these two users, in either userA/userB order — should only ever be 0 or 1 (`@@unique([userAId, userBId])`, always inserted in a normalized order). */
+export async function countMatches(emailA: string, emailB: string): Promise<number> {
+  const result = await pool.query(
+    `SELECT COUNT(*)::int AS count FROM matches m
+     JOIN users a ON a.email = $1 JOIN users b ON b.email = $2
+     WHERE (m."userAId" = a.id AND m."userBId" = b.id) OR (m."userAId" = b.id AND m."userBId" = a.id)`,
+    [emailA.toLowerCase(), emailB.toLowerCase()],
+  );
+  return result.rows[0].count;
+}
+
+/**
+ * A minimal `User` row with no profile — for seeding a `Wave` sender in a test that only
+ * cares about the *recipient*'s side (e.g. the daily-cap test needs 9 distinct senders,
+ * not 9 fully onboarded browser sessions). `getIncomingWaves` (src/server/waves/queries.ts)
+ * already handles a sender with no profile gracefully (null name/photo).
+ */
+export async function createBareUser(email: string, name: string): Promise<void> {
+  await pool.query('INSERT INTO users (id, name, email, "updatedAt") VALUES ($1, $2, $3, now())', [
+    randomUUID(),
+    name,
+    email.toLowerCase(),
+  ]);
+}
+
+/**
+ * An ACTIVE match between two already-onboarded users, direct via SQL — for tests
+ * (a11y's populated /matches check) that need a real match to render without re-driving
+ * the full mutual-wave flow already covered by e2e/waves.spec.ts. Which side is
+ * userA/userB doesn't matter here (unlike the app's own `orderedPair`) — `getMatches`
+ * queries both sides, and the `@@unique` constraint doesn't care which is which.
+ */
+export async function createMatch(emailA: string, emailB: string): Promise<void> {
+  await pool.query(
+    `INSERT INTO matches (id, "userAId", "userBId")
+     VALUES ($1, (SELECT id FROM users WHERE email = $2), (SELECT id FROM users WHERE email = $3))`,
+    [randomUUID(), emailA.toLowerCase(), emailB.toLowerCase()],
+  );
+}
+
+/** A PENDING wave straight into the `toEmail` user's inbox, bypassing the UI/matching engine entirely — see `createBareUser`. */
+export async function createIncomingWave(fromEmail: string, toEmail: string): Promise<void> {
+  await pool.query(
+    `INSERT INTO waves (id, "fromUserId", "toUserId", "targetElement", status)
+     VALUES ($1, (SELECT id FROM users WHERE email = $2), (SELECT id FROM users WHERE email = $3), $4::jsonb, 'PENDING')`,
+    [randomUUID(), fromEmail.toLowerCase(), toEmail.toLowerCase(), JSON.stringify({ type: "profile" })],
+  );
+}

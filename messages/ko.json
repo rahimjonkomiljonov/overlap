@@ -54,18 +54,48 @@
       "INVALID_INPUT": "입력한 내용에 문제가 있어요. 다시 시도해 주세요.",
       "NOT_FOUND": "더 이상 이용할 수 없는 추천이에요.",
       "ALREADY_DECIDED": "이미 처리한 추천이에요.",
-      "UNKNOWN": "문제가 발생했어요. 잠시 후 다시 시도해 주세요."
+      "UNKNOWN": "문제가 발생했어요. 잠시 후 다시 시도해 주세요.",
+      "BLOCKED": "이 상대에게는 웨이브를 보낼 수 없어요.",
+      "DAILY_CAP_REACHED": "오늘 보낼 수 있는 웨이브를 모두 사용했어요 (하루 8개)."
     }
   },
   "Waves": {
     "title": "받은 웨이브",
     "emptyTitle": "아직 받은 웨이브가 없어요",
-    "emptyBody": "누군가 관심을 보내면 여기에 나타나요."
+    "emptyBody": "누군가 관심을 보내면 여기에 나타나요.",
+    "targetPhoto": "회원님의 사진에 반응했어요",
+    "targetPrompt": "회원님의 프롬프트 답변에 반응했어요",
+    "targetProfile": "회원님의 프로필에 웨이브를 보냈어요",
+    "notePlaceholder": "짧은 메모를 남겨보세요 (선택)",
+    "noteCount": "{count}/140",
+    "cancel": "취소",
+    "send": "웨이브 보내기",
+    "decline": "패스",
+    "waveBack": "웨이브 보내기",
+    "errors": {
+      "UNAUTHENTICATED": "먼저 로그인해 주세요.",
+      "INVALID_INPUT": "입력한 내용에 문제가 있어요. 다시 시도해 주세요.",
+      "NOT_FOUND": "더 이상 이용할 수 없는 웨이브예요.",
+      "ALREADY_DECIDED": "이미 처리한 웨이브예요.",
+      "BLOCKED": "이 상대에게는 웨이브를 보낼 수 없어요.",
+      "DAILY_CAP_REACHED": "오늘 보낼 수 있는 웨이브를 모두 사용했어요 (하루 8개).",
+      "UNKNOWN": "문제가 발생했어요. 잠시 후 다시 시도해 주세요."
+    }
   },
   "Matches": {
     "title": "매치",
     "emptyTitle": "아직 매치가 없어요",
-    "emptyBody": "서로 웨이브를 보내면 매치가 되고 대화를 시작할 수 있어요."
+    "emptyBody": "서로 웨이브를 보내면 매치가 되고 대화를 시작할 수 있어요.",
+    "unmatch": "언매치",
+    "unmatchConfirm": "정말 언매치할까요?",
+    "cancel": "취소",
+    "errors": {
+      "UNAUTHENTICATED": "먼저 로그인해 주세요.",
+      "INVALID_INPUT": "입력한 내용에 문제가 있어요. 다시 시도해 주세요.",
+      "NOT_FOUND": "더 이상 이용할 수 없는 매치예요.",
+      "ALREADY_DECIDED": "이미 처리한 매치예요.",
+      "UNKNOWN": "문제가 발생했어요. 잠시 후 다시 시도해 주세요."
+    }
   },
   "Me": {
     "title": "내 정보",

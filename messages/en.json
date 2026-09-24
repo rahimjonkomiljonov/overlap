@@ -54,18 +54,48 @@
       "INVALID_INPUT": "Something about that wasn't valid. Please try again.",
       "NOT_FOUND": "That pick isn't available anymore.",
       "ALREADY_DECIDED": "You've already acted on this pick.",
-      "UNKNOWN": "Something went wrong. Please try again in a moment."
+      "UNKNOWN": "Something went wrong. Please try again in a moment.",
+      "BLOCKED": "You can't wave at this person.",
+      "DAILY_CAP_REACHED": "You've used all your waves for today (8/day)."
     }
   },
   "Waves": {
     "title": "Waves for you",
     "emptyTitle": "No waves yet",
-    "emptyBody": "When someone shows interest, it will appear here."
+    "emptyBody": "When someone shows interest, it will appear here.",
+    "targetPhoto": "Reacted to your photo",
+    "targetPrompt": "Reacted to your prompt answer",
+    "targetProfile": "Waved at your profile",
+    "notePlaceholder": "Leave a short note (optional)",
+    "noteCount": "{count}/140",
+    "cancel": "Cancel",
+    "send": "Send wave",
+    "decline": "Pass",
+    "waveBack": "Wave back",
+    "errors": {
+      "UNAUTHENTICATED": "Please sign in first.",
+      "INVALID_INPUT": "Something about that wasn't valid. Please try again.",
+      "NOT_FOUND": "That wave isn't available anymore.",
+      "ALREADY_DECIDED": "You've already acted on this wave.",
+      "BLOCKED": "You can't wave at this person.",
+      "DAILY_CAP_REACHED": "You've used all your waves for today (8/day).",
+      "UNKNOWN": "Something went wrong. Please try again in a moment."
+    }
   },
   "Matches": {
     "title": "Matches",
     "emptyTitle": "No matches yet",
-    "emptyBody": "When you wave at each other it becomes a match and you can start chatting."
+    "emptyBody": "When you wave at each other it becomes a match and you can start chatting.",
+    "unmatch": "Unmatch",
+    "unmatchConfirm": "Unmatch for good?",
+    "cancel": "Cancel",
+    "errors": {
+      "UNAUTHENTICATED": "Please sign in first.",
+      "INVALID_INPUT": "Something about that wasn't valid. Please try again.",
+      "NOT_FOUND": "That match isn't available anymore.",
+      "ALREADY_DECIDED": "You've already acted on this match.",
+      "UNKNOWN": "Something went wrong. Please try again in a moment."
+    }
   },
   "Me": {
     "title": "Me",

@@ -2,14 +2,18 @@
 
 import { getActor } from "@/server/auth/session";
 import { prisma } from "@/server/db";
+import { isBlockedEitherWay } from "@/server/waves/blocks";
+import { countWavesSentToday, DAILY_WAVE_CAP } from "@/server/waves/cap";
+import { formMatch } from "@/server/waves/match";
 import { passPickSchema, sendWaveSchema } from "./schema";
 
 export type SendWaveState = { status: "idle" } | { status: "success" } | { status: "error"; code: string };
 
 /**
- * Sends a wave from one still-actionable pick (S12's "wave composer"). Only ever writes
- * `BatchItem.decision`/`Wave` — reciprocal-wave match detection, the 8/day send cap, and
- * the waves inbox are S14's job ("Waves and matches"), not this action's.
+ * Sends a wave from one still-actionable pick (S12's "wave composer"). Checks the 8/day
+ * cap and blocks (S14), and completes a match immediately if the target already waved at
+ * the actor first (`src/server/waves/match.ts`'s `formMatch`) — the inbox's `waveBack`
+ * (`src/server/waves/actions.ts`) is the mirror image of this for the other direction.
  */
 export async function sendWave(_prev: SendWaveState, formData: FormData): Promise<SendWaveState> {
   const actor = await getActor();
@@ -59,18 +63,40 @@ export async function sendWave(_prev: SendWaveState, formData: FormData): Promis
     return { status: "success" };
   }
 
-  await prisma.$transaction([
-    prisma.batchItem.update({ where: { id: item.id }, data: { decision: "WAVED", decidedAt } }),
-    prisma.wave.create({
+  if (await isBlockedEitherWay(prisma, actor.userId, item.candidateUserId)) {
+    return { status: "error", code: "BLOCKED" };
+  }
+
+  const sentToday = await countWavesSentToday(prisma, actor.userId);
+  if (sentToday >= DAILY_WAVE_CAP) {
+    return { status: "error", code: "DAILY_CAP_REACHED" };
+  }
+
+  // The candidate may already have waved at the actor first (from their own picks, or
+  // the S14 waves inbox) — if so, this wave completes the pair into a match right away
+  // instead of sitting PENDING until some future reciprocal action.
+  const reverseWave = await prisma.wave.findUnique({
+    where: { fromUserId_toUserId: { fromUserId: item.candidateUserId, toUserId: actor.userId } },
+    select: { id: true, status: true },
+  });
+  const mutual = reverseWave?.status === "PENDING";
+
+  await prisma.$transaction(async (tx) => {
+    await tx.batchItem.update({ where: { id: item.id }, data: { decision: "WAVED", decidedAt } });
+    await tx.wave.create({
       data: {
         batchItemId: item.id,
         fromUserId: actor.userId,
         toUserId: item.candidateUserId,
         targetElement: parsed.data.targetElement,
         note: parsed.data.note ?? null,
+        status: mutual ? "MATCHED" : "PENDING",
       },
-    }),
-  ]);
+    });
+    if (mutual && reverseWave) {
+      await formMatch(tx, actor.userId, item.candidateUserId, reverseWave.id);
+    }
+  });
 
   return { status: "success" };
 }

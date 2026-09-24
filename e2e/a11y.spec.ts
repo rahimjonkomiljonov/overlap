@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { signIn, signInAndOnboard } from "./helpers/auth";
 import { uniqueTestEmail } from "./helpers/dev-outbox";
-import { deleteTestUser, promoteToRole, Role, shareCourseAndClub, verifyUser } from "./helpers/db";
+import { createMatch, deleteTestUser, promoteToRole, Role, shareCourseAndClub, verifyUser } from "./helpers/db";
 
 const wcagTags = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
@@ -147,6 +147,67 @@ for (const colorScheme of ["light", "dark"] as const) {
         await expect(card).toHaveCount(1);
         await card.getByRole("button", { name: "이 사진에 반응하기" }).first().click();
         await expect(card.getByText("웨이브 보내기").first()).toBeVisible();
+
+        await assertNoViolations(page, colorScheme);
+      } finally {
+        await contextB.close();
+        await deleteTestUser(emailA);
+        await deleteTestUser(emailB);
+      }
+    });
+
+    test("/waves (populated with a real incoming wave + open wave-back composer, S14) has no WCAG A/AA violations", async ({
+      page,
+      browser,
+    }) => {
+      const firstNameA = `a11yWaveRecipient${Date.now()}`;
+      const firstNameB = `a11yWaveSender${Date.now()}`;
+      const emailA = await signInAndOnboard(page, { emailPrefix: "a11y-waves-a", firstName: firstNameA });
+      const contextB = await browser.newContext();
+      const pageB = await contextB.newPage();
+      const emailB = await signInAndOnboard(pageB, { emailPrefix: "a11y-waves-b", firstName: firstNameB });
+      await verifyUser(emailA);
+      await verifyUser(emailB);
+      await shareCourseAndClub(emailA, emailB);
+
+      try {
+        // B waves at A from /picks so A has a real (not bare/profile-less) incoming wave.
+        await pageB.goto("/picks");
+        const cardOnB = pageB.locator('[data-slot="card"]').filter({ hasText: firstNameA });
+        await expect(cardOnB).toHaveCount(1);
+        await cardOnB.getByRole("button", { name: "웨이브", exact: true }).click();
+        await expect(cardOnB).toHaveCount(0);
+
+        await page.goto("/waves");
+        const card = page.locator('[data-slot="card"]').filter({ hasText: firstNameB });
+        await expect(card).toHaveCount(1);
+        await card.getByRole("button", { name: "웨이브 보내기" }).click();
+        await expect(card.getByLabel("짧은 메모를 남겨보세요 (선택)")).toBeVisible();
+
+        await assertNoViolations(page, colorScheme);
+      } finally {
+        await contextB.close();
+        await deleteTestUser(emailA);
+        await deleteTestUser(emailB);
+      }
+    });
+
+    test("/matches (populated with a real match + open unmatch confirm, S14) has no WCAG A/AA violations", async ({
+      page,
+      browser,
+    }) => {
+      const emailA = await signInAndOnboard(page, { emailPrefix: "a11y-matches-a" });
+      const contextB = await browser.newContext();
+      const pageB = await contextB.newPage();
+      const emailB = await signInAndOnboard(pageB, { emailPrefix: "a11y-matches-b", firstName: "a11yMatchPartner" });
+      await createMatch(emailA, emailB);
+
+      try {
+        await page.goto("/matches");
+        const card = page.locator('[data-slot="card"]').filter({ hasText: "a11yMatchPartner" });
+        await expect(card).toHaveCount(1);
+        await card.getByRole("button", { name: "언매치" }).click();
+        await expect(card.getByText("정말 언매치할까요?")).toBeVisible();
 
         await assertNoViolations(page, colorScheme);
       } finally {

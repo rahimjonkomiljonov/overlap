@@ -140,6 +140,8 @@ model User {
   batchAppearances    BatchItem[]  @relation("BatchItemCandidate")
   wavesSent           Wave[]       @relation("WaveSender")
   wavesReceived       Wave[]       @relation("WaveRecipient")
+  matchesAsUserA      Match[]      @relation("MatchUserA")
+  matchesAsUserB      Match[]      @relation("MatchUserB")
 
   @@index([campusId])
   @@map("users")
@@ -885,11 +887,12 @@ model BatchItem {
   @@map("batch_items")
 }
 
-/// A wave sent from one pick (S12). Reciprocal-wave → match detection, the 8/day send
-/// cap, the waves inbox and the matches list are S14's job ("Waves and matches") — this
-/// is only the compose-and-send half, which S12 needs to make its wave composer real
-/// rather than a UI mock. `status` starts and stays PENDING until S14 adds the logic that
-/// changes it.
+/// A wave sent either from a pick (S12) or in direct response to an incoming one from
+/// the waves inbox (S14 — see `batchItemId`'s comment). `status` moves PENDING → MATCHED
+/// the instant a reciprocal wave completes the pair (src/server/waves/match.ts's
+/// `formMatch`), or PENDING → DECLINED if the recipient dismisses it from the inbox
+/// without waving back (src/server/waves/actions.ts's `declineWave`). Never changes again
+/// after that — matching REQUIREMENTS.md's Wave entity, not a preference toggle.
 enum WaveStatus {
   PENDING
   MATCHED
@@ -899,11 +902,14 @@ enum WaveStatus {
 model Wave {
   id String @id @default(uuid())
 
-  /// The pick this wave was sent from — lets a future inbox show the same "why you
-  /// overlap" context the sender saw, and makes a wave impossible without a real,
-  /// currently-actionable pick (enforced in src/server/picks/actions.ts, not here).
-  batchItemId String @unique
-  batchItem   BatchItem @relation(fields: [batchItemId], references: [id], onDelete: Cascade)
+  /// The pick this wave was sent from, when there was one — lets the sender's own
+  /// history show the "why you overlap" context they saw. Null for a wave sent straight
+  /// from the S14 waves inbox in response to an incoming one: the recipient doesn't
+  /// necessarily have the sender in their own current batch (exposure caps and the
+  /// diversity mix don't guarantee mutual visibility), so requiring a BatchItem here
+  /// would make some real mutual waves impossible to complete.
+  batchItemId String?    @unique
+  batchItem   BatchItem? @relation(fields: [batchItemId], references: [id], onDelete: Cascade)
 
   fromUserId String
   fromUser   User   @relation("WaveSender", fields: [fromUserId], references: [id], onDelete: Cascade)
@@ -911,10 +917,11 @@ model Wave {
   toUser     User   @relation("WaveRecipient", fields: [toUserId], references: [id], onDelete: Cascade)
 
   /// What was reacted to — a specific photo or prompt answer, or a generic profile-level
-  /// wave. Structured, like BatchItem.reasons, so the recipient's UI (S14) can render it
-  /// in either locale without a backfill.
+  /// wave (always `{type: "profile"}` for an inbox wave-back, since there's no specific
+  /// pick card to react to an element of). Structured, like BatchItem.reasons, so the
+  /// recipient's UI (S14) can render it in either locale without a backfill.
   targetElement Json
-  /// ≤140 chars, optional (src/server/picks/schema.ts).
+  /// ≤140 chars, optional (src/server/picks/schema.ts, src/server/waves/schema.ts).
   note   String?
   status WaveStatus @default(PENDING)
 
@@ -923,4 +930,37 @@ model Wave {
   @@unique([fromUserId, toUserId])
   @@index([toUserId])
   @@map("waves")
+}
+
+enum MatchStatus {
+  ACTIVE
+  UNMATCHED
+}
+
+/// A mutual wave (REQUIREMENTS.md D2) — the moment both directions of a `Wave` pair
+/// exist, `src/server/waves/match.ts`'s `formMatch` marks both MATCHED and creates
+/// exactly one of these. `userAId`/`userBId` are always ordered so `userAId < userBId`
+/// lexicographically (`src/server/waves/pair.ts`'s `orderedPair`) — the only way to make
+/// the pair unique regardless of who waved first or which side is "from"/"to" on either
+/// Wave row. Re-matching after an unmatch isn't possible under this schema (a `Wave`'s
+/// `[fromUserId, toUserId]` is unique forever), which is an accepted Month-1 limitation,
+/// not a bug.
+model Match {
+  id String @id @default(uuid())
+
+  userAId String
+  userA   User   @relation("MatchUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userBId String
+  userB   User   @relation("MatchUserB", fields: [userBId], references: [id], onDelete: Cascade)
+
+  status MatchStatus @default(ACTIVE)
+  /// Always equal to userAId or userBId — not its own relation, since Match already
+  /// cascades on either matched user's own deletion.
+  unmatchedByUserId String?
+  unmatchedAt       DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@unique([userAId, userBId])
+  @@map("matches")
 }
