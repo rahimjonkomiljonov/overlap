@@ -53,6 +53,8 @@ export async function getIncomingWaves(db: WavesDb, userId: string): Promise<Inc
 
 export interface MatchSummary {
   matchId: string;
+  /** Every Match has exactly one Conversation (created atomically in formMatch, S15) — never null in practice. */
+  conversationId: string | null;
   otherUserId: string;
   firstName: string | null;
   photoUrl: string | null;
@@ -69,6 +71,7 @@ export async function getMatches(db: WavesDb, userId: string): Promise<MatchSumm
       userAId: true,
       userBId: true,
       createdAt: true,
+      conversation: { select: { id: true } },
       userA: {
         select: {
           profile: {
@@ -94,6 +97,7 @@ export async function getMatches(db: WavesDb, userId: string): Promise<MatchSumm
       const photo = other.profile?.photos[0];
       return {
         matchId: match.id,
+        conversationId: match.conversation?.id ?? null,
         otherUserId,
         firstName: other.profile?.firstName ?? null,
         photoUrl: photo ? await resolvePhotoUrl(photo.storageKey) : null,

@@ -62,11 +62,18 @@ export async function deleteTestUser(email: string): Promise<void> {
  * — `completeProfileWizard()` deliberately skips the optional courses/clubs steps, so
  * without this, two independently onboarded e2e users have no shared signal for the
  * matching engine (S10) to find them by. Uses whatever reference data the campus
- * already has (S06's `db:import-reference`), the same course/club for both users.
+ * already has (S06's `db:import-reference`), a *random* course/club (not always the
+ * same row) for both users — S15's full-suite run found that always picking the same
+ * one crowds a test's own pair out of the ranked top-6 when several spec files call
+ * this helper around the same moment (a11y.spec.ts, picks.spec.ts, waves.spec.ts and
+ * chat.spec.ts all do): every concurrent pair landed on the identical course+club,
+ * so the pool briefly had far more "equally good" candidates than any one test expects.
+ * Randomizing spreads concurrent pairs across whatever reference rows exist instead of
+ * piling them all onto one.
  */
 export async function shareCourseAndClub(emailA: string, emailB: string): Promise<void> {
-  const courseRow = await pool.query("SELECT id FROM courses LIMIT 1");
-  const clubRow = await pool.query("SELECT id FROM clubs LIMIT 1");
+  const courseRow = await pool.query("SELECT id FROM courses ORDER BY random() LIMIT 1");
+  const clubRow = await pool.query("SELECT id FROM clubs ORDER BY random() LIMIT 1");
   const courseId = courseRow.rows[0]?.id as string | undefined;
   const clubId = clubRow.rows[0]?.id as string | undefined;
   if (!courseId || !clubId) {
@@ -127,18 +134,42 @@ export async function createBareUser(email: string, name: string): Promise<void>
 }
 
 /**
- * An ACTIVE match between two already-onboarded users, direct via SQL — for tests
- * (a11y's populated /matches check) that need a real match to render without re-driving
- * the full mutual-wave flow already covered by e2e/waves.spec.ts. Which side is
- * userA/userB doesn't matter here (unlike the app's own `orderedPair`) — `getMatches`
- * queries both sides, and the `@@unique` constraint doesn't care which is which.
+ * An ACTIVE match (plus its Conversation, matching formMatch's real invariant that every
+ * Match always has exactly one) between two already-onboarded users, direct via SQL —
+ * for tests (a11y's populated /matches check, S15's chat tests) that need a real match
+ * to render without re-driving the full mutual-wave flow already covered by
+ * e2e/waves.spec.ts. Which side is userA/userB doesn't matter here (unlike the app's own
+ * `orderedPair`) — `getMatches` queries both sides, and the `@@unique` constraint
+ * doesn't care which is which. Returns the new conversation's id.
  */
-export async function createMatch(emailA: string, emailB: string): Promise<void> {
+export async function createMatch(emailA: string, emailB: string): Promise<string> {
+  const matchId = randomUUID();
   await pool.query(
     `INSERT INTO matches (id, "userAId", "userBId")
      VALUES ($1, (SELECT id FROM users WHERE email = $2), (SELECT id FROM users WHERE email = $3))`,
-    [randomUUID(), emailA.toLowerCase(), emailB.toLowerCase()],
+    [matchId, emailA.toLowerCase(), emailB.toLowerCase()],
   );
+  const conversationId = randomUUID();
+  await pool.query('INSERT INTO conversations (id, "matchId") VALUES ($1, $2)', [conversationId, matchId]);
+  return conversationId;
+}
+
+/** Directly marks a conversation EXPIRED, bypassing the 7-day-silence job (unit-tested separately) — for e2e tests of the revive UI/action itself. */
+export async function forceExpireConversation(conversationId: string): Promise<void> {
+  await pool.query('UPDATE conversations SET status = \'EXPIRED\', "expiredAt" = now() WHERE id = $1', [conversationId]);
+}
+
+/** The id of the Conversation for the (already-formed) match between these two users. */
+export async function getConversationId(emailA: string, emailB: string): Promise<string> {
+  const result = await pool.query(
+    `SELECT c.id FROM conversations c
+     JOIN matches m ON m.id = c."matchId"
+     JOIN users a ON a.email = $1 JOIN users b ON b.email = $2
+     WHERE (m."userAId" = a.id AND m."userBId" = b.id) OR (m."userAId" = b.id AND m."userBId" = a.id)`,
+    [emailA.toLowerCase(), emailB.toLowerCase()],
+  );
+  if (!result.rows[0]) throw new Error(`getConversationId: no conversation found between ${emailA} and ${emailB}`);
+  return result.rows[0].id as string;
 }
 
 /** A PENDING wave straight into the `toEmail` user's inbox, bypassing the UI/matching engine entirely — see `createBareUser`. */

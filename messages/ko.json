@@ -95,7 +95,8 @@
       "NOT_FOUND": "더 이상 이용할 수 없는 매치예요.",
       "ALREADY_DECIDED": "이미 처리한 매치예요.",
       "UNKNOWN": "문제가 발생했어요. 잠시 후 다시 시도해 주세요."
-    }
+    },
+    "chatButton": "채팅하기"
   },
   "Me": {
     "title": "내 정보",
@@ -715,5 +716,33 @@
     "rightsTitle": "이용자의 권리",
     "rightsBody": "이 과정은 자동화된 처리이며, 이에 대해 문의할 권리가 있어요. 특정 매칭에 대한 설명이 필요하거나 추천 방식에 대해 사람이 직접 검토해주길 원하신다면 저희에게 연락해 주세요.",
     "contactCta": "문의하기"
+  },
+  "Chat": {
+    "backToMatches": "매치 목록으로",
+    "composerPlaceholder": "메시지를 입력하세요",
+    "send": "보내기",
+    "icebreakersHeading": "이런 이야기로 시작해보는 건 어때요?",
+    "icebreaker_course": "{label} 수업 같이 듣는다면서요! 요즘 어때요?",
+    "icebreaker_club": "{label} 동아리 활동하신다면서요! 저도 궁금했어요",
+    "icebreaker_interest": "{label}에 관심 있으시다면서요! 저도 좋아해요",
+    "icebreaker_freeTime": "저희 {day} {block}에 시간이 맞는 거 같아요!",
+    "icebreaker_values": "가치관이 잘 맞는다고 나왔던데, 궁금하네요!",
+    "icebreakerGeneric1": "안녕하세요! 매치된 거 축하해요 :)",
+    "icebreakerGeneric2": "먼저 인사할게요! 잘 부탁드려요~",
+    "icebreakerGeneric3": "요즘 어떻게 지내세요?",
+    "unmatchedNotice": "이 매치는 종료되었어요.",
+    "expiredNotice": "7일 동안 대화가 없어서 대화방이 만료됐어요. 한 번만 다시 시작할 수 있어요.",
+    "expiredPermanently": "대화방이 만료됐어요.",
+    "revive": "다시 시작하기",
+    "errors": {
+      "UNAUTHENTICATED": "먼저 로그인해 주세요.",
+      "INVALID_INPUT": "메시지를 입력해 주세요.",
+      "NOT_FOUND": "더 이상 이용할 수 없는 대화예요.",
+      "UNMATCHED": "언매치된 상대에게는 메시지를 보낼 수 없어요.",
+      "EXPIRED": "대화방이 만료됐어요. 다시 시작해 주세요.",
+      "NOT_EXPIRED": "아직 만료되지 않은 대화예요.",
+      "ALREADY_REVIVED": "이미 한 번 다시 시작한 대화예요.",
+      "UNKNOWN": "문제가 발생했어요. 잠시 후 다시 시도해 주세요."
+    }
   }
 }

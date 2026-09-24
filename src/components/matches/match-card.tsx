@@ -3,14 +3,15 @@
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Link } from "@/i18n/navigation";
 import { unmatch, type UnmatchState } from "@/server/waves/actions";
 import type { MatchSummary } from "@/server/waves/queries";
 
 const idleUnmatchState: UnmatchState = { status: "idle" };
 
-/** One active match. Chat (S15) will add a "message" action here; for now this is the match card plus unmatch, with an inline confirm step rather than a destructive one-tap button. */
+/** One active match: chat link (S15) plus unmatch, with an inline confirm step rather than a destructive one-tap button. */
 export function MatchCard({
   match,
   onUnmatched,
@@ -60,9 +61,16 @@ export function MatchCard({
             </form>
           </div>
         ) : (
-          <Button type="button" variant="outline" onClick={() => setConfirming(true)}>
-            {t("unmatch")}
-          </Button>
+          <div className="flex items-center justify-between gap-3">
+            <Button type="button" variant="outline" onClick={() => setConfirming(true)}>
+              {t("unmatch")}
+            </Button>
+            {match.conversationId && (
+              <Link href={`/matches/${match.conversationId}`} className={buttonVariants()}>
+                {t("chatButton")}
+              </Link>
+            )}
+          </div>
         )}
       </CardFooter>
     </Card>

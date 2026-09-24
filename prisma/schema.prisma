@@ -142,6 +142,7 @@ model User {
   wavesReceived       Wave[]       @relation("WaveRecipient")
   matchesAsUserA      Match[]      @relation("MatchUserA")
   matchesAsUserB      Match[]      @relation("MatchUserB")
+  messagesSent        Message[]    @relation("MessageSender")
 
   @@index([campusId])
   @@map("users")
@@ -961,6 +962,67 @@ model Match {
 
   createdAt DateTime @default(now())
 
+  conversation Conversation?
+
   @@unique([userAId, userBId])
   @@map("matches")
+}
+
+enum ConversationStatus {
+  ACTIVE
+  EXPIRED
+}
+
+/// One per Match (1:1, REQUIREMENTS.md's Match/Conversation/Message split) — created
+/// atomically alongside its Match in `src/server/waves/match.ts`'s `formMatch`, so every
+/// match always has somewhere to chat from the moment it forms. `Match.status` (ACTIVE/
+/// UNMATCHED) is the separate source of truth for "are they still matched" — this
+/// model's own `status` is only ever about D5's silence lifecycle, never touched by
+/// unmatching; `src/server/chat/queries.ts` checks both before allowing the composer.
+model Conversation {
+  id String @id @default(uuid())
+
+  matchId String @unique
+  match   Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  status ConversationStatus @default(ACTIVE)
+  /// The last message's `createdAt`, or this row's own `createdAt` if none have been
+  /// sent yet — the "silent for N" clock `src/server/chat/lifecycle.ts`'s nudge/expiry
+  /// jobs measure against. Reset (and `nudgedAt` cleared) on every new message.
+  lastMessageAt DateTime @default(now())
+  /// Set once the 72h-silent nudge job actually sends one (D5) — cleared again on the
+  /// next message, so a later silent period can nudge again.
+  nudgedAt DateTime?
+  /// Set once EXPIRED (7 days silent, D5). D5's "one revive": the revive action refuses
+  /// once this is already non-null.
+  revivedAt DateTime?
+  expiredAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  messages Message[]
+
+  @@map("conversations")
+}
+
+model Message {
+  id String @id @default(uuid())
+
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  senderId String
+  sender   User   @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  /// ≤2000 chars (src/server/chat/schema.ts). Plain text, not field-encrypted like
+  /// `Preference.interestedIn` — chat is "confidential communication" per
+  /// REQUIREMENTS.md §15.4's retention table, not one of the PIPA-sensitive categories
+  /// that need field-level encryption; humans only ever see it via a report's
+  /// reporter-attached evidence (G1), never a standing scan.
+  text String
+
+  createdAt DateTime @default(now())
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
 }

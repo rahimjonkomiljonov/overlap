@@ -4,6 +4,8 @@ import { formMatch, type FormMatchDb } from "./match";
 function fakeDb() {
   const waveUpdates: { id: string; status: string }[] = [];
   const matchesCreated: { userAId: string; userBId: string }[] = [];
+  const conversationsCreated: { matchId: string }[] = [];
+  let nextMatchId = 0;
   const db: FormMatchDb = {
     wave: {
       update: async ({ where, data }: { where: { id: string }; data: { status: string } }) => {
@@ -15,12 +17,19 @@ function fakeDb() {
     match: {
       create: async ({ data }: { data: { userAId: string; userBId: string } }) => {
         matchesCreated.push({ userAId: data.userAId, userBId: data.userBId });
+        return { id: `match-${nextMatchId++}` } as never;
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any,
+    conversation: {
+      create: async ({ data }: { data: { matchId: string } }) => {
+        conversationsCreated.push({ matchId: data.matchId });
         return {} as never;
       },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any,
   };
-  return { db, waveUpdates, matchesCreated };
+  return { db, waveUpdates, matchesCreated, conversationsCreated };
 }
 
 describe("formMatch", () => {
@@ -38,5 +47,12 @@ describe("formMatch", () => {
     const { db: db2, matchesCreated: created2 } = fakeDb();
     await formMatch(db2, "aaa", "zzz", "w2");
     expect(created2).toEqual([{ userAId: "aaa", userBId: "zzz" }]);
+  });
+
+  it("creates exactly one Conversation for the new Match", async () => {
+    const { db, matchesCreated, conversationsCreated } = fakeDb();
+    await formMatch(db, "a", "b", "w1");
+    expect(conversationsCreated).toEqual([{ matchId: "match-0" }]);
+    expect(matchesCreated).toHaveLength(1);
   });
 });

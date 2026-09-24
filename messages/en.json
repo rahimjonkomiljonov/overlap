@@ -95,7 +95,8 @@
       "NOT_FOUND": "That match isn't available anymore.",
       "ALREADY_DECIDED": "You've already acted on this match.",
       "UNKNOWN": "Something went wrong. Please try again in a moment."
-    }
+    },
+    "chatButton": "Chat"
   },
   "Me": {
     "title": "Me",
@@ -715,5 +716,33 @@
     "rightsTitle": "Your rights",
     "rightsBody": "This is an automated process, which you have the right to ask about. If you'd like an explanation for a specific match, or a human to review how your picks are put together, contact us and we'll follow up.",
     "contactCta": "Contact us"
+  },
+  "Chat": {
+    "backToMatches": "Back to matches",
+    "composerPlaceholder": "Type a message",
+    "send": "Send",
+    "icebreakersHeading": "Need a way to start?",
+    "icebreaker_course": "Looks like we're both in {label}! How's it going?",
+    "icebreaker_club": "I saw you're in {label} too! I've been curious about it",
+    "icebreaker_interest": "You're into {label} too! Same here",
+    "icebreaker_freeTime": "Looks like we're both free {day} around {block}!",
+    "icebreaker_values": "We matched pretty well on values — curious to hear more",
+    "icebreakerGeneric1": "Hey! Congrats on the match :)",
+    "icebreakerGeneric2": "Hi there, nice to meet you!",
+    "icebreakerGeneric3": "How's your week going?",
+    "unmatchedNotice": "This match has ended.",
+    "expiredNotice": "This conversation went quiet for 7 days and expired. You can restart it once.",
+    "expiredPermanently": "This conversation has expired.",
+    "revive": "Restart conversation",
+    "errors": {
+      "UNAUTHENTICATED": "Please sign in first.",
+      "INVALID_INPUT": "Please enter a message.",
+      "NOT_FOUND": "That conversation isn't available anymore.",
+      "UNMATCHED": "You can't message someone you've unmatched.",
+      "EXPIRED": "This conversation has expired. Please restart it.",
+      "NOT_EXPIRED": "This conversation hasn't expired.",
+      "ALREADY_REVIVED": "This conversation has already been restarted once.",
+      "UNKNOWN": "Something went wrong. Please try again in a moment."
+    }
   }
 }

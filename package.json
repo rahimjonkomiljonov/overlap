@@ -27,7 +27,8 @@
     "db:generate-synthetic-campus": "tsx scripts/generate-synthetic-campus.ts",
     "db:compute-idf-stats": "tsx scripts/compute-idf-stats.ts",
     "db:evaluate-matching": "tsx scripts/evaluate-matching.ts",
-    "db:run-daily-batch": "tsx scripts/run-daily-batch.ts"
+    "db:run-daily-batch": "tsx scripts/run-daily-batch.ts",
+    "db:run-chat-lifecycle": "tsx scripts/run-chat-lifecycle.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
