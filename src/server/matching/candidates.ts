@@ -14,6 +14,8 @@ export interface LoadedProfile extends MatchableProfile {
   gender: Gender;
   /** Decrypted only when `intent === DATING` (the only intent that ever filters on it) — null otherwise, always, regardless of whether the user set it. */
   interestedIn: Gender[] | null;
+  /** Backs the newcomer composition slot (S11: joined ≤ 7 days ago, REQUIREMENTS.md §5.3/C6). */
+  joinedAt: Date;
 }
 
 export interface CampusMatchPool {
@@ -60,6 +62,7 @@ export async function loadCampusMatchPool(
     },
     select: {
       id: true,
+      createdAt: true,
       profile: {
         select: {
           gender: true,
@@ -79,6 +82,7 @@ export async function loadCampusMatchPool(
     .filter((u): u is typeof u & { profile: NonNullable<typeof u.profile> } => u.profile !== null)
     .map((u) => ({
       userId: u.id,
+      joinedAt: u.createdAt,
       gender: u.profile.gender ?? Gender.OTHER,
       interestedIn:
         intent === IntentMode.DATING && u.profile.interestedIn

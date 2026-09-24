@@ -10,6 +10,7 @@ function loadedProfile(overrides: Partial<LoadedProfile> & { userId: string }): 
   return {
     gender: Gender.WOMAN,
     interestedIn: null,
+    joinedAt: new Date("2020-01-01"),
     courses: [],
     clubIds: [],
     freeTimeSlots: [],

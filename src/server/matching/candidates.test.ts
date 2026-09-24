@@ -8,6 +8,7 @@ interface FakeUserRow {
   campusId: string;
   verifiedAt: Date | null;
   lastActiveAt: Date;
+  createdAt: Date;
   profile: {
     completedAt: Date | null;
     intents: string[];
@@ -27,6 +28,7 @@ function baseUser(overrides: Partial<FakeUserRow> & { id: string }): FakeUserRow
     campusId: "campus-a",
     verifiedAt: new Date("2026-09-01"),
     lastActiveAt: new Date("2026-09-25"),
+    createdAt: new Date("2026-09-01"),
     profile: {
       completedAt: new Date("2026-09-01"),
       intents: [IntentMode.FRIENDS],
@@ -58,7 +60,7 @@ function fakeDb(
           .filter((u) => u.lastActiveAt.getTime() >= where.lastActiveAt.gte.getTime())
           .filter((u) => u.profile !== null && u.profile.completedAt !== null)
           .filter((u) => u.profile!.intents.includes(where.profile.intents.has))
-          .map((u) => ({ id: u.id, profile: u.profile })),
+          .map((u) => ({ id: u.id, createdAt: u.createdAt, profile: u.profile })),
     },
     block: {
       findMany: async ({ where }: { where: { OR: { blockerId?: { in: string[] }; blockedId?: { in: string[] } }[] } }) => {
