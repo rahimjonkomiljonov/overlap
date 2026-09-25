@@ -79,6 +79,16 @@ export default async function MePage({ params }: PageProps<"/[locale]/me">) {
           </Link>
         </CardContent>
       </Card>
+      <Card className="mt-4">
+        <CardHeader>
+          <CardTitle>{t("privacyTitle")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Link href="/me/privacy" className={buttonVariants({ variant: "outline" })}>
+            {t("privacyCta")}
+          </Link>
+        </CardContent>
+      </Card>
       {verification && (
         <Card className="mt-4">
           <CardHeader>

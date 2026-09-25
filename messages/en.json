@@ -116,7 +116,9 @@
     "verificationTitle": "Photo verification",
     "verificationCta": "Verify now",
     "safetyTitle": "Safety",
-    "safetyCta": "Go to safety settings"
+    "safetyCta": "Go to safety settings",
+    "privacyTitle": "Privacy",
+    "privacyCta": "Go to privacy settings"
   },
   "States": {
     "loading": "Loading",
@@ -825,6 +827,51 @@
       "CANNOT_HIDE_SELF": "You can't hide yourself.",
       "ACCOUNT_RESTRICTED": "A restricted account can't change this setting.",
       "ALREADY_APPEALED": "You've already submitted an appeal.",
+      "UNKNOWN": "Something went wrong. Please try again."
+    }
+  },
+  "PrivacySettings": {
+    "title": "Privacy settings",
+    "consentsTitle": "Consent status",
+    "consentType": {
+      "TERMS": "Terms of Service",
+      "PRIVACY_POLICY": "Privacy Policy",
+      "SENSITIVE_PREFERENCE": "\"Who I'd like to meet\" (sensitive)",
+      "MARKETING": "Marketing messages",
+      "MARKETING_NIGHT": "Night-time (21:00-08:00) marketing messages",
+      "OVERSEAS_TRANSFER": "Overseas transfer"
+    },
+    "statusActive": "Granted",
+    "statusWithdrawn": "Withdrawn",
+    "statusNotGranted": "Never granted",
+    "withdraw": "Withdraw consent",
+    "withdrawSensitiveWarning": "Withdrawing this turns off Dating mode and immediately deletes your stored \"who I'd like to meet\" answer.",
+    "requiredNote": "Consents required to use the service can only be withdrawn by deleting your account.",
+    "exportTitle": "Download my data",
+    "exportHint": "Get your profile, consent history, waves, matches, sent messages and more as a JSON file.",
+    "exportCta": "Download my data",
+    "deleteTitle": "Delete account",
+    "deleteHint": "Deleting signs you out immediately and you'll stop appearing to others. Your personal data is fully erased 30 days later.",
+    "deleteCta": "Delete account",
+    "deleteConfirm": "Are you sure you want to delete your account? This can't be undone.",
+    "deleteConfirmButton": "Yes, delete it",
+    "cancel": "Cancel",
+    "requestsTitle": "My request history",
+    "requestsEmpty": "You haven't made any requests yet.",
+    "requestType": {
+      "ACCESS": "Data access / download",
+      "CORRECTION": "Correction request",
+      "DELETION": "Account deletion",
+      "WITHDRAWAL": "Consent withdrawal"
+    },
+    "requestStatus": {
+      "PENDING": "In progress",
+      "COMPLETED": "Completed"
+    },
+    "errors": {
+      "UNAUTHENTICATED": "Please sign in first.",
+      "INVALID_INPUT": "Please check what you entered.",
+      "NOT_ACTIVE": "That consent was already withdrawn, or was never granted.",
       "UNKNOWN": "Something went wrong. Please try again."
     }
   },

@@ -116,7 +116,9 @@
     "verificationTitle": "본인 인증",
     "verificationCta": "인증하러 가기",
     "safetyTitle": "세이프티",
-    "safetyCta": "세이프티 설정으로 이동"
+    "safetyCta": "세이프티 설정으로 이동",
+    "privacyTitle": "개인정보",
+    "privacyCta": "개인정보 설정으로 이동"
   },
   "States": {
     "loading": "불러오는 중",
@@ -825,6 +827,51 @@
       "CANNOT_HIDE_SELF": "자기 자신은 숨길 수 없어요.",
       "ACCOUNT_RESTRICTED": "제한된 계정은 이 설정을 바꿀 수 없어요.",
       "ALREADY_APPEALED": "이미 이의 제기를 제출했어요.",
+      "UNKNOWN": "문제가 생겼어요. 잠시 후 다시 시도해 주세요."
+    }
+  },
+  "PrivacySettings": {
+    "title": "개인정보 설정",
+    "consentsTitle": "동의 현황",
+    "consentType": {
+      "TERMS": "이용약관",
+      "PRIVACY_POLICY": "개인정보처리방침",
+      "SENSITIVE_PREFERENCE": "\"만나고 싶은 상대\" (민감정보)",
+      "MARKETING": "마케팅 정보 수신",
+      "MARKETING_NIGHT": "야간(21:00~08:00) 마케팅 정보 수신",
+      "OVERSEAS_TRANSFER": "해외 이전 동의"
+    },
+    "statusActive": "동의함",
+    "statusWithdrawn": "철회함",
+    "statusNotGranted": "동의한 적 없음",
+    "withdraw": "동의 철회",
+    "withdrawSensitiveWarning": "철회하면 데이팅 모드를 사용할 수 없고, 저장된 \"만나고 싶은 상대\" 정보가 즉시 삭제돼요.",
+    "requiredNote": "서비스 이용에 필요한 동의는 계정을 삭제해야 철회할 수 있어요.",
+    "exportTitle": "내 데이터 내려받기",
+    "exportHint": "내가 남긴 프로필, 동의 기록, 웨이브, 매치, 보낸 메시지 등을 JSON 파일로 받아요.",
+    "exportCta": "내 데이터 내려받기",
+    "deleteTitle": "계정 삭제",
+    "deleteHint": "계정을 삭제하면 즉시 로그아웃되고 더 이상 다른 사람에게 보이지 않아요. 개인정보는 30일 뒤 완전히 삭제돼요.",
+    "deleteCta": "계정 삭제하기",
+    "deleteConfirm": "정말 계정을 삭제할까요? 이 작업은 되돌릴 수 없어요.",
+    "deleteConfirmButton": "네, 삭제할게요",
+    "cancel": "취소",
+    "requestsTitle": "내 요청 내역",
+    "requestsEmpty": "아직 요청한 내역이 없어요.",
+    "requestType": {
+      "ACCESS": "데이터 열람/내려받기",
+      "CORRECTION": "정정 요청",
+      "DELETION": "계정 삭제",
+      "WITHDRAWAL": "동의 철회"
+    },
+    "requestStatus": {
+      "PENDING": "처리 중",
+      "COMPLETED": "완료"
+    },
+    "errors": {
+      "UNAUTHENTICATED": "먼저 로그인해 주세요.",
+      "INVALID_INPUT": "입력한 내용을 다시 확인해 주세요.",
+      "NOT_ACTIVE": "이미 철회했거나 동의한 적 없는 항목이에요.",
       "UNKNOWN": "문제가 생겼어요. 잠시 후 다시 시도해 주세요."
     }
   },

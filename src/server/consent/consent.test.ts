@@ -1,7 +1,14 @@
 import { randomUUID } from "node:crypto";
 import { beforeEach, describe, expect, it } from "vitest";
 import { ConsentType } from "@/generated/prisma/enums";
-import { canUseDatingMode, getLatestConsent, POLICY_VERSION, recordConsent } from "./consent";
+import {
+  canUseDatingMode,
+  getLatestConsent,
+  hasActiveConsent,
+  POLICY_VERSION,
+  recordConsent,
+  withdrawConsent,
+} from "./consent";
 import type { ConsentDb } from "./consent";
 
 type FakeRow = {
@@ -11,6 +18,7 @@ type FakeRow = {
   granted: boolean;
   policyVersion: string;
   grantedAt: Date;
+  withdrawnAt: Date | null;
 };
 
 type CreateArgs = {
@@ -23,11 +31,12 @@ type CreateArgs = {
   };
 };
 type FindFirstArgs = { where: { userId: string; type: ConsentType } };
+type UpdateArgs = { where: { id: string }; data: { withdrawnAt: Date } };
 
 /**
- * A minimal in-memory fake standing in for the two Prisma methods this module
- * actually calls (create, findFirst sorted by grantedAt desc) — same
- * dependency-injection pattern as src/server/auth/rate-limit.ts. `rows` is exposed
+ * A minimal in-memory fake standing in for the three Prisma methods this module
+ * actually calls (create, findFirst sorted by grantedAt desc, update for withdrawal) —
+ * same dependency-injection pattern as src/server/auth/rate-limit.ts. `rows` is exposed
  * directly for test assertions that need "everything recorded", which the real
  * ConsentDb interface (deliberately narrow) doesn't provide.
  */
@@ -44,6 +53,7 @@ function fakeConsentDb(): { db: ConsentDb; rows: FakeRow[] } {
           granted: data.granted,
           policyVersion: data.policyVersion,
           grantedAt: new Date(Date.now() + rows.length), // strictly increasing, even in fast tests
+          withdrawnAt: null,
         };
         rows.push(row);
         return row;
@@ -54,6 +64,12 @@ function fakeConsentDb(): { db: ConsentDb; rows: FakeRow[] } {
           .sort((a, b) => b.grantedAt.getTime() - a.grantedAt.getTime());
         return matches[0] ?? null;
       }) as unknown as ConsentDb["consent"]["findFirst"],
+      update: (async ({ where, data }: UpdateArgs) => {
+        const row = rows.find((r) => r.id === where.id);
+        if (!row) throw new Error("not found");
+        row.withdrawnAt = data.withdrawnAt;
+        return row;
+      }) as unknown as ConsentDb["consent"]["update"],
     },
   } as ConsentDb;
 
@@ -191,6 +207,53 @@ describe("consent ledger", () => {
         source: "onboarding",
       });
       expect(await canUseDatingMode(db, userId)).toBe(false);
+    });
+
+    it("is false again once a granted consent is withdrawn (S19)", async () => {
+      await recordConsent(db, {
+        userId,
+        type: ConsentType.SENSITIVE_PREFERENCE,
+        granted: true,
+        source: "onboarding",
+      });
+      expect(await canUseDatingMode(db, userId)).toBe(true);
+      await withdrawConsent(db, userId, ConsentType.SENSITIVE_PREFERENCE);
+      expect(await canUseDatingMode(db, userId)).toBe(false);
+    });
+  });
+
+  describe("withdrawConsent (S19)", () => {
+    it("sets withdrawnAt on the latest active grant and returns true", async () => {
+      await recordConsent(db, { userId, type: ConsentType.MARKETING, granted: true, source: "onboarding" });
+      const now = new Date("2026-10-03T00:00:00Z");
+      const result = await withdrawConsent(db, userId, ConsentType.MARKETING, now);
+      expect(result).toBe(true);
+      expect(rows[0].withdrawnAt).toEqual(now);
+    });
+
+    it("is a no-op (returns false) when there was never a grant to withdraw", async () => {
+      const result = await withdrawConsent(db, userId, ConsentType.MARKETING);
+      expect(result).toBe(false);
+    });
+
+    it("is a no-op (returns false) when the latest record is a decline, not a grant", async () => {
+      await recordConsent(db, { userId, type: ConsentType.MARKETING, granted: false, source: "onboarding" });
+      const result = await withdrawConsent(db, userId, ConsentType.MARKETING);
+      expect(result).toBe(false);
+    });
+
+    it("is a no-op (returns false) when already withdrawn", async () => {
+      await recordConsent(db, { userId, type: ConsentType.MARKETING, granted: true, source: "onboarding" });
+      expect(await withdrawConsent(db, userId, ConsentType.MARKETING)).toBe(true);
+      expect(await withdrawConsent(db, userId, ConsentType.MARKETING)).toBe(false);
+    });
+
+    it("a fresh re-consent after withdrawal is active again", async () => {
+      await recordConsent(db, { userId, type: ConsentType.MARKETING, granted: true, source: "onboarding" });
+      await withdrawConsent(db, userId, ConsentType.MARKETING);
+      expect(await hasActiveConsent(db, userId, ConsentType.MARKETING)).toBe(false);
+      await recordConsent(db, { userId, type: ConsentType.MARKETING, granted: true, source: "settings/privacy" });
+      expect(await hasActiveConsent(db, userId, ConsentType.MARKETING)).toBe(true);
     });
   });
 });

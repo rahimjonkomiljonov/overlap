@@ -106,6 +106,19 @@ model User {
   trustScore Int        @default(100)
   role       Role       @default(USER)
 
+  /// S19/L2: set the instant a self-service account-deletion request is processed
+  /// (status flips to DELETED in the same action — the request itself is completed
+  /// immediately, well within L2's 10-day statutory response window). Starts the
+  /// 30-day retention clock (§15.4's "account life + 30 days") that
+  /// `src/server/privacy/retention.ts`'s `purgeDeletedAccounts` reads before actually
+  /// scrubbing PII. Null for every account that was never deleted.
+  deletedAt DateTime?
+  /// Set once `purgeDeletedAccounts` actually scrubs this account's PII (30 days after
+  /// `deletedAt`) — the idempotency marker, same shape as `Selfie.purgedAt`. The row
+  /// itself is never deleted (Waves/Matches/Messages/Reports still reference it), only
+  /// its identifying fields are.
+  purgedAt DateTime?
+
   /// Set once a moderator approves a selfie submission (S08/A4). Null = not verified;
   /// unverified users are excluded from appearing in others' picks or sending waves
   /// (enforced by the matching engine, S10 — the candidate query doesn't exist yet).
@@ -155,6 +168,7 @@ model User {
   meetProposalsMade         MeetProposal[]        @relation("MeetProposalProposedBy")
   meetupFeedbackEntries     MeetupFeedbackEntry[]
   notifications             Notification[]
+  dataRequests              DataRequest[]
 
   @@index([campusId])
   @@map("users")
@@ -1312,4 +1326,43 @@ model Notification {
   @@index([status])
   @@index([userId])
   @@map("notifications")
+}
+
+/// PIPA's four data-subject rights (REQUIREMENTS.md's own "access/correct/delete/
+/// withdraw" wording), tracked against L2's statutory response deadline.
+enum DataRequestType {
+  ACCESS
+  CORRECTION
+  DELETION
+  WITHDRAWAL
+}
+
+/// Every request built in S19 (self-service export/delete/withdraw) resolves the
+/// instant it's submitted — the actor's own action *is* the fulfillment, not a queue
+/// someone else drains later — so COMPLETED is reached the same request/response, and
+/// the "10 days" deadline is trivially met. A future CORRECTION request routed to a
+/// human (no self-service UI for it yet) would be the first to actually sit PENDING.
+enum DataRequestStatus {
+  PENDING
+  COMPLETED
+}
+
+/// L2's privacy-center request log — one row per access/correction/deletion/withdrawal
+/// request, so a user (and the CPO) can see it was made, when, and whether it's done.
+model DataRequest {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type   DataRequestType
+  status DataRequestStatus @default(PENDING)
+
+  createdAt   DateTime  @default(now())
+  /// L2: "confirm; 10 days" — the statutory response deadline, computed at creation.
+  dueAt       DateTime
+  completedAt DateTime?
+
+  @@index([userId])
+  @@map("data_requests")
 }
