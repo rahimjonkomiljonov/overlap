@@ -30,3 +30,17 @@ export function seoulDayRange(now: Date = new Date()): { start: Date; end: Date 
   const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
   return { start, end };
 }
+
+/**
+ * True when `now` falls in the Network Act Art. 50 quiet-hours window (21:00-08:00
+ * Seoul) — S18 queues (never drops) a service notification that would otherwise send
+ * during this window. Hour-granularity is enough: the window's own boundaries (21:00,
+ * 08:00) are on the hour. Safe as a fixed 9-hour offset because Korea has no DST, same
+ * as `seoulDayRange` above.
+ */
+export function isSeoulQuietHours(now: Date = new Date()): boolean {
+  const hour = Number(
+    new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Seoul", hour: "numeric", hourCycle: "h23" }).format(now),
+  );
+  return hour >= 21 || hour < 8;
+}

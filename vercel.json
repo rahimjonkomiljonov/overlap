@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/chat-lifecycle",
       "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/notifications",
+      "schedule": "0 * * * *"
     }
   ]
 }

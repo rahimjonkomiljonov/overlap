@@ -5,6 +5,7 @@ import { prisma } from "@/server/db";
 import { isBlockedEitherWay } from "@/server/waves/blocks";
 import { countWavesSentToday, DAILY_WAVE_CAP } from "@/server/waves/cap";
 import { formMatch } from "@/server/waves/match";
+import { enqueueNotification } from "@/server/notifications/queue";
 import { passPickSchema, sendWaveSchema } from "./schema";
 
 export type SendWaveState = { status: "idle" } | { status: "success" } | { status: "error"; code: string };
@@ -83,7 +84,7 @@ export async function sendWave(_prev: SendWaveState, formData: FormData): Promis
 
   await prisma.$transaction(async (tx) => {
     await tx.batchItem.update({ where: { id: item.id }, data: { decision: "WAVED", decidedAt } });
-    await tx.wave.create({
+    const wave = await tx.wave.create({
       data: {
         batchItemId: item.id,
         fromUserId: actor.userId,
@@ -95,6 +96,15 @@ export async function sendWave(_prev: SendWaveState, formData: FormData): Promis
     });
     if (mutual && reverseWave) {
       await formMatch(tx, actor.userId, item.candidateUserId, reverseWave.id);
+    } else {
+      // A mutual wave forms a match instead (handled by formMatch above), which queues
+      // its own MATCH notification — WAVE_RECEIVED only ever fires for a wave still
+      // sitting PENDING.
+      await enqueueNotification(tx, {
+        userId: item.candidateUserId,
+        type: "WAVE_RECEIVED",
+        dedupeKey: `wave-received:${wave.id}`,
+      });
     }
   });
 

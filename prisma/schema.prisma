@@ -154,6 +154,7 @@ model User {
   moderationActionsReceived ModerationAction[] @relation("ModerationActionTarget")
   meetProposalsMade         MeetProposal[]        @relation("MeetProposalProposedBy")
   meetupFeedbackEntries     MeetupFeedbackEntry[]
+  notifications             Notification[]
 
   @@index([campusId])
   @@map("users")
@@ -1249,4 +1250,66 @@ model PlanShareLink {
   createdAt DateTime @default(now())
 
   @@map("plan_share_links")
+}
+
+enum NotificationType {
+  MATCH
+  WAVE_RECEIVED
+  UNREAD_MESSAGE
+}
+
+/// I1/§15.2's "service vs promotional" classes (Network Act Art. 50 — separate consent
+/// needed for promotional mail, especially 21:00-08:00). Month 1 only ever writes
+/// SERVICE rows (BUILD_PLAN S18: "no promotional content"); the column exists because
+/// REQUIREMENTS.md's data-model row names it, so a later promotional type needs no
+/// migration, just a new writer that never touches this table without real opt-in.
+enum NotificationClass {
+  SERVICE
+  PROMOTIONAL
+}
+
+enum NotificationStatus {
+  QUEUED
+  SENT
+  SKIPPED
+}
+
+/// A queued service notification (match formed, wave received, unread message ≥1h —
+/// BUILD_PLAN S18). Every trigger only ever inserts a QUEUED row; a separate job
+/// (src/server/notifications/queue.ts) sends it later, so quiet hours (21:00-08:00
+/// Seoul) can defer without ever dropping one, per S18's exact wording. `locale`
+/// records which template language was actually rendered — no per-user language
+/// preference exists anywhere else in the schema (OTP/waitlist mail has always been
+/// English-only; there's no onboarding step that asks), so every notification defaults
+/// to "ko", the app's own default locale (src/i18n/routing.ts). `dedupeKey` is a natural
+/// key for the triggering event (e.g. "match:<matchId>:<userId>") so re-running a
+/// finder job (the unread-message check in particular, which polls rather than hooking
+/// a single call site) can never double-queue the same event.
+model Notification {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type    NotificationType
+  class   NotificationClass @default(SERVICE)
+  channel String            @default("email")
+  locale  String            @default("ko")
+
+  /// Structured reference back to the triggering event, e.g. `{conversationId,
+  /// messageId}` for UNREAD_MESSAGE — the send-time re-check (no read-receipt exists
+  /// anywhere in this schema; recipient-replied-since is the only signal) needs it.
+  /// Null for MATCH/WAVE_RECEIVED, which need no re-check once queued.
+  data Json?
+
+  dedupeKey String @unique
+
+  status NotificationStatus @default(QUEUED)
+  sentAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([status])
+  @@index([userId])
+  @@map("notifications")
 }

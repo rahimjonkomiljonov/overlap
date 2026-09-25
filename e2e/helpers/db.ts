@@ -256,6 +256,25 @@ export async function getUserStatus(email: string): Promise<string> {
   return result.rows[0].status as string;
 }
 
+/**
+ * How many `Notification` rows of `type` (optionally filtered to `status`) exist for
+ * `email` — for S18 e2e tests asserting the real trigger hooks (formMatch, sendWave)
+ * actually queue a notification through a real UI-driven action, not just the isolated
+ * fake-db unit tests in src/server/notifications/*.test.ts.
+ */
+export async function countNotifications(email: string, type: string, status?: string): Promise<number> {
+  const params: string[] = [email.toLowerCase(), type];
+  let query = `SELECT COUNT(*)::int AS count FROM notifications n
+     JOIN users u ON u.id = n."userId"
+     WHERE u.email = $1 AND n.type = $2`;
+  if (status) {
+    params.push(status);
+    query += ` AND n.status = $3`;
+  }
+  const result = await pool.query(query, params);
+  return result.rows[0].count;
+}
+
 /** A PENDING wave straight into the `toEmail` user's inbox, bypassing the UI/matching engine entirely — see `createBareUser`. */
 export async function createIncomingWave(fromEmail: string, toEmail: string): Promise<void> {
   await pool.query(

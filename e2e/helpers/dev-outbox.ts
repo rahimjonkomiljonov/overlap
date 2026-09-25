@@ -47,3 +47,40 @@ export async function readLastOtpCode(
 export function uniqueTestEmail(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1e6)}@test.ac.kr`;
 }
+
+/**
+ * Reads the most recent email "sent" (logged to the dev outbox) to `email`, optionally
+ * only counting entries sent after `after` and/or whose subject contains
+ * `subjectContains` — S18's service-email tests use this to check for a match/wave/
+ * unread-message notification without depending on readLastOtpCode's OTP-specific
+ * parsing. Returns null (rather than throwing) once `timeoutMs` elapses with no match,
+ * since S18 also needs to assert the *absence* of a send (quiet hours).
+ */
+export async function readLastEmail(
+  email: string,
+  options: { timeoutMs?: number; after?: Date; subjectContains?: string } = {},
+): Promise<OutboxEntry | null> {
+  const timeoutMs = options.timeoutMs ?? 5000;
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    try {
+      const content = await readFile(OUTBOX_PATH, "utf8");
+      const entries: OutboxEntry[] = content
+        .split("\n")
+        .filter(Boolean)
+        .map((line) => JSON.parse(line));
+      const match = entries
+        .filter((e) => e.to === email)
+        .filter((e) => !options.after || new Date(e.sentAt) > options.after)
+        .filter((e) => !options.subjectContains || e.subject.includes(options.subjectContains))
+        .pop();
+      if (match) return match;
+    } catch {
+      // File may not exist yet on the very first send of a test run; keep polling.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  return null;
+}

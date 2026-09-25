@@ -5,6 +5,7 @@ function fakeDb() {
   const waveUpdates: { id: string; status: string }[] = [];
   const matchesCreated: { userAId: string; userBId: string }[] = [];
   const conversationsCreated: { matchId: string }[] = [];
+  const notificationsQueued: { userId: string; type: string; dedupeKey: string }[] = [];
   let nextMatchId = 0;
   const db: FormMatchDb = {
     wave: {
@@ -28,8 +29,15 @@ function fakeDb() {
       },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any,
+    notification: {
+      upsert: async ({ create }: { create: { userId: string; type: string; dedupeKey: string } }) => {
+        notificationsQueued.push({ userId: create.userId, type: create.type, dedupeKey: create.dedupeKey });
+        return {} as never;
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any,
   };
-  return { db, waveUpdates, matchesCreated, conversationsCreated };
+  return { db, waveUpdates, matchesCreated, conversationsCreated, notificationsQueued };
 }
 
 describe("formMatch", () => {
@@ -54,5 +62,16 @@ describe("formMatch", () => {
     await formMatch(db, "a", "b", "w1");
     expect(conversationsCreated).toEqual([{ matchId: "match-0" }]);
     expect(matchesCreated).toHaveLength(1);
+  });
+
+  it("queues a MATCH notification for both users (S18)", async () => {
+    const { db, notificationsQueued } = fakeDb();
+    await formMatch(db, "user-a", "user-b", "w1");
+    expect(notificationsQueued).toHaveLength(2);
+    expect(notificationsQueued.map((n) => n.userId).sort()).toEqual(["user-a", "user-b"]);
+    for (const n of notificationsQueued) {
+      expect(n.type).toBe("MATCH");
+      expect(n.dedupeKey).toBe(`match:match-0:${n.userId}`);
+    }
   });
 });
