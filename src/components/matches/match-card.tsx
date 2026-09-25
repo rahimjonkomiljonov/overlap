@@ -67,11 +67,16 @@ export function MatchCard({
             <Button type="button" variant="outline" onClick={() => setConfirming(true)}>
               {t("unmatch")}
             </Button>
-            {match.conversationId && (
-              <Link href={`/matches/${match.conversationId}`} className={buttonVariants()}>
-                {t("chatButton")}
+            <div className="flex gap-2">
+              <Link href={`/meetup/${match.matchId}`} className={buttonVariants({ variant: "outline" })}>
+                {t("planMeetup")}
               </Link>
-            )}
+              {match.conversationId && (
+                <Link href={`/matches/${match.conversationId}`} className={buttonVariants()}>
+                  {t("chatButton")}
+                </Link>
+              )}
+            </div>
           </div>
         )}
         <div className="flex items-center justify-end gap-2">

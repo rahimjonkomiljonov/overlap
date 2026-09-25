@@ -96,7 +96,8 @@
       "ALREADY_DECIDED": "You've already acted on this match.",
       "UNKNOWN": "Something went wrong. Please try again in a moment."
     },
-    "chatButton": "Chat"
+    "chatButton": "Chat",
+    "planMeetup": "Plan a meetup"
   },
   "Me": {
     "title": "Me",
@@ -747,7 +748,8 @@
       "NOT_EXPIRED": "This conversation hasn't expired.",
       "ALREADY_REVIVED": "This conversation has already been restarted once.",
       "UNKNOWN": "Something went wrong. Please try again in a moment."
-    }
+    },
+    "planMeetup": "Plan a meetup"
   },
   "Report": {
     "reportButton": "Report",
@@ -874,5 +876,62 @@
       "NOT_FOUND": "That report was already handled or couldn't be found.",
       "UNKNOWN": "Something went wrong. Please try again."
     }
+  },
+  "Meetup": {
+    "title": "Plan a meetup",
+    "safetyTitle": "Meet safely",
+    "safetyTip1": "Meet in a busy, public place.",
+    "safetyTip2": "Chat a good amount before meeting up.",
+    "safetyTip3": "It's okay to leave if something feels off.",
+    "noOptionsTitle": "No times to suggest yet",
+    "noOptionsBody": "There's no overlapping free time, or this campus has no registered Safe Spots yet.",
+    "pickTitle": "Pick one of these",
+    "propose": "Propose this time",
+    "status": {
+      "PROPOSED": "Proposed",
+      "ACCEPTED": "Confirmed"
+    },
+    "withWhom": "Meetup with {name}",
+    "withdraw": "Withdraw proposal",
+    "decline": "Decline",
+    "accept": "Accept",
+    "addToCalendar": "Add to calendar",
+    "sharePlans": "Share my plans",
+    "cancelMeetup": "Cancel meetup",
+    "shareLinkReady": "Your share link is ready",
+    "feedbackPrompt": "How did it go?",
+    "feedback": {
+      "GREAT": "Great",
+      "FINE": "Fine",
+      "NOT_FOR_ME": "Not for me",
+      "UNCOMFORTABLE": "Made me uncomfortable"
+    },
+    "feedbackUncomfortable": "If something happened, you can report it.",
+    "feedbackThanks": "Thanks for the feedback.",
+    "errors": {
+      "UNAUTHENTICATED": "Please sign in first.",
+      "INVALID_INPUT": "Please check what you entered.",
+      "NOT_FOUND": "That meetup couldn't be found.",
+      "UNMATCHED": "You can't plan a meetup with someone you've unmatched.",
+      "ALREADY_PLANNED": "There's already a meetup in progress.",
+      "INVALID_OPTION": "That time is no longer valid — please try again.",
+      "NOT_PENDING": "This proposal has already been responded to.",
+      "CANNOT_ACCEPT_OWN": "You can't accept your own proposal.",
+      "NOT_ACCEPTED": "This is only available for a confirmed meetup.",
+      "UNKNOWN": "Something went wrong. Please try again."
+    }
+  },
+  "Emergency": {
+    "cardButton": "Emergency contacts",
+    "cardTitle": "If this is an emergency",
+    "close": "Close"
+  },
+  "PlanShare": {
+    "title": "Meetup plans",
+    "intro": "{name} shared these meetup plans with you.",
+    "someone": "A friend",
+    "noLocationNote": "The exact location isn't shared here.",
+    "unavailableTitle": "This link has expired",
+    "unavailableBody": "This share link is no longer available."
   }
 }

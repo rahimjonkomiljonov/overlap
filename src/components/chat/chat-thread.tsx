@@ -7,10 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BlockButton } from "@/components/safety/block-button";
+import { EmergencyCard } from "@/components/safety/emergency-card";
 import { ReportButton } from "@/components/safety/report-button";
 import { Link, useRouter } from "@/i18n/navigation";
 import { sendMessage, reviveConversation, type ReviveConversationState } from "@/server/chat/actions";
 import { MAX_MESSAGE_LENGTH } from "@/server/chat/schema";
+import type { EmergencyContact } from "@/server/safety/emergency";
 
 const POLL_INTERVAL_MS = 3_000;
 
@@ -34,6 +36,7 @@ const idleReviveState: ReviveConversationState = { status: "idle" };
  */
 export function ChatThread({
   conversationId,
+  matchId,
   actorUserId,
   otherUserId,
   otherFirstName,
@@ -43,8 +46,10 @@ export function ChatThread({
   matchStatus,
   revivedAt,
   icebreakers,
+  emergencyContacts,
 }: {
   conversationId: string;
+  matchId: string;
   actorUserId: string;
   otherUserId: string;
   otherFirstName: string | null;
@@ -54,6 +59,7 @@ export function ChatThread({
   matchStatus: "ACTIVE" | "UNMATCHED";
   revivedAt: string | null;
   icebreakers: string[];
+  emergencyContacts: EmergencyContact[];
 }) {
   const t = useTranslations("Chat");
   const locale = useLocale();
@@ -132,6 +138,15 @@ export function ChatThread({
         <p className="mr-auto font-medium">{otherFirstName}</p>
         <ReportButton targetUserId={otherUserId} conversationId={conversationId} />
         <BlockButton targetUserId={otherUserId} onBlocked={() => router.push("/matches")} />
+      </div>
+
+      <div className="flex items-center gap-2 border-b border-border py-2">
+        <Link href={`/meetup/${matchId}`} className="text-sm font-medium text-primary underline">
+          {t("planMeetup")}
+        </Link>
+        <div className="ml-auto">
+          <EmergencyCard contacts={emergencyContacts} />
+        </div>
       </div>
 
       <div className="flex-1 space-y-3 overflow-y-auto py-4">

@@ -6,6 +6,7 @@ export type ChatDb = Pick<PrismaClient, "conversation" | "message" | "block">;
 
 export interface ConversationView {
   conversationId: string;
+  matchId: string;
   status: "ACTIVE" | "EXPIRED";
   revivedAt: Date | null;
   matchStatus: "ACTIVE" | "UNMATCHED";
@@ -33,6 +34,7 @@ export async function getConversationForActor(db: ChatDb, conversationId: string
       revivedAt: true,
       match: {
         select: {
+          id: true,
           status: true,
           userAId: true,
           userBId: true,
@@ -68,6 +70,7 @@ export async function getConversationForActor(db: ChatDb, conversationId: string
 
   return {
     conversationId: conversation.id,
+    matchId: match.id,
     status: conversation.status,
     revivedAt: conversation.revivedAt,
     matchStatus: match.status,

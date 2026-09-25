@@ -108,6 +108,23 @@ export async function blockUser(blockerEmail: string, blockedEmail: string): Pro
   );
 }
 
+/**
+ * Directly sets a profile's weekly free-time availability (S17's meetup planner) — no UI
+ * path exists to pick specific slots in `completeProfileWizard` (it skips that optional
+ * step), so tests that need a real, deterministic mutual overlap set it here instead.
+ */
+export async function setFreeTimeSlots(email: string, slots: number[]): Promise<void> {
+  await pool.query(
+    'UPDATE profiles SET "freeTimeSlots" = $1 WHERE "userId" = (SELECT id FROM users WHERE email = $2)',
+    [slots, email.toLowerCase()],
+  );
+}
+
+/** Directly expires a `PlanShareLink` (S17), bypassing real wall-clock waiting — for e2e tests of the "the link expires" behavior itself. */
+export async function forceExpireShareLink(token: string): Promise<void> {
+  await pool.query('UPDATE plan_share_links SET "expiresAt" = now() - interval \'1 hour\' WHERE token = $1', [token]);
+}
+
 /** How many `Match` rows exist between these two users, in either userA/userB order — should only ever be 0 or 1 (`@@unique([userAId, userBId])`, always inserted in a normalized order). */
 export async function countMatches(emailA: string, emailB: string): Promise<number> {
   const result = await pool.query(
@@ -188,6 +205,18 @@ export async function getConversationId(emailA: string, emailB: string): Promise
     [emailA.toLowerCase(), emailB.toLowerCase()],
   );
   if (!result.rows[0]) throw new Error(`getConversationId: no conversation found between ${emailA} and ${emailB}`);
+  return result.rows[0].id as string;
+}
+
+/** The id of the `Match` row itself between these two users — `createMatch` returns its *Conversation*'s id instead (S17's meetup planner needs the match id, not the conversation id). */
+export async function getMatchId(emailA: string, emailB: string): Promise<string> {
+  const result = await pool.query(
+    `SELECT m.id FROM matches m
+     JOIN users a ON a.email = $1 JOIN users b ON b.email = $2
+     WHERE (m."userAId" = a.id AND m."userBId" = b.id) OR (m."userAId" = b.id AND m."userBId" = a.id)`,
+    [emailA.toLowerCase(), emailB.toLowerCase()],
+  );
+  if (!result.rows[0]) throw new Error(`getMatchId: no match found between ${emailA} and ${emailB}`);
   return result.rows[0].id as string;
 }
 

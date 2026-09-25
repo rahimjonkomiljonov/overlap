@@ -6,6 +6,7 @@ import { prisma } from "@/server/db";
 import { getConversationForActor, getMessages } from "@/server/chat/queries";
 import { getIcebreakerReasons } from "@/server/chat/icebreakers";
 import { buildLabelMaps, resolveReasons, type ResolvedReason } from "@/server/picks/reasons";
+import { getEmergencyContacts } from "@/server/safety/emergency";
 
 export default async function ChatPage({
   params,
@@ -24,6 +25,7 @@ export default async function ChatPage({
   }
 
   const messages = await getMessages(prisma, conversationId);
+  const emergencyContacts = actor.campusId ? await getEmergencyContacts(prisma, actor.campusId) : [];
 
   let icebreakers: string[] = [];
   if (messages.length === 0) {
@@ -45,6 +47,7 @@ export default async function ChatPage({
   return (
     <ChatThread
       conversationId={conversationId}
+      matchId={conversation.matchId}
       actorUserId={actor.userId}
       otherUserId={conversation.otherUserId}
       otherFirstName={conversation.otherFirstName}
@@ -54,6 +57,7 @@ export default async function ChatPage({
       matchStatus={conversation.matchStatus}
       revivedAt={conversation.revivedAt?.toISOString() ?? null}
       icebreakers={icebreakers}
+      emergencyContacts={emergencyContacts}
     />
   );
 }

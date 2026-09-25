@@ -152,6 +152,8 @@ model User {
   reportsAgainst            Report[]           @relation("ReportTarget")
   moderationActionsTaken    ModerationAction[] @relation("ModerationActionActor")
   moderationActionsReceived ModerationAction[] @relation("ModerationActionTarget")
+  meetProposalsMade         MeetProposal[]        @relation("MeetProposalProposedBy")
+  meetupFeedbackEntries     MeetupFeedbackEntry[]
 
   @@index([campusId])
   @@map("users")
@@ -467,6 +469,7 @@ model Spot {
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   optedIn   ProfileSpot[]
+  meetProposals MeetProposal[]
 
   @@unique([campusId, name])
   @@index([searchText(ops: raw("gin_trgm_ops"))], type: Gin)
@@ -977,7 +980,8 @@ model Match {
 
   createdAt DateTime @default(now())
 
-  conversation Conversation?
+  conversation   Conversation?
+  meetProposals  MeetProposal[]
 
   @@unique([userAId, userBId])
   @@map("matches")
@@ -1144,4 +1148,105 @@ model ModerationAction {
 
   @@index([targetId])
   @@map("moderation_actions")
+}
+
+/// E1: "propose/accept/decline." A "counter" is the same action taken the other way —
+/// decline, then propose again — rather than a distinct mechanic, so only these four
+/// statuses exist.
+enum MeetupStatus {
+  PROPOSED
+  ACCEPTED
+  DECLINED
+  CANCELLED
+}
+
+/// E4's four fixed responses; UNCOMFORTABLE is the one that points the UI at the
+/// existing report flow (G1) — never auto-filed, since only the reporter can supply the
+/// category/evidence a real report needs.
+enum MeetupFeedbackResponse {
+  GREAT
+  FINE
+  NOT_FOR_ME
+  UNCOMFORTABLE
+}
+
+/// E1's "plan a meetup": one concrete (day/block, Safe Spot) choice out of the top-3 a
+/// proposer picked from (src/server/meetup/slots.ts). `day`/`block` keep the same weekly
+/// scheme as `Profile.freeTimeSlots`; `scheduledStart`/`scheduledEnd` are the *next real
+/// occurrence* of that slot resolved once at proposal time (`src/server/meetup/
+/// schedule.ts`'s `nextSeoulOccurrence`) and never recomputed, so a proposal accepted
+/// days later doesn't silently shift to a different date. Only ever one PROPOSED or
+/// ACCEPTED row per match at a time — enforced in `src/server/meetup/actions.ts`, not by
+/// a DB constraint, since a match legitimately accumulates many resolved proposals over
+/// time (declined, cancelled, or from a past meetup).
+model MeetProposal {
+  id String @id @default(uuid())
+
+  matchId String
+  match   Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  proposedByUserId String
+  proposedByUser   User   @relation("MeetProposalProposedBy", fields: [proposedByUserId], references: [id], onDelete: Cascade)
+
+  spotId String
+  spot   Spot   @relation(fields: [spotId], references: [id])
+
+  day   Int
+  block Int
+
+  scheduledStart DateTime
+  scheduledEnd   DateTime
+
+  status            MeetupStatus @default(PROPOSED)
+  respondedByUserId String?
+  respondedAt       DateTime?
+
+  createdAt DateTime @default(now())
+
+  feedback   MeetupFeedbackEntry[]
+  shareLinks PlanShareLink[]
+
+  @@index([matchId])
+  @@map("meet_proposals")
+}
+
+/// E4: private per-participant post-meetup check-in. `@@unique` makes "one feedback per
+/// person per proposal" structural, not just an application-level rule.
+model MeetupFeedbackEntry {
+  id String @id @default(uuid())
+
+  proposalId String
+  proposal   MeetProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  response MeetupFeedbackResponse
+
+  createdAt DateTime @default(now())
+
+  @@unique([proposalId, userId])
+  @@map("meetup_feedback_entries")
+}
+
+/// E3 "share my plans": a tokenized, expiring, read-only link for a trusted contact who
+/// is never an authenticated Overlap user — `token` alone is what grants access, so
+/// `src/server/meetup/queries.ts`'s `getShareLinkView` treats "expired," "revoked" and
+/// "no such token" identically to the visitor. Stored as a plain high-entropy string
+/// (src/server/meetup/token.ts), not hashed like an OTP — this is a capability meant to
+/// be used by clicking a link, not typed in, and it carries no more than a first name,
+/// a place and a time (never GPS/live location — Location Information Act, E3).
+model PlanShareLink {
+  id String @id @default(uuid())
+
+  proposalId String
+  proposal   MeetProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+
+  token     String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@map("plan_share_links")
 }

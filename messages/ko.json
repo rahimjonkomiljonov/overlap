@@ -96,7 +96,8 @@
       "ALREADY_DECIDED": "이미 처리한 매치예요.",
       "UNKNOWN": "문제가 발생했어요. 잠시 후 다시 시도해 주세요."
     },
-    "chatButton": "채팅하기"
+    "chatButton": "채팅하기",
+    "planMeetup": "약속 잡기"
   },
   "Me": {
     "title": "내 정보",
@@ -747,7 +748,8 @@
       "NOT_EXPIRED": "아직 만료되지 않은 대화예요.",
       "ALREADY_REVIVED": "이미 한 번 다시 시작한 대화예요.",
       "UNKNOWN": "문제가 발생했어요. 잠시 후 다시 시도해 주세요."
-    }
+    },
+    "planMeetup": "약속 잡기"
   },
   "Report": {
     "reportButton": "신고",
@@ -874,5 +876,62 @@
       "NOT_FOUND": "이미 처리되었거나 찾을 수 없는 신고예요.",
       "UNKNOWN": "문제가 생겼어요. 잠시 후 다시 시도해 주세요."
     }
+  },
+  "Meetup": {
+    "title": "만남 계획",
+    "safetyTitle": "안전하게 만나기",
+    "safetyTip1": "사람이 많은 공개 장소에서 만나세요.",
+    "safetyTip2": "만나기 전에 충분히 대화해 보세요.",
+    "safetyTip3": "직감이 불편하다고 하면 그 자리를 떠나도 괜찮아요.",
+    "noOptionsTitle": "아직 제안할 시간이 없어요",
+    "noOptionsBody": "서로 겹치는 자유 시간이 없거나, 캠퍼스에 등록된 안전한 장소가 아직 없어요.",
+    "pickTitle": "이 중에서 골라보세요",
+    "propose": "이 시간 제안하기",
+    "status": {
+      "PROPOSED": "제안됨",
+      "ACCEPTED": "확정됨"
+    },
+    "withWhom": "{name}님과의 만남",
+    "withdraw": "제안 취소하기",
+    "decline": "거절",
+    "accept": "수락",
+    "addToCalendar": "캘린더에 추가",
+    "sharePlans": "계획 공유하기",
+    "cancelMeetup": "약속 취소하기",
+    "shareLinkReady": "공유 링크가 만들어졌어요",
+    "feedbackPrompt": "만남은 어땠나요?",
+    "feedback": {
+      "GREAT": "좋았어요",
+      "FINE": "괜찮았어요",
+      "NOT_FOR_ME": "저와는 안 맞았어요",
+      "UNCOMFORTABLE": "불편했어요"
+    },
+    "feedbackUncomfortable": "불편한 일이 있었다면 신고할 수 있어요.",
+    "feedbackThanks": "소중한 의견 감사해요.",
+    "errors": {
+      "UNAUTHENTICATED": "먼저 로그인해 주세요.",
+      "INVALID_INPUT": "입력한 내용을 다시 확인해 주세요.",
+      "NOT_FOUND": "찾을 수 없는 약속이에요.",
+      "UNMATCHED": "언매치된 상대와는 약속을 잡을 수 없어요.",
+      "ALREADY_PLANNED": "이미 진행 중인 약속이 있어요.",
+      "INVALID_OPTION": "선택한 시간이 더 이상 유효하지 않아요. 다시 시도해 주세요.",
+      "NOT_PENDING": "이미 응답이 끝난 제안이에요.",
+      "CANNOT_ACCEPT_OWN": "내가 제안한 약속은 직접 수락할 수 없어요.",
+      "NOT_ACCEPTED": "확정된 약속에서만 할 수 있어요.",
+      "UNKNOWN": "문제가 생겼어요. 잠시 후 다시 시도해 주세요."
+    }
+  },
+  "Emergency": {
+    "cardButton": "긴급 연락처",
+    "cardTitle": "긴급 상황이라면",
+    "close": "닫기"
+  },
+  "PlanShare": {
+    "title": "만남 계획",
+    "intro": "{name}님이 다음 만남 계획을 공유했어요.",
+    "someone": "친구",
+    "noLocationNote": "정확한 위치는 공유되지 않아요.",
+    "unavailableTitle": "링크가 만료됐어요",
+    "unavailableBody": "이 공유 링크는 더 이상 사용할 수 없어요."
   }
 }
