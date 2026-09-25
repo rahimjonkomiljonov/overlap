@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { BlockButton } from "@/components/safety/block-button";
+import { ReportButton } from "@/components/safety/report-button";
 import { Link } from "@/i18n/navigation";
 import { unmatch, type UnmatchState } from "@/server/waves/actions";
 import type { MatchSummary } from "@/server/waves/queries";
@@ -72,6 +74,10 @@ export function MatchCard({
             )}
           </div>
         )}
+        <div className="flex items-center justify-end gap-2">
+          <ReportButton targetUserId={match.otherUserId} conversationId={match.conversationId ?? undefined} />
+          <BlockButton targetUserId={match.otherUserId} onBlocked={() => onUnmatched(match.matchId)} />
+        </div>
       </CardFooter>
     </Card>
   );

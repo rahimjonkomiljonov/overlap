@@ -1,4 +1,4 @@
-import { Gender, IntentMode } from "@/generated/prisma/enums";
+import { Gender, IntentMode, UserStatus } from "@/generated/prisma/enums";
 import type { PrismaClient } from "@/generated/prisma/client";
 import { decryptField } from "@/server/privacy/encryption";
 import type { MatchableProfile } from "./terms";
@@ -56,9 +56,13 @@ export async function loadCampusMatchPool(
   const users = await db.user.findMany({
     where: {
       campusId,
+      // G3: paused, suspended, banned or deleted accounts never appear as a candidate to
+      // anyone else, on top of the block/hide filters below. Incognito (also G3) is a
+      // per-profile opt-in to the same effect while staying otherwise fully active.
+      status: UserStatus.ACTIVE,
       verifiedAt: { not: null },
       lastActiveAt: { gte: activeSince },
-      profile: { completedAt: { not: null }, intents: { has: intent } },
+      profile: { completedAt: { not: null }, intents: { has: intent }, incognito: false },
     },
     select: {
       id: true,

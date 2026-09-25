@@ -1,8 +1,9 @@
 import type { PrismaClient } from "@/generated/prisma/client";
 import { resolvePhotoUrl } from "@/server/storage/photos";
 import type { TargetElement } from "@/server/picks/schema";
+import { getBlockedUserIdSet } from "./blocks";
 
-export type WavesDb = Pick<PrismaClient, "wave" | "match">;
+export type WavesDb = Pick<PrismaClient, "wave" | "match" | "block">;
 
 export interface IncomingWave {
   waveId: string;
@@ -14,10 +15,15 @@ export interface IncomingWave {
   createdAt: Date;
 }
 
-/** Pending waves sent to `userId`, most recent first — the "Waved at you" inbox (D1). */
+/**
+ * Pending waves sent to `userId`, most recent first — the "Waved at you" inbox (D1).
+ * Excludes anyone `userId` has blocked or been blocked by (G2), even though a block
+ * created after the wave was sent means the row itself is still PENDING in the DB.
+ */
 export async function getIncomingWaves(db: WavesDb, userId: string): Promise<IncomingWave[]> {
+  const blocked = await getBlockedUserIdSet(db, userId);
   const waves = await db.wave.findMany({
-    where: { toUserId: userId, status: "PENDING" },
+    where: { toUserId: userId, status: "PENDING", fromUserId: { notIn: [...blocked] } },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
@@ -61,10 +67,21 @@ export interface MatchSummary {
   matchedAt: Date;
 }
 
-/** Active matches involving `userId`, most recent first. */
+/**
+ * Active matches involving `userId`, most recent first. Excludes anyone `userId` has
+ * blocked or been blocked by (G2) — a block made after the match formed still hides it
+ * from both sides, matching the mutual-invisibility guarantee.
+ */
 export async function getMatches(db: WavesDb, userId: string): Promise<MatchSummary[]> {
+  const blocked = await getBlockedUserIdSet(db, userId);
   const matches = await db.match.findMany({
-    where: { status: "ACTIVE", OR: [{ userAId: userId }, { userBId: userId }] },
+    where: {
+      status: "ACTIVE",
+      OR: [
+        { userAId: userId, userBId: { notIn: [...blocked] } },
+        { userBId: userId, userAId: { notIn: [...blocked] } },
+      ],
+    },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,

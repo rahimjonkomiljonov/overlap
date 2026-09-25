@@ -6,6 +6,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { BlockButton } from "@/components/safety/block-button";
+import { ReportButton } from "@/components/safety/report-button";
 import { declineWave, waveBack, type DeclineWaveState, type WaveBackState } from "@/server/waves/actions";
 import { WAVE_NOTE_MAX_LENGTH } from "@/server/picks/schema";
 import type { IncomingWave } from "@/server/waves/queries";
@@ -105,6 +107,10 @@ export function WaveInboxCard({
             </Button>
           </div>
         )}
+        <div className="flex items-center justify-end gap-2">
+          <ReportButton targetUserId={wave.fromUserId} />
+          <BlockButton targetUserId={wave.fromUserId} onBlocked={() => onDecided(wave.waveId)} />
+        </div>
       </CardFooter>
     </Card>
   );

@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { BlockButton } from "@/components/safety/block-button";
+import { ReportButton } from "@/components/safety/report-button";
 import { passPick, sendWave, type PassPickState, type SendWaveState } from "@/server/picks/actions";
 import { WAVE_NOTE_MAX_LENGTH } from "@/server/picks/schema";
 import type { PickCardData } from "@/server/picks/queries";
@@ -102,6 +104,10 @@ export function PickCardActions({
             </form>
           </div>
         )}
+        <div className="flex items-center justify-end gap-2">
+          <ReportButton targetUserId={pick.candidateUserId} />
+          <BlockButton targetUserId={pick.candidateUserId} onBlocked={() => onDecided(pick.batchItemId)} />
+        </div>
       </CardFooter>
     </Card>
   );

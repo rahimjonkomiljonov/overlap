@@ -1,4 +1,4 @@
-import { Gender, IntentMode } from "@/generated/prisma/enums";
+import { Gender, IntentMode, UserStatus } from "@/generated/prisma/enums";
 import { describe, expect, it } from "vitest";
 import { encryptField } from "@/server/privacy/encryption";
 import { loadCampusMatchPool, type CandidateDb } from "./candidates";
@@ -6,12 +6,14 @@ import { loadCampusMatchPool, type CandidateDb } from "./candidates";
 interface FakeUserRow {
   id: string;
   campusId: string;
+  status: UserStatus;
   verifiedAt: Date | null;
   lastActiveAt: Date;
   createdAt: Date;
   profile: {
     completedAt: Date | null;
     intents: string[];
+    incognito: boolean;
     gender: Gender;
     interestedIn: string | null;
     freeTimeSlots: number[];
@@ -26,12 +28,14 @@ interface FakeUserRow {
 function baseUser(overrides: Partial<FakeUserRow> & { id: string }): FakeUserRow {
   return {
     campusId: "campus-a",
+    status: UserStatus.ACTIVE,
     verifiedAt: new Date("2026-09-01"),
     lastActiveAt: new Date("2026-09-25"),
     createdAt: new Date("2026-09-01"),
     profile: {
       completedAt: new Date("2026-09-01"),
       intents: [IntentMode.FRIENDS],
+      incognito: false,
       gender: Gender.WOMAN,
       interestedIn: null,
       freeTimeSlots: [],
@@ -53,13 +57,25 @@ function fakeDb(
 ): CandidateDb {
   return {
     user: {
-      findMany: async ({ where }: { where: { campusId: string; verifiedAt: unknown; lastActiveAt: { gte: Date }; profile: { completedAt: unknown; intents: { has: string } } } }) =>
+      findMany: async ({
+        where,
+      }: {
+        where: {
+          campusId: string;
+          status: UserStatus;
+          verifiedAt: unknown;
+          lastActiveAt: { gte: Date };
+          profile: { completedAt: unknown; intents: { has: string }; incognito: boolean };
+        };
+      }) =>
         users
           .filter((u) => u.campusId === where.campusId)
+          .filter((u) => u.status === where.status)
           .filter((u) => u.verifiedAt !== null)
           .filter((u) => u.lastActiveAt.getTime() >= where.lastActiveAt.gte.getTime())
           .filter((u) => u.profile !== null && u.profile.completedAt !== null)
           .filter((u) => u.profile!.intents.includes(where.profile.intents.has))
+          .filter((u) => u.profile!.incognito === where.profile.incognito)
           .map((u) => ({ id: u.id, createdAt: u.createdAt, profile: u.profile })),
     },
     block: {
@@ -94,6 +110,18 @@ describe("loadCampusMatchPool", () => {
       baseUser({ id: "incomplete-profile", profile: { ...baseUser({ id: "x" }).profile!, completedAt: null } }),
       baseUser({ id: "inactive", lastActiveAt: new Date("2026-08-01") }),
       baseUser({ id: "wrong-intent", profile: { ...baseUser({ id: "x" }).profile!, intents: [IntentMode.STUDY] } }),
+    ];
+    const result = await loadCampusMatchPool(fakeDb(users), "campus-a", IntentMode.FRIENDS, { now: NOW });
+    expect(result.profiles.map((p) => p.userId)).toEqual(["ok"]);
+  });
+
+  it("excludes paused, suspended and banned users, and incognito profiles (G3)", async () => {
+    const users = [
+      baseUser({ id: "ok" }),
+      baseUser({ id: "paused", status: UserStatus.PAUSED }),
+      baseUser({ id: "suspended", status: UserStatus.SUSPENDED }),
+      baseUser({ id: "banned", status: UserStatus.BANNED }),
+      baseUser({ id: "incognito", profile: { ...baseUser({ id: "x" }).profile!, incognito: true } }),
     ];
     const result = await loadCampusMatchPool(fakeDb(users), "campus-a", IntentMode.FRIENDS, { now: NOW });
     expect(result.profiles.map((p) => p.userId)).toEqual(["ok"]);

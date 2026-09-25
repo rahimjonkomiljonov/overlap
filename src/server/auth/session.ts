@@ -21,7 +21,7 @@ export async function getActor(): Promise<Actor> {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { campusId: true, status: true, trustScore: true, role: true, lastActiveAt: true },
+    select: { campusId: true, status: true, suspendedUntil: true, trustScore: true, role: true, lastActiveAt: true },
   });
   if (!user) return null;
 
@@ -32,11 +32,22 @@ export async function getActor(): Promise<Actor> {
     void prisma.user.update({ where: { id: session.user.id }, data: { lastActiveAt: new Date() } }).catch(() => {});
   }
 
+  // G8's 7-day suspension expires on its own — lazily flip back to ACTIVE the next time
+  // the account is seen, rather than needing a separate reinstatement job. A ban has no
+  // `suspendedUntil` and is never reversed this way; only a moderator action changes it.
+  let status = user.status;
+  if (status === UserStatus.SUSPENDED && user.suspendedUntil !== null && user.suspendedUntil <= new Date()) {
+    status = UserStatus.ACTIVE;
+    void prisma.user
+      .update({ where: { id: session.user.id }, data: { status: UserStatus.ACTIVE, suspendedUntil: null } })
+      .catch(() => {});
+  }
+
   return {
     userId: session.user.id,
     campusId: user.campusId ?? "",
     role: user.role,
-    status: user.status,
+    status,
   };
 }
 

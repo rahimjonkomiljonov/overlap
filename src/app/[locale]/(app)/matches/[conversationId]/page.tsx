@@ -46,6 +46,7 @@ export default async function ChatPage({
     <ChatThread
       conversationId={conversationId}
       actorUserId={actor.userId}
+      otherUserId={conversation.otherUserId}
       otherFirstName={conversation.otherFirstName}
       otherPhotoUrl={conversation.otherPhotoUrl}
       initialMessages={messages.map((m) => ({ ...m, createdAt: m.createdAt.toISOString() }))}

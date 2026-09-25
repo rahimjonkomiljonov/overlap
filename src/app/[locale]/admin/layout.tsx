@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
+import { getTranslations } from "next-intl/server";
 import { can, Role } from "@/server/auth/authz";
-import { redirect } from "@/i18n/navigation";
+import { Link, redirect } from "@/i18n/navigation";
 import { getActor } from "@/server/auth/session";
 
 /**
@@ -25,5 +26,19 @@ export default async function AdminLayout({
     return;
   }
 
-  return <main id="main" className="mx-auto w-full max-w-3xl flex-1 px-4 py-10">{children}</main>;
+  const t = await getTranslations("Admin");
+
+  return (
+    <main id="main" className="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
+      <nav className="mb-6 flex gap-4 border-b border-border pb-3 text-sm">
+        <Link href="/admin/verification" className="text-muted-foreground hover:text-foreground">
+          {t("navVerification")}
+        </Link>
+        <Link href="/admin/reports" className="text-muted-foreground hover:text-foreground">
+          {t("navReports")}
+        </Link>
+      </nav>
+      {children}
+    </main>
+  );
 }

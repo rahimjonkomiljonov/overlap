@@ -21,3 +21,19 @@ export async function isBlockedEitherWay(db: BlockCheckDb, userAId: string, user
   });
   return block !== null;
 }
+
+/**
+ * Every user id that has blocked, or been blocked by, `userId` — one bulk query, for
+ * queries.ts's `getIncomingWaves`/`getMatches`/chat's `getConversationForActor` to filter
+ * against in memory, rather than an N+1 `isBlockedEitherWay` call per row. G2's "mutual
+ * invisibility" applies even to an already-formed match/conversation: blocking someone
+ * after matching must remove them from both sides' waves/matches/chat, not just future
+ * picks (which src/server/matching/candidates.ts already excludes at composition time).
+ */
+export async function getBlockedUserIdSet(db: BlockCheckDb, userId: string): Promise<ReadonlySet<string>> {
+  const blocks = await db.block.findMany({
+    where: { OR: [{ blockerId: userId }, { blockedId: userId }] },
+    select: { blockerId: true, blockedId: true },
+  });
+  return new Set(blocks.map((b) => (b.blockerId === userId ? b.blockedId : b.blockerId)));
+}

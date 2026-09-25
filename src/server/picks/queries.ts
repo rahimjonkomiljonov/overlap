@@ -4,10 +4,11 @@ import { ensureTodaysBatchForUser, type RunDailyBatchDb } from "@/server/matchin
 import { seoulCalendarDate } from "@/server/matching/seoul-date";
 import type { Explanation } from "@/server/matching/explain";
 import { resolvePhotoUrl } from "@/server/storage/photos";
+import { getBlockedUserIdSet } from "@/server/waves/blocks";
 import { buildLabelMaps, resolveReasons, type ResolvedReason } from "./reasons";
 
 export type PicksDb = RunDailyBatchDb &
-  Pick<PrismaClient, "profile" | "course" | "club" | "interestTag">;
+  Pick<PrismaClient, "profile" | "course" | "club" | "interestTag" | "block" | "hideRule">;
 
 export interface PickCardData {
   batchItemId: string;
@@ -83,10 +84,21 @@ export async function getPicksForActor(
   const allReasons = batches.flatMap((b) => b.items.map((i) => i.reasons as unknown as Explanation[]));
   const labelMaps = await buildLabelMaps(db, allReasons);
 
+  // Composition time (src/server/matching/candidates.ts) already excludes blocked/hidden
+  // pairs from a *new* batch, but a block or hide-from made after today's batch was
+  // already persisted must still hide that candidate here — re-checked at read time,
+  // same as waves/matches/chat do for blocks.
+  const [blocked, hideRules] = await Promise.all([
+    getBlockedUserIdSet(db, actor.userId),
+    db.hideRule.findMany({ where: { userId: actor.userId }, select: { hiddenUserId: true } }),
+  ]);
+  const hidden = new Set(hideRules.map((h) => h.hiddenUserId));
+
   const results: IntentPicks[] = [];
   for (const batch of batches) {
     const items: PickCardData[] = [];
     for (const item of batch.items) {
+      if (blocked.has(item.candidateUserId) || hidden.has(item.candidateUserId)) continue;
       if (!item.candidate.profile) continue; // shouldn't happen (candidates are always profile-complete), but never render a card with nothing to show
       const photos = await Promise.all(
         item.candidate.profile.photos.map(async (p) => ({ id: p.id, url: await resolvePhotoUrl(p.storageKey) })),

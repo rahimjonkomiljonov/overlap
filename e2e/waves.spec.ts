@@ -151,7 +151,9 @@ test.describe("waves and matches (S14)", () => {
     }
   });
 
-  test("a blocked user cannot wave, even from an already-composed pick", async ({ browser }) => {
+  test("a blocked user cannot wave, even from an already-composed pick, and a reload removes their card entirely (S16)", async ({
+    browser,
+  }) => {
     const firstNameA = uniqueFirstName("차단A");
     const firstNameB = uniqueFirstName("차단B");
 
@@ -168,23 +170,26 @@ test.describe("waves and matches (S14)", () => {
     await shareCourseAndClub(emailA, emailB);
 
     try {
-      // Compose A's batch (and B's card in it) *before* the block exists, exercising the
-      // wave action's own defense-in-depth check rather than the candidate pool's.
+      // Compose A's batch (and B's card in it) *before* the block exists.
       await pageA.goto("/picks");
       const cardOnA = pageA.locator('[data-slot="card"]').filter({ hasText: firstNameB });
       await expect(cardOnA).toHaveCount(1);
 
       await blockUser(emailB, emailA);
 
-      await pageA.reload();
-      const cardOnAAfterBlock = pageA.locator('[data-slot="card"]').filter({ hasText: firstNameB });
-      await expect(cardOnAAfterBlock).toHaveCount(1);
-      await cardOnAAfterBlock.getByRole("button", { name: "웨이브", exact: true }).click();
-
-      await expect(cardOnAAfterBlock.getByText("이 상대에게는 웨이브를 보낼 수 없어요.")).toBeVisible();
+      // Without reloading, A's already-rendered card is stale relative to the block —
+      // exercises the wave action's own defense-in-depth check rather than the candidate
+      // pool's or the picks list's read-time filter (S16).
+      await cardOnA.getByRole("button", { name: "웨이브", exact: true }).click();
+      await expect(cardOnA.getByText("이 상대에게는 웨이브를 보낼 수 없어요.")).toBeVisible();
       // The wave was rejected, so the card is still there, undecided.
-      await expect(cardOnAAfterBlock).toHaveCount(1);
+      await expect(cardOnA).toHaveCount(1);
       expect(await countMatches(emailA, emailB)).toBe(0);
+
+      // A reload re-fetches the picks list, which now excludes the blocked pair entirely
+      // (S16's "blocked users never appear in picks" — src/server/picks/queries.ts).
+      await pageA.reload();
+      await expect(pageA.locator('[data-slot="card"]').filter({ hasText: firstNameB })).toHaveCount(0);
     } finally {
       await contextA.close();
       await contextB.close();

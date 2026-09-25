@@ -1,7 +1,8 @@
 import type { PrismaClient } from "@/generated/prisma/client";
 import { resolvePhotoUrl } from "@/server/storage/photos";
+import { isBlockedEitherWay } from "@/server/waves/blocks";
 
-export type ChatDb = Pick<PrismaClient, "conversation" | "message">;
+export type ChatDb = Pick<PrismaClient, "conversation" | "message" | "block">;
 
 export interface ConversationView {
   conversationId: string;
@@ -17,9 +18,11 @@ export interface ConversationView {
 
 /**
  * The one auth check every chat route/action needs: `conversationId` exists and `actorUserId`
- * is one of its match's two participants. Returns null for "doesn't exist" and "not a
- * participant" alike — never distinguishing the two to a caller, so a guessed id can't be
- * used to probe which conversations exist.
+ * is one of its match's two participants. Returns null for "doesn't exist", "not a
+ * participant", and "the two participants have blocked each other" alike — never
+ * distinguishing these to a caller, so a guessed id can't be used to probe which
+ * conversations exist, and a block made after a match formed still enforces G2's mutual
+ * invisibility on the conversation itself, not just future picks/waves.
  */
 export async function getConversationForActor(db: ChatDb, conversationId: string, actorUserId: string): Promise<ConversationView | null> {
   const conversation = await db.conversation.findUnique({
@@ -59,6 +62,8 @@ export async function getConversationForActor(db: ChatDb, conversationId: string
 
   const other = isUserA ? match.userB : match.userA;
   const otherUserId = isUserA ? match.userBId : match.userAId;
+
+  if (await isBlockedEitherWay(db, actorUserId, otherUserId)) return null;
   const photo = other.profile?.photos[0];
 
   return {

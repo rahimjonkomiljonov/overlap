@@ -134,6 +134,25 @@ export async function createBareUser(email: string, name: string): Promise<void>
 }
 
 /**
+ * A `User` with a minimal `Profile` carrying only `firstName` — unlike `createBareUser`
+ * (deliberately profile-less, relied on by chat.spec.ts/waves.spec.ts), this is for a
+ * safety test (S16) that needs its seeded user's name to actually render on a pick/wave/
+ * match card, so a test can find *its own* card among a long-lived DB's leftovers by
+ * `hasText`. Never onboarded (no intents, no `completedAt`) — not eligible as a real
+ * matching candidate, only as a `createMatch`/`createIncomingWave`/`seedPickCandidate`
+ * target seeded directly.
+ */
+export async function createUserWithFirstName(email: string, firstName: string): Promise<void> {
+  await createBareUser(email, firstName);
+  const userRow = await pool.query("SELECT id FROM users WHERE email = $1", [email.toLowerCase()]);
+  const userId = userRow.rows[0].id as string;
+  await pool.query(
+    'INSERT INTO profiles (id, "userId", "firstName", "updatedAt") VALUES ($1, $2, $3, now())',
+    [randomUUID(), userId, firstName],
+  );
+}
+
+/**
  * An ACTIVE match (plus its Conversation, matching formMatch's real invariant that every
  * Match always has exactly one) between two already-onboarded users, direct via SQL —
  * for tests (a11y's populated /matches check, S15's chat tests) that need a real match
@@ -170,6 +189,42 @@ export async function getConversationId(emailA: string, emailB: string): Promise
   );
   if (!result.rows[0]) throw new Error(`getConversationId: no conversation found between ${emailA} and ${emailB}`);
   return result.rows[0].id as string;
+}
+
+/**
+ * Directly seeds `candidateEmail` into `viewerEmail`'s already-composed today's batch
+ * (any intent), bypassing the real ranking algorithm — for a safety test (S16) that
+ * needs a deterministic, guaranteed-visible pick to then block and re-check, rather than
+ * hoping two freshly onboarded users with no real shared signal happen to rank each
+ * other into the real top-6. `viewerEmail` must have already visited /picks at least
+ * once (via `signInAndOnboard`) so a `DailyBatch` row exists to attach to.
+ */
+export async function seedPickCandidate(viewerEmail: string, candidateEmail: string): Promise<void> {
+  const batchRow = await pool.query(
+    `SELECT id FROM daily_batches WHERE "userId" = (SELECT id FROM users WHERE email = $1) ORDER BY "createdAt" DESC LIMIT 1`,
+    [viewerEmail.toLowerCase()],
+  );
+  const dailyBatchId = batchRow.rows[0]?.id as string | undefined;
+  if (!dailyBatchId) {
+    throw new Error(`seedPickCandidate: no daily batch found for ${viewerEmail} — visit /picks first`);
+  }
+  const rankRow = await pool.query(
+    'SELECT COALESCE(MAX(rank), 0) + 1 AS "nextRank" FROM batch_items WHERE "dailyBatchId" = $1',
+    [dailyBatchId],
+  );
+  const nextRank = rankRow.rows[0].nextRank as number;
+  await pool.query(
+    `INSERT INTO batch_items (id, "dailyBatchId", "candidateUserId", score, reasons, rank)
+     VALUES ($1, $2, (SELECT id FROM users WHERE email = $3), 50, '[]'::jsonb, $4)`,
+    [randomUUID(), dailyBatchId, candidateEmail.toLowerCase(), nextRank],
+  );
+}
+
+/** For asserting a moderation action's effect (S16) — the queue itself only shows OPEN reports, so the target's resulting status has to be read directly. */
+export async function getUserStatus(email: string): Promise<string> {
+  const result = await pool.query('SELECT status FROM users WHERE email = $1', [email.toLowerCase()]);
+  if (!result.rows[0]) throw new Error(`getUserStatus: no user found for ${email}`);
+  return result.rows[0].status as string;
 }
 
 /** A PENDING wave straight into the `toEmail` user's inbox, bypassing the UI/matching engine entirely — see `createBareUser`. */

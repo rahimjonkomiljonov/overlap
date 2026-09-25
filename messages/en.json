@@ -113,7 +113,9 @@
     "signOutEverywhere": "Sign out everywhere",
     "signOutDone": "Signed out",
     "verificationTitle": "Photo verification",
-    "verificationCta": "Verify now"
+    "verificationCta": "Verify now",
+    "safetyTitle": "Safety",
+    "safetyCta": "Go to safety settings"
   },
   "States": {
     "loading": "Loading",
@@ -696,7 +698,9 @@
       "NOT_FOUND": "Already handled, or couldn't be found.",
       "UNAUTHENTICATED": "Please sign in first.",
       "UNKNOWN": "Something went wrong. Please try again in a moment."
-    }
+    },
+    "navVerification": "Verification",
+    "navReports": "Reports"
   },
   "HowMatchingWorks": {
     "title": "How matching works",
@@ -743,6 +747,132 @@
       "NOT_EXPIRED": "This conversation hasn't expired.",
       "ALREADY_REVIVED": "This conversation has already been restarted once.",
       "UNKNOWN": "Something went wrong. Please try again in a moment."
+    }
+  },
+  "Report": {
+    "reportButton": "Report",
+    "thanks": "Thanks for reporting. This account is now hidden from you, and we'll review it.",
+    "dialogTitle": "What's happening?",
+    "categories": {
+      "NON_CONSENSUAL_IMAGERY": "Non-consensual intimate images",
+      "DEEPFAKE": "Deepfake imagery",
+      "ILLEGAL_FILMING": "Illegal filming",
+      "HARASSMENT": "Harassment",
+      "UNWANTED_CONTACT": "Unwanted contact after a block/hide",
+      "SCAM_OR_PHISHING": "Scam or phishing",
+      "SPAM": "Spam / solicitation",
+      "FAKE_PROFILE": "Fake profile",
+      "INAPPROPRIATE_CONTENT": "Inappropriate content",
+      "OTHER": "Other"
+    },
+    "descriptionPlaceholder": "Add more detail (optional)",
+    "cancel": "Cancel",
+    "submit": "Report",
+    "blockButton": "Block",
+    "blockConfirm": "Block this person? You'll become invisible to each other.",
+    "blocked": "Blocked.",
+    "errors": {
+      "UNAUTHENTICATED": "Please sign in first.",
+      "INVALID_INPUT": "Please check what you entered.",
+      "CANNOT_REPORT_SELF": "You can't report yourself.",
+      "CANNOT_BLOCK_SELF": "You can't block yourself.",
+      "NOT_FOUND": "That account couldn't be found.",
+      "INVALID_CONVERSATION": "Evidence can't be attached from this conversation.",
+      "UNKNOWN": "Something went wrong. Please try again."
+    }
+  },
+  "SafetySettings": {
+    "title": "Safety settings",
+    "visibilityTitle": "Visibility",
+    "pauseLabel": "Pause profile",
+    "pauseHint": "While paused, you won't appear in anyone's picks, and you won't get new picks either.",
+    "pause": "Pause",
+    "unpause": "Unpause",
+    "incognitoLabel": "Incognito mode",
+    "incognitoHint": "Keep browsing and acting normally, but never appear in anyone else's picks.",
+    "incognitoOn": "Turn off incognito",
+    "incognitoOff": "Turn on incognito",
+    "hideFromTitle": "Hide from a group",
+    "chooseCourse": "Choose a course to hide from",
+    "chooseClub": "Choose a club to hide from",
+    "emailPlaceholder": "Email address to hide from",
+    "hide": "Hide",
+    "blockedTitle": "Blocked",
+    "blockedEmpty": "You haven't blocked anyone.",
+    "unblock": "Unblock",
+    "hiddenTitle": "Hidden",
+    "hiddenEmpty": "You haven't hidden anyone.",
+    "unhide": "Unhide",
+    "actionsTitle": "Actions on your account",
+    "actionType": {
+      "DISMISS": "Dismiss",
+      "WARN": "Warn",
+      "SUSPEND": "Suspend (7 days)",
+      "BAN": "Ban",
+      "POLICE_REFERRAL": "Refer to police"
+    },
+    "appeal": "Appeal",
+    "appealPlaceholder": "Explain why you're appealing",
+    "appealSubmit": "Submit",
+    "appealSubmitted": "Appeal submitted: {note}",
+    "cancel": "Cancel",
+    "errors": {
+      "UNAUTHENTICATED": "Please sign in first.",
+      "INVALID_INPUT": "Please check what you entered.",
+      "NOT_FOUND": "That account couldn't be found.",
+      "CANNOT_HIDE_SELF": "You can't hide yourself.",
+      "ACCOUNT_RESTRICTED": "A restricted account can't change this setting.",
+      "ALREADY_APPEALED": "You've already submitted an appeal.",
+      "UNKNOWN": "Something went wrong. Please try again."
+    }
+  },
+  "AdminReports": {
+    "title": "Reports queue",
+    "empty": "No open reports.",
+    "priority": {
+      "URGENT": "Urgent",
+      "STANDARD": "Standard"
+    },
+    "categories": {
+      "NON_CONSENSUAL_IMAGERY": "Non-consensual intimate images",
+      "DEEPFAKE": "Deepfake imagery",
+      "ILLEGAL_FILMING": "Illegal filming",
+      "HARASSMENT": "Harassment",
+      "UNWANTED_CONTACT": "Unwanted contact after a block/hide",
+      "SCAM_OR_PHISHING": "Scam or phishing",
+      "SPAM": "Spam / solicitation",
+      "FAKE_PROFILE": "Fake profile",
+      "INAPPROPRIATE_CONTENT": "Inappropriate content",
+      "OTHER": "Other"
+    },
+    "reporter": "Reporter",
+    "target": "Reported",
+    "priorStrikes": "Prior actions",
+    "policeReferralChecklist": "Sexual imagery / deepfake / illegal filming report: preserve evidence first, escalate to the moderation lead immediately, then take the account action. Police referral is the reporter's/victim's choice — offer the 1366 hotline and the digital sex-crime victim support center.",
+    "showEvidence": "Show evidence ({count})",
+    "hideEvidence": "Hide evidence ({count})",
+    "reasonPlaceholder": "Reason for this action (required)",
+    "actionType": {
+      "DISMISS": "Dismiss",
+      "WARN": "Warn",
+      "SUSPEND": "Suspend (7 days)",
+      "BAN": "Ban",
+      "POLICE_REFERRAL": "Refer to police"
+    },
+    "userStatus": {
+      "ACTIVE": "Active",
+      "PAUSED": "Paused",
+      "SUSPENDED": "Suspended",
+      "BANNED": "Banned",
+      "DELETED": "Deleted"
+    },
+    "dueBy": "Due by {date}",
+    "overdue": "Past SLA",
+    "errors": {
+      "FORBIDDEN": "You don't have permission.",
+      "INVALID_INPUT": "Please check what you entered.",
+      "NOT_FOUND": "That report was already handled or couldn't be found.",
+      "UNKNOWN": "Something went wrong. Please try again."
     }
   }
 }

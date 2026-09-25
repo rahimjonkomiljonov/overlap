@@ -6,7 +6,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link } from "@/i18n/navigation";
+import { BlockButton } from "@/components/safety/block-button";
+import { ReportButton } from "@/components/safety/report-button";
+import { Link, useRouter } from "@/i18n/navigation";
 import { sendMessage, reviveConversation, type ReviveConversationState } from "@/server/chat/actions";
 import { MAX_MESSAGE_LENGTH } from "@/server/chat/schema";
 
@@ -33,6 +35,7 @@ const idleReviveState: ReviveConversationState = { status: "idle" };
 export function ChatThread({
   conversationId,
   actorUserId,
+  otherUserId,
   otherFirstName,
   otherPhotoUrl,
   initialMessages,
@@ -43,6 +46,7 @@ export function ChatThread({
 }: {
   conversationId: string;
   actorUserId: string;
+  otherUserId: string;
   otherFirstName: string | null;
   otherPhotoUrl: string | null;
   initialMessages: ChatMessageView[];
@@ -53,6 +57,7 @@ export function ChatThread({
 }) {
   const t = useTranslations("Chat");
   const locale = useLocale();
+  const router = useRouter();
 
   const [messages, setMessages] = useState(initialMessages);
   const [status, setStatus] = useState(initialStatus);
@@ -124,7 +129,9 @@ export function ChatThread({
           {otherPhotoUrl && <AvatarImage src={otherPhotoUrl} alt="" />}
           <AvatarFallback>{otherFirstName?.[0] ?? "?"}</AvatarFallback>
         </Avatar>
-        <p className="font-medium">{otherFirstName}</p>
+        <p className="mr-auto font-medium">{otherFirstName}</p>
+        <ReportButton targetUserId={otherUserId} conversationId={conversationId} />
+        <BlockButton targetUserId={otherUserId} onBlocked={() => router.push("/matches")} />
       </div>
 
       <div className="flex-1 space-y-3 overflow-y-auto py-4">

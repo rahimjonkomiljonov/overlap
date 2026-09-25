@@ -98,6 +98,11 @@ model User {
   ageVerifiedAt DateTime?
 
   status     UserStatus @default(ACTIVE)
+  /// Set only alongside `status = SUSPENDED` (G8's 7-day suspension rung). Read by
+  /// src/server/auth/session.ts's getActor(), which lazily flips a user back to ACTIVE
+  /// once this passes, rather than needing a separate reinstatement job. Meaningless
+  /// once status leaves SUSPENDED (a ban or a fresh suspension overwrites it).
+  suspendedUntil DateTime?
   trustScore Int        @default(100)
   role       Role       @default(USER)
 
@@ -143,6 +148,10 @@ model User {
   matchesAsUserA      Match[]      @relation("MatchUserA")
   matchesAsUserB      Match[]      @relation("MatchUserB")
   messagesSent        Message[]    @relation("MessageSender")
+  reportsFiled              Report[]           @relation("ReportReporter")
+  reportsAgainst            Report[]           @relation("ReportTarget")
+  moderationActionsTaken    ModerationAction[] @relation("ModerationActionActor")
+  moderationActionsReceived ModerationAction[] @relation("ModerationActionTarget")
 
   @@index([campusId])
   @@map("users")
@@ -578,6 +587,12 @@ model Profile {
   /// — only the taxonomy tags in `interests` are (REQUIREMENTS.md B8).
   interestsFreeText String[] @default([])
 
+  /// G3 incognito mode: browse and act normally, but never appear as a candidate in
+  /// anyone else's picks (src/server/matching/candidates.ts filters this the same way
+  /// it filters status != ACTIVE). Distinct from pausing (`User.status = PAUSED`), which
+  /// also stops the user themselves from receiving new picks.
+  incognito Boolean @default(false)
+
   /// Furthest wizard step reached, so /onboarding/profile can resume here (B1: "saves
   /// progress"). A UI resume point only — completion is `completedAt`, not this.
   onboardingStep Int @default(0)
@@ -1001,6 +1016,7 @@ model Conversation {
   createdAt DateTime @default(now())
 
   messages Message[]
+  reports  Report[]
 
   @@map("conversations")
 }
@@ -1025,4 +1041,107 @@ model Message {
 
   @@index([conversationId, createdAt])
   @@map("messages")
+}
+
+/// G1: non-consensual imagery, deepfakes and illegal filming are always urgent; every
+/// other category is standard (H1's <2h vs <24h SLA). src/server/reports/priority.ts is
+/// the one place this classification lives — kept as pure code, not a DB table, since
+/// the category list itself is fixed enum membership, not admin-editable content (H5).
+enum ReportCategory {
+  NON_CONSENSUAL_IMAGERY
+  DEEPFAKE
+  ILLEGAL_FILMING
+  HARASSMENT
+  UNWANTED_CONTACT
+  SCAM_OR_PHISHING
+  SPAM
+  FAKE_PROFILE
+  INAPPROPRIATE_CONTENT
+  OTHER
+}
+
+enum ReportPriority {
+  URGENT
+  STANDARD
+}
+
+enum ReportStatus {
+  OPEN
+  RESOLVED
+}
+
+/// H1's "one-click actions". DISMISS and POLICE_REFERRAL don't change `User.status`;
+/// WARN doesn't either (a warning is a stated reason on record, not a restriction) — only
+/// SUSPEND and BAN do, per G8's strike ladder.
+enum ModerationActionType {
+  DISMISS
+  WARN
+  SUSPEND
+  BAN
+  POLICE_REFERRAL
+}
+
+/// G1/H1: 2-tap report. `priority` is computed once at filing time from `category`
+/// (src/server/reports/priority.ts) and stored, not recomputed live, so a later change to
+/// the urgent-category list never reclassifies an already-filed report's SLA clock.
+/// `evidence` is the *only* path by which chat text reaches a human (G1) — a snapshot of
+/// up to the last 50 messages the reporter (a conversation participant) attached at
+/// filing time, never a live query a moderator can browse on demand.
+model Report {
+  id String @id @default(uuid())
+
+  reporterId String
+  reporter   User   @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  targetId   String
+  target     User   @relation("ReportTarget", fields: [targetId], references: [id], onDelete: Cascade)
+
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+
+  category ReportCategory
+  priority ReportPriority
+  status   ReportStatus   @default(OPEN)
+
+  /// Reporter's own free-text account of what happened, ≤500 chars (src/server/reports/schema.ts).
+  description String?
+
+  /// Json array of {senderId, text, createdAt} snapshotted at filing time — see model doc above.
+  evidence Json?
+
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  actions ModerationAction[]
+
+  @@index([status, priority, createdAt])
+  @@index([targetId])
+  @@map("reports")
+}
+
+/// G8/H3: every suspension/ban is a human decision with a stated reason — enforced by
+/// `reason` being required (never optional) here and by
+/// src/server/reports/actions.ts's takeModerationAction requiring Role.MODERATOR.
+/// `appealNote` is filled in later, once, by the affected user themselves (PIPA Art.
+/// 37-2 appeal path); a null `appealedAt` means no appeal has been filed yet.
+model ModerationAction {
+  id String @id @default(uuid())
+
+  reportId String
+  report   Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  targetId String
+  target   User   @relation("ModerationActionTarget", fields: [targetId], references: [id], onDelete: Cascade)
+  actorId  String
+  actor    User   @relation("ModerationActionActor", fields: [actorId], references: [id])
+
+  type   ModerationActionType
+  reason String
+
+  appealNote String?
+  appealedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([targetId])
+  @@map("moderation_actions")
 }
