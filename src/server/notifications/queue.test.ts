@@ -210,16 +210,16 @@ describe("processQueuedNotifications with the real sendEmail (dev outbox, local-
       const result = await processQueuedNotifications(db, { now: DAYTIME });
 
       expect(result).toEqual({ sent: 1, skipped: 0, deferred: false });
-      // readLastEmail's own poll loop defaults to a 5s budget; vitest's default per-test
-      // timeout is also 5s, so on a slower CI runner the outer timeout can trip before
-      // the inner one naturally resolves (first seen in real CI, S22 — a fresh GitHub
-      // Actions runner is meaningfully slower than this sandbox). Give the whole test
-      // more room rather than shrink readLastEmail's own polling budget.
-      const entry = await readLastEmail(to, { after });
+      // readLastEmail's own poll loop defaults to a 5s budget, which a real CI runner
+      // (slower than this sandbox — first seen in S22) can exceed even though the write
+      // itself is fast; the *outer* vitest test timeout was the wrong thing to bump
+      // (confirmed: still failed after that fix, this time with the inner poll itself
+      // timing out and returning null). Give the poll's own budget more room instead.
+      const entry = await readLastEmail(to, { after, timeoutMs: 15_000 });
       expect(entry).not.toBeNull();
       expect(entry!.subject).toBe("Overlap에서 새로운 매치가 생겼어요");
     },
-    10_000,
+    20_000,
   );
 
   it("sends nothing to the dev outbox at all when now is in quiet hours", async () => {
