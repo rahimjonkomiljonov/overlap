@@ -58,3 +58,7 @@ next-env.d.ts
 # dev-only photo storage fallback (src/server/storage/photos.ts) when Supabase Storage
 # isn't configured
 /.dev-storage/
+
+# dev-only local alerting substitute for Sentry (src/server/ops/alerts.ts, S21), read by
+# the /admin/ops dashboard
+/.dev-alerts.jsonl

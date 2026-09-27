@@ -707,7 +707,8 @@
       "UNKNOWN": "Something went wrong. Please try again in a moment."
     },
     "navVerification": "Verification",
-    "navReports": "Reports"
+    "navReports": "Reports",
+    "navOps": "Ops"
   },
   "HowMatchingWorks": {
     "title": "How matching works",
@@ -986,5 +987,40 @@
     "noLocationNote": "The exact location isn't shared here.",
     "unavailableTitle": "This link has expired",
     "unavailableBody": "This share link is no longer available."
+  },
+  "AdminOps": {
+    "title": "Ops metrics",
+    "description": "Funnel, candidate density and report SLA at a glance.",
+    "funnel": {
+      "title": "Funnel",
+      "signups": "Signups",
+      "verified": "Verified",
+      "profileComplete": "Profile complete",
+      "sentFirstWave": "Sent first wave",
+      "matched": "Matched",
+      "messaged": "Messaged",
+      "meetupAccepted": "Meetup accepted"
+    },
+    "density": {
+      "title": "Candidate density",
+      "noData": "No daily batch has run yet.",
+      "batchDate": "Latest batch date",
+      "averageItems": "Average items per batch",
+      "fullBatchPct": "Full-batch rate"
+    },
+    "reportSla": {
+      "title": "Report SLA",
+      "total": "Total reports",
+      "openOverdue": "Overdue / open",
+      "resolvedWithinSla": "Resolved within SLA",
+      "noneResolved": "None resolved yet.",
+      "medianResolution": "Median time to resolve",
+      "minutes": "{count} min"
+    },
+    "alerts": {
+      "title": "Recent alerts",
+      "trigger": "Trigger a test alert",
+      "empty": "No alerts recorded yet."
+    }
   }
 }

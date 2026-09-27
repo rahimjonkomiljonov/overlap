@@ -37,6 +37,11 @@ export default async function AdminLayout({
         <Link href="/admin/reports" className="text-muted-foreground hover:text-foreground">
           {t("navReports")}
         </Link>
+        {can(actor, Role.ADMIN) && (
+          <Link href="/admin/ops" className="text-muted-foreground hover:text-foreground">
+            {t("navOps")}
+          </Link>
+        )}
       </nav>
       {children}
     </main>

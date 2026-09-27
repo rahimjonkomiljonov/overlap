@@ -1,11 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { captureError } from "./logging";
 
+const { recordAlertMock } = vi.hoisted(() => ({ recordAlertMock: vi.fn().mockResolvedValue(undefined) }));
+vi.mock("@/server/ops/alerts", () => ({ recordAlert: recordAlertMock }));
+
 describe("captureError", () => {
   let consoleSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    recordAlertMock.mockClear();
   });
 
   afterEach(() => {
@@ -27,6 +31,23 @@ describe("captureError", () => {
     expect(serialized).not.toContain("selfie.jpg");
     // Non-sensitive context still comes through, so the log stays useful.
     expect(serialized).toContain("u1");
+
+    // S21: the local alert record gets the same scrubbing — never a second, unscrubbed path.
+    const recordedAlert = JSON.stringify(recordAlertMock.mock.calls[0]);
+    expect(recordedAlert).not.toContain("men");
+    expect(recordedAlert).not.toContain("library");
+    expect(recordedAlert).not.toContain("selfie.jpg");
+    expect(recordedAlert).toContain("u1");
+  });
+
+  it("records a local alert (S21) alongside every console.error, for the ops dashboard", () => {
+    captureError("test-context", new Error("boom"));
+    expect(recordAlertMock).toHaveBeenCalledTimes(1);
+    expect(recordAlertMock).toHaveBeenCalledWith({
+      context: "test-context",
+      message: "boom",
+      extra: undefined,
+    });
   });
 
   it("still logs a plain, useful error message and context tag when there is no extra", () => {

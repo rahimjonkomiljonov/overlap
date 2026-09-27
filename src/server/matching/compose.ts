@@ -8,7 +8,8 @@ const ADJACENT_RANK_MIN = 20;
 const ADJACENT_RANK_MAX = 50;
 /** "joined ≤ 7 days ago" (§5.3/C6's "7-day new-user boost"). */
 const NEWCOMER_WINDOW_DAYS = 7;
-const TARGET_BATCH_SIZE = 6;
+/** Also read by src/server/ops/metrics.ts (S21) to judge batch-completeness in the density dashboard. */
+export const TARGET_BATCH_SIZE = 6;
 /** "a profile appears in at most 25 batches/day" (§5.3). */
 export const DAILY_EXPOSURE_CAP = 25;
 

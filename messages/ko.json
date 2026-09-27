@@ -707,7 +707,8 @@
       "UNKNOWN": "문제가 생겼어요. 잠시 후 다시 시도해 주세요."
     },
     "navVerification": "인증 대기열",
-    "navReports": "신고 대기열"
+    "navReports": "신고 대기열",
+    "navOps": "운영 지표"
   },
   "HowMatchingWorks": {
     "title": "매칭은 어떻게 이루어지나요",
@@ -986,5 +987,40 @@
     "noLocationNote": "정확한 위치는 공유되지 않아요.",
     "unavailableTitle": "링크가 만료됐어요",
     "unavailableBody": "이 공유 링크는 더 이상 사용할 수 없어요."
+  },
+  "AdminOps": {
+    "title": "운영 지표",
+    "description": "가입부터 만남까지 퍼널, 후보 밀도, 신고 처리 SLA를 한눈에 확인해요.",
+    "funnel": {
+      "title": "퍼널",
+      "signups": "가입",
+      "verified": "인증 완료",
+      "profileComplete": "프로필 완성",
+      "sentFirstWave": "첫 웨이브 전송",
+      "matched": "매칭 성사",
+      "messaged": "첫 메시지",
+      "meetupAccepted": "만남 확정"
+    },
+    "density": {
+      "title": "후보 밀도",
+      "noData": "아직 생성된 일일 배치가 없어요.",
+      "batchDate": "최근 배치 날짜",
+      "averageItems": "평균 후보 수",
+      "fullBatchPct": "풀 배치 비율"
+    },
+    "reportSla": {
+      "title": "신고 처리 SLA",
+      "total": "전체 신고",
+      "openOverdue": "기한 초과 / 열린 신고",
+      "resolvedWithinSla": "SLA 내 처리 비율",
+      "noneResolved": "아직 처리된 신고가 없어요.",
+      "medianResolution": "처리 시간(중앙값)",
+      "minutes": "{count}분"
+    },
+    "alerts": {
+      "title": "최근 알림",
+      "trigger": "테스트 알림 발생시키기",
+      "empty": "아직 기록된 알림이 없어요."
+    }
   }
 }
