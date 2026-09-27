@@ -64,7 +64,7 @@ export function FreeTimeStep({
       savingLabel={t("saving")}
     >
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[420px] border-separate border-spacing-1 text-center text-xs">
+        <table className="w-full border-separate border-spacing-1 text-center text-xs">
           <thead>
             <tr>
               <th className="w-16" />

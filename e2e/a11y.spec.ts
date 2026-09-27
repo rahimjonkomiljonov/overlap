@@ -2,7 +2,16 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { signIn, signInAndOnboard } from "./helpers/auth";
 import { uniqueTestEmail } from "./helpers/dev-outbox";
-import { createMatch, deleteTestUser, promoteToRole, Role, shareCourseAndClub, verifyUser } from "./helpers/db";
+import {
+  createMatch,
+  deleteTestUser,
+  getMatchId,
+  promoteToRole,
+  Role,
+  setFreeTimeSlots,
+  shareCourseAndClub,
+  verifyUser,
+} from "./helpers/db";
 
 const wcagTags = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
@@ -210,6 +219,160 @@ for (const colorScheme of ["light", "dark"] as const) {
         await expect(card.getByText("정말 언매치할까요?")).toBeVisible();
 
         await assertNoViolations(page, colorScheme);
+      } finally {
+        await contextB.close();
+        await deleteTestUser(emailA);
+        await deleteTestUser(emailB);
+      }
+    });
+
+    // S22: the six screens below were never axe-checked in any state before this step —
+    // /me/safety and /me/privacy (S16/S19 settings pages), /admin/reports and /admin/ops
+    // (S16/S21 admin surfaces, populated rather than empty), and the two most-visited
+    // "connect" screens plus the one public page that isn't under (app) at all: the chat
+    // thread, the meetup planner, and a live share-my-plans link.
+
+    test("/me/safety (signed in, S16) has no WCAG A/AA violations", async ({ page }) => {
+      await signInAndOnboard(page, { emailPrefix: "a11y-me-safety" });
+      await page.goto("/me/safety");
+      await assertNoViolations(page, colorScheme);
+    });
+
+    test("/me/privacy (signed in, S19) has no WCAG A/AA violations", async ({ page }) => {
+      await signInAndOnboard(page, { emailPrefix: "a11y-me-privacy" });
+      await page.goto("/me/privacy");
+      await assertNoViolations(page, colorScheme);
+    });
+
+    test("/admin/reports (populated with a real filed report, S16) has no WCAG A/AA violations", async ({
+      page,
+      browser,
+    }) => {
+      const emailA = await signInAndOnboard(page, { emailPrefix: "a11y-reports-a" });
+      const contextB = await browser.newContext();
+      const pageB = await contextB.newPage();
+      const emailB = await signInAndOnboard(pageB, {
+        emailPrefix: "a11y-reports-b",
+        firstName: "a11yReportTarget",
+      });
+      await createMatch(emailA, emailB);
+
+      try {
+        await page.goto("/matches");
+        const card = page.locator('[data-slot="card"]').filter({ hasText: "a11yReportTarget" });
+        await card.getByRole("button", { name: "신고", exact: true }).click();
+        await card.getByRole("radio", { name: "스팸/광고" }).check();
+        await card.getByRole("button", { name: "신고하기" }).click();
+        await expect(card.getByText("신고해 주셔서 감사해요")).toBeVisible();
+
+        await promoteToRole(emailA, Role.MODERATOR);
+        await page.goto("/admin/reports");
+        await expect(page.getByRole("heading", { name: "신고 대기열" })).toBeVisible();
+
+        await assertNoViolations(page, colorScheme);
+      } finally {
+        await contextB.close();
+        await deleteTestUser(emailA);
+        await deleteTestUser(emailB);
+      }
+    });
+
+    test("/admin/ops (admin, populated dashboard, S21) has no WCAG A/AA violations", async ({ page }) => {
+      const email = await signInAndOnboard(page, { emailPrefix: "a11y-ops" });
+      await promoteToRole(email, Role.ADMIN);
+      await page.goto("/admin/ops");
+      await expect(page.getByRole("heading", { name: "운영 지표" })).toBeVisible();
+      await assertNoViolations(page, colorScheme);
+    });
+
+    test("chat thread (populated with a real message, S15) has no WCAG A/AA violations", async ({
+      page,
+      browser,
+    }) => {
+      const emailA = await signInAndOnboard(page, { emailPrefix: "a11y-chat-a" });
+      const contextB = await browser.newContext();
+      const pageB = await contextB.newPage();
+      const emailB = await signInAndOnboard(pageB, { emailPrefix: "a11y-chat-b" });
+      const conversationId = await createMatch(emailA, emailB);
+
+      try {
+        await page.goto(`/matches/${conversationId}`);
+        await page.getByLabel("메시지를 입력하세요").fill("접근성 점검용 메시지");
+        await page.getByRole("button", { name: "보내기", exact: true }).click();
+        await expect(page.getByText("접근성 점검용 메시지")).toBeVisible();
+
+        await assertNoViolations(page, colorScheme);
+      } finally {
+        await contextB.close();
+        await deleteTestUser(emailA);
+        await deleteTestUser(emailB);
+      }
+    });
+
+    test("/meetup/[matchId] (options picker, S17) has no WCAG A/AA violations", async ({ page, browser }) => {
+      const emailA = await signInAndOnboard(page, { emailPrefix: "a11y-meetup-a" });
+      const contextB = await browser.newContext();
+      const pageB = await contextB.newPage();
+      const emailB = await signInAndOnboard(pageB, { emailPrefix: "a11y-meetup-b" });
+      const allSlots = Array.from({ length: 84 }, (_, i) => i);
+      await setFreeTimeSlots(emailA, allSlots);
+      await setFreeTimeSlots(emailB, allSlots);
+      await createMatch(emailA, emailB);
+      const matchId = await getMatchId(emailA, emailB);
+
+      try {
+        await page.goto(`/meetup/${matchId}`);
+        await expect(page.getByText("이 중에서 골라보세요")).toBeVisible();
+        await assertNoViolations(page, colorScheme);
+      } finally {
+        await contextB.close();
+        await deleteTestUser(emailA);
+        await deleteTestUser(emailB);
+      }
+    });
+
+    test("/plan/[token] (public share-my-plans link, S17) has no WCAG A/AA violations", async ({
+      page,
+      browser,
+    }, testInfo) => {
+      // Heavier than this suite's other tests (two onboardings, a proposal, an accept,
+      // and a share-link generation) — same headroom meetup.spec.ts's own analogous test
+      // needs under full-suite resource contention (CLAUDE.md's documented flake class).
+      testInfo.setTimeout(120_000);
+
+      const emailA = await signInAndOnboard(page, { emailPrefix: "a11y-plan-a" });
+      const contextB = await browser.newContext();
+      const pageB = await contextB.newPage();
+      const emailB = await signInAndOnboard(pageB, { emailPrefix: "a11y-plan-b" });
+      const allSlots = Array.from({ length: 84 }, (_, i) => i);
+      await setFreeTimeSlots(emailA, allSlots);
+      await setFreeTimeSlots(emailB, allSlots);
+      await createMatch(emailA, emailB);
+      const matchId = await getMatchId(emailA, emailB);
+
+      try {
+        await page.goto(`/meetup/${matchId}`);
+        await page.getByRole("button", { name: "이 시간 제안하기" }).first().click();
+        await pageB.goto(`/meetup/${matchId}`);
+        await pageB.getByRole("button", { name: "수락", exact: true }).click();
+        // This specific assertion has shown up flaky under full-suite contention even
+        // with the file's usual 15s headroom (this test's own three-context setup makes
+        // it the heaviest in the suite) — a further bump, not a sign of a real hang.
+        await expect(pageB.getByText("확정됨")).toBeVisible({ timeout: 30_000 });
+
+        await page.reload();
+        await page.getByRole("button", { name: "계획 공유하기" }).click();
+        const shareLinkText = page.locator("text=공유 링크가 만들어졌어요");
+        await expect(shareLinkText).toBeVisible();
+        const tokenMatch = (await shareLinkText.innerText()).match(/\/plan\/([A-Za-z0-9_-]+)/);
+        expect(tokenMatch).not.toBeNull();
+
+        const publicContext = await browser.newContext({ colorScheme, locale: "ko-KR" });
+        const publicPage = await publicContext.newPage();
+        await publicPage.goto(`/plan/${tokenMatch![1]}`);
+        await expect(publicPage.getByRole("heading", { name: "만남 계획" })).toBeVisible();
+        await assertNoViolations(publicPage, colorScheme);
+        await publicContext.close();
       } finally {
         await contextB.close();
         await deleteTestUser(emailA);

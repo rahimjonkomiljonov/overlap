@@ -181,7 +181,7 @@ export function ChatThread({
                 }
               >
                 <p className="text-sm whitespace-pre-wrap">{message.text}</p>
-                <p className={mine ? "mt-1 text-right text-xs text-primary-foreground/70" : "mt-1 text-right text-xs text-muted-foreground"}>
+                <p className={mine ? "mt-1 text-right text-xs text-primary-foreground" : "mt-1 text-right text-xs text-muted-foreground"}>
                   {timeFormatter.format(new Date(message.createdAt))}
                 </p>
               </div>

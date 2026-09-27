@@ -10,9 +10,42 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Lint/typecheck/unit tests only — fails fast, before either e2e leg spends any time.
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
+    env:
+      EMAIL_HASH_PEPPER: ci-only-dummy-pepper-never-used-for-real-data-000000
+      FIELD_ENCRYPTION_KEY_V1: Ee/hV3KueyPxUUxpNfi4REpz2B16L5mszNl/f7lNlsM=
+      CRON_SECRET: ci-only-dummy-cron-secret-0000000000000000
+      BETTER_AUTH_SECRET: ci-only-dummy-better-auth-secret-000000000000000000000000
+      BETTER_AUTH_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+
+  # S22: split from a single sequential job into a {desktop, mobile} matrix. The old
+  # single-job "npm run e2e" (no --project filter) ran both projects back to back and
+  # consistently blew the job's 20-minute timeout, so every run since at least S12 shows
+  # conclusion "cancelled" rather than a real pass/fail — nobody had noticed because every
+  # step's own local verification always used --project=desktop explicitly (CLAUDE.md's
+  # existing gotcha about the never-checked mobile project). Two parallel legs each get
+  # their own full budget and their own real conclusion.
+  e2e:
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [desktop, mobile]
     services:
       # Throwaway Postgres for this run only — never the real Supabase database (see
       # docs/BUILD_PLAN.md S04: local-only phase keeps real DB credentials out of CI).
@@ -46,19 +79,16 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm test
       - run: npx prisma migrate deploy
       - run: npx prisma db seed
       - run: npm run build
       - run: npx playwright install --with-deps chromium
-      - run: npm run e2e
+      - run: npm run e2e -- --project=${{ matrix.project }}
         env:
           CI: "true"
       - uses: actions/upload-artifact@v5
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.project }}
           path: playwright-report/
           retention-days: 14
