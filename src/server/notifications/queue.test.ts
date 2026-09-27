@@ -199,19 +199,28 @@ describe("processQueuedNotifications", () => {
 });
 
 describe("processQueuedNotifications with the real sendEmail (dev outbox, local-only phase)", () => {
-  it("actually appends a ko-language MATCH email to the dev outbox when RESEND_API_KEY is unset", async () => {
-    expect(process.env.RESEND_API_KEY).toBeUndefined();
-    const to = `s18-real-outbox-${Date.now()}@test.ac.kr`;
-    const after = new Date();
-    const { db } = fakeDb([row({ id: "n1", type: "MATCH", email: to, locale: "ko" })]);
+  it(
+    "actually appends a ko-language MATCH email to the dev outbox when RESEND_API_KEY is unset",
+    async () => {
+      expect(process.env.RESEND_API_KEY).toBeUndefined();
+      const to = `s18-real-outbox-${Date.now()}@test.ac.kr`;
+      const after = new Date();
+      const { db } = fakeDb([row({ id: "n1", type: "MATCH", email: to, locale: "ko" })]);
 
-    const result = await processQueuedNotifications(db, { now: DAYTIME });
+      const result = await processQueuedNotifications(db, { now: DAYTIME });
 
-    expect(result).toEqual({ sent: 1, skipped: 0, deferred: false });
-    const entry = await readLastEmail(to, { after });
-    expect(entry).not.toBeNull();
-    expect(entry!.subject).toBe("Overlap에서 새로운 매치가 생겼어요");
-  });
+      expect(result).toEqual({ sent: 1, skipped: 0, deferred: false });
+      // readLastEmail's own poll loop defaults to a 5s budget; vitest's default per-test
+      // timeout is also 5s, so on a slower CI runner the outer timeout can trip before
+      // the inner one naturally resolves (first seen in real CI, S22 — a fresh GitHub
+      // Actions runner is meaningfully slower than this sandbox). Give the whole test
+      // more room rather than shrink readLastEmail's own polling budget.
+      const entry = await readLastEmail(to, { after });
+      expect(entry).not.toBeNull();
+      expect(entry!.subject).toBe("Overlap에서 새로운 매치가 생겼어요");
+    },
+    10_000,
+  );
 
   it("sends nothing to the dev outbox at all when now is in quiet hours", async () => {
     const to = `s18-real-outbox-quiet-${Date.now()}@test.ac.kr`;
