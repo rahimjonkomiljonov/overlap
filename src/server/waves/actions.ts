@@ -1,9 +1,10 @@
 "use server";
 
+import { checkRateLimit } from "@/server/auth/rate-limit";
 import { getActor } from "@/server/auth/session";
 import { prisma } from "@/server/db";
 import { isBlockedEitherWay } from "./blocks";
-import { countWavesSentToday, DAILY_WAVE_CAP } from "./cap";
+import { countWavesSentToday, DAILY_WAVE_CAP, WAVE_ATTEMPT_RATE_LIMIT } from "./cap";
 import { formMatch } from "./match";
 import { declineWaveSchema, unmatchSchema, waveBackSchema } from "./schema";
 
@@ -19,6 +20,12 @@ export type WaveBackState = { status: "idle" } | { status: "success" } | { statu
 export async function waveBack(_prev: WaveBackState, formData: FormData): Promise<WaveBackState> {
   const actor = await getActor();
   if (!actor) return { status: "error", code: "UNAUTHENTICATED" };
+
+  // Shares sendWave's rate-limit budget (S20) — see WAVE_ATTEMPT_RATE_LIMIT's own doc comment.
+  const rate = await checkRateLimit(prisma, `wave-attempt:${actor.userId}`, WAVE_ATTEMPT_RATE_LIMIT);
+  if (!rate.allowed) {
+    return { status: "error", code: "RATE_LIMITED" };
+  }
 
   const parsed = waveBackSchema.safeParse({
     waveId: formData.get("waveId"),

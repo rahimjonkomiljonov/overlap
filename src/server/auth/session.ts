@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { UserStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/server/db";
+import { captureError } from "@/server/logging";
 import { auth } from "./auth";
 import type { Actor } from "./authz";
 
@@ -28,8 +29,11 @@ export async function getActor(): Promise<Actor> {
   if (Date.now() - user.lastActiveAt.getTime() > ACTIVITY_TOUCH_THROTTLE_MS) {
     // Fire-and-forget: this is the "active in the last 14 days" candidate-generation
     // filter's only writer (src/server/matching/candidates.ts), and it must never make a
-    // page render wait on an extra write.
-    void prisma.user.update({ where: { id: session.user.id }, data: { lastActiveAt: new Date() } }).catch(() => {});
+    // page render wait on an extra write. S20: a failure here was previously invisible
+    // (silently swallowed); now at least logged, scrubbed, via the one designated chokepoint.
+    void prisma.user
+      .update({ where: { id: session.user.id }, data: { lastActiveAt: new Date() } })
+      .catch((error) => captureError("session.touchLastActiveAt", error, { userId: session.user.id }));
   }
 
   // G8's 7-day suspension expires on its own — lazily flip back to ACTIVE the next time
@@ -40,7 +44,7 @@ export async function getActor(): Promise<Actor> {
     status = UserStatus.ACTIVE;
     void prisma.user
       .update({ where: { id: session.user.id }, data: { status: UserStatus.ACTIVE, suspendedUntil: null } })
-      .catch(() => {});
+      .catch((error) => captureError("session.expireSuspension", error, { userId: session.user.id }));
   }
 
   return {

@@ -31,11 +31,15 @@ export async function GET(
 
   const { segments } = await params;
   const [bucket, ...rest] = segments;
-  if (rest.length === 0 || rest.some((s) => s === "..")) {
+  const key = rest.join("/");
+  // Defense-in-depth alongside devStoragePath's own resolve+prefix check
+  // (src/server/storage/blob.ts) — the load-bearing fix for the traversal bug S20's
+  // security review found (a segment isn't necessarily split on an *encoded* slash by
+  // Next's catch-all route matcher, so checking each raw segment for an exact ".." isn't
+  // enough; check the joined, decoded key for any ".." path component instead).
+  if (rest.length === 0 || key.split("/").some((part) => part === "..")) {
     return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
   }
-
-  const key = rest.join("/");
 
   if (bucket === PHOTO_BUCKET) {
     const bytes = await readDevStorageFile(key);

@@ -4,6 +4,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { ReportStatus, UserStatus } from "@/generated/prisma/enums";
 import { recordAuditLog } from "@/server/admin/audit";
 import { can, Role } from "@/server/auth/authz";
+import { checkRateLimit } from "@/server/auth/rate-limit";
 import { getActor } from "@/server/auth/session";
 import { getConversationForActor, getMessages } from "@/server/chat/queries";
 import { prisma } from "@/server/db";
@@ -13,6 +14,9 @@ import { appealSchema, fileReportSchema, moderationActionSchema } from "./schema
 
 /** G8: the fixed length of the strike ladder's middle rung. */
 const SUSPENSION_DAYS = 7;
+
+/** S20 hardening: prevents spam-filing (the report queue is a moderator-facing resource, not something a script should be able to flood). */
+const FILE_REPORT_RATE_LIMIT = { max: 10, windowMs: 60 * 60 * 1000 };
 
 export type FileReportState =
   | { status: "idle" }
@@ -28,6 +32,9 @@ export type FileReportState =
 export async function fileReport(_prev: FileReportState, formData: FormData): Promise<FileReportState> {
   const actor = await getActor();
   if (!actor) return { status: "error", code: "UNAUTHENTICATED" };
+
+  const rate = await checkRateLimit(prisma, `file-report:${actor.userId}`, FILE_REPORT_RATE_LIMIT);
+  if (!rate.allowed) return { status: "error", code: "RATE_LIMITED" };
 
   const parsed = fileReportSchema.safeParse({
     targetUserId: formData.get("targetUserId"),

@@ -1,9 +1,10 @@
 "use server";
 
+import { checkRateLimit } from "@/server/auth/rate-limit";
 import { getActor } from "@/server/auth/session";
 import { prisma } from "@/server/db";
 import { isBlockedEitherWay } from "@/server/waves/blocks";
-import { countWavesSentToday, DAILY_WAVE_CAP } from "@/server/waves/cap";
+import { countWavesSentToday, DAILY_WAVE_CAP, WAVE_ATTEMPT_RATE_LIMIT } from "@/server/waves/cap";
 import { formMatch } from "@/server/waves/match";
 import { enqueueNotification } from "@/server/notifications/queue";
 import { passPickSchema, sendWaveSchema } from "./schema";
@@ -19,6 +20,11 @@ export type SendWaveState = { status: "idle" } | { status: "success" } | { statu
 export async function sendWave(_prev: SendWaveState, formData: FormData): Promise<SendWaveState> {
   const actor = await getActor();
   if (!actor) return { status: "error", code: "UNAUTHENTICATED" };
+
+  const rate = await checkRateLimit(prisma, `wave-attempt:${actor.userId}`, WAVE_ATTEMPT_RATE_LIMIT);
+  if (!rate.allowed) {
+    return { status: "error", code: "RATE_LIMITED" };
+  }
 
   const targetType = formData.get("targetType");
   const targetElement =

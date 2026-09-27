@@ -3,12 +3,16 @@
 import { VerificationDecision } from "@/generated/prisma/enums";
 import { recordAuditLog } from "@/server/admin/audit";
 import { can, Role } from "@/server/auth/authz";
+import { checkRateLimit } from "@/server/auth/rate-limit";
 import { getActor } from "@/server/auth/session";
 import { prisma } from "@/server/db";
 import { newSelfieStorageKey, processSelfie, uploadSelfie } from "@/server/storage/selfies";
 import { reviewSelfieSchema } from "./schema";
 
 const MAX_SELFIE_BYTES = 8 * 1024 * 1024;
+
+/** S20 hardening: selfie review is a moderator-limited resource, kept tighter than the general photo-upload limit. */
+const SUBMIT_SELFIE_RATE_LIMIT = { max: 10, windowMs: 60 * 60 * 1000 };
 
 export type SubmitSelfieState =
   | { status: "idle" }
@@ -19,6 +23,9 @@ export type SubmitSelfieState =
 export async function submitSelfie(_prev: SubmitSelfieState, formData: FormData): Promise<SubmitSelfieState> {
   const actor = await getActor();
   if (!actor) return { status: "error", code: "UNAUTHENTICATED" };
+
+  const rate = await checkRateLimit(prisma, `submit-selfie:${actor.userId}`, SUBMIT_SELFIE_RATE_LIMIT);
+  if (!rate.allowed) return { status: "error", code: "RATE_LIMITED" };
 
   const file = formData.get("selfie");
   if (!(file instanceof File) || file.size === 0) {

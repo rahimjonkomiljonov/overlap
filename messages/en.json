@@ -56,7 +56,8 @@
       "ALREADY_DECIDED": "You've already acted on this pick.",
       "UNKNOWN": "Something went wrong. Please try again in a moment.",
       "BLOCKED": "You can't wave at this person.",
-      "DAILY_CAP_REACHED": "You've used all your waves for today (8/day)."
+      "DAILY_CAP_REACHED": "You've used all your waves for today (8/day).",
+      "RATE_LIMITED": "Too many requests. Please try again in a bit."
     }
   },
   "Waves": {
@@ -79,7 +80,8 @@
       "ALREADY_DECIDED": "You've already acted on this wave.",
       "BLOCKED": "You can't wave at this person.",
       "DAILY_CAP_REACHED": "You've used all your waves for today (8/day).",
-      "UNKNOWN": "Something went wrong. Please try again in a moment."
+      "UNKNOWN": "Something went wrong. Please try again in a moment.",
+      "RATE_LIMITED": "Too many requests. Please try again in a bit."
     }
   },
   "Matches": {
@@ -354,7 +356,8 @@
       "INVALID_FILE_TYPE": "Only image files are allowed.",
       "TOO_MANY_PHOTOS": "You can upload up to 6 photos.",
       "NOT_FOUND": "We couldn't find that.",
-      "UNKNOWN": "Something went wrong. Please try again in a moment."
+      "UNKNOWN": "Something went wrong. Please try again in a moment.",
+      "RATE_LIMITED": "Too many requests. Please try again in a bit."
     }
   },
   "Legal": {
@@ -681,7 +684,8 @@
       "FILE_TOO_LARGE": "That file is too large (max 8MB).",
       "INVALID_FILE_TYPE": "Only image files are allowed.",
       "ALREADY_PENDING": "You already have a submission under review.",
-      "UNKNOWN": "Something went wrong. Please try again in a moment."
+      "UNKNOWN": "Something went wrong. Please try again in a moment.",
+      "RATE_LIMITED": "Too many requests. Please try again in a bit."
     }
   },
   "Admin": {
@@ -749,7 +753,8 @@
       "EXPIRED": "This conversation has expired. Please restart it.",
       "NOT_EXPIRED": "This conversation hasn't expired.",
       "ALREADY_REVIVED": "This conversation has already been restarted once.",
-      "UNKNOWN": "Something went wrong. Please try again in a moment."
+      "UNKNOWN": "Something went wrong. Please try again in a moment.",
+      "RATE_LIMITED": "Too many requests. Please try again in a bit."
     },
     "planMeetup": "Plan a meetup"
   },
@@ -782,7 +787,8 @@
       "CANNOT_BLOCK_SELF": "You can't block yourself.",
       "NOT_FOUND": "That account couldn't be found.",
       "INVALID_CONVERSATION": "Evidence can't be attached from this conversation.",
-      "UNKNOWN": "Something went wrong. Please try again."
+      "UNKNOWN": "Something went wrong. Please try again.",
+      "RATE_LIMITED": "Too many requests. Please try again in a bit."
     }
   },
   "SafetySettings": {

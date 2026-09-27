@@ -20,10 +20,29 @@ async function getSupabaseClient() {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!);
 }
 
+/**
+ * S20 hardening: fixed a real path-traversal bug found by the security-review pass.
+ * The dev-storage route's own `key` comes straight from the URL's catch-all segments
+ * (`src/app/api/dev-storage/[...segments]/route.ts`), and its check for literal `".."`
+ * segments is not enough — Next.js's catch-all route matcher splits the *raw, still
+ * percent-encoded* pathname on literal `/` characters first and only decodes each
+ * resulting piece afterward (see `route-matcher.js`'s `match.split('/').map(decode)`),
+ * so an encoded slash inside one segment (e.g. `..%2F..%2Fetc%2Fpasswd`) survives as a
+ * single un-split segment that decodes to `"../../etc/passwd"` — never equal to the
+ * literal string `".."`, so the old check let it straight through to `path.join`,
+ * escaping `.dev-storage/` entirely. `path.resolve` + a prefix check against the
+ * bucket's own resolved root closes this regardless of how the traversal string is
+ * encoded or shaped.
+ */
 function devStoragePath(bucket: string, key: string): string {
   // process.cwd() read per call, not cached, so tests can chdir into a scratch
   // directory without stale paths from module-load time.
-  return path.join(process.cwd(), ".dev-storage", bucket, key);
+  const bucketRoot = path.resolve(process.cwd(), ".dev-storage", bucket);
+  const resolved = path.resolve(bucketRoot, key);
+  if (resolved !== bucketRoot && !resolved.startsWith(bucketRoot + path.sep)) {
+    throw new Error(`devStoragePath: key "${key}" escapes bucket "${bucket}"`);
+  }
+  return resolved;
 }
 
 export async function uploadToBucket(

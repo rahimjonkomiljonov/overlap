@@ -1,6 +1,7 @@
 "use server";
 
 import { IntentMode } from "@/generated/prisma/enums";
+import { checkRateLimit } from "@/server/auth/rate-limit";
 import { getActor } from "@/server/auth/session";
 import { canUseDatingMode } from "@/server/consent/consent";
 import { prisma } from "@/server/db";
@@ -41,6 +42,9 @@ import { isProfileComplete } from "./strength";
 export type StepState = { status: "idle" } | { status: "success" } | { status: "error"; code: string };
 
 const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
+
+/** S20 hardening: uploads (sharp resize + a storage write) cost real server resources, unlike most other actions here. */
+const ADD_PHOTO_RATE_LIMIT = { max: 20, windowMs: 60 * 60 * 1000 };
 
 /** Furthest step reached (0-indexed), so /onboarding/profile can resume here (B1). */
 const STEP_INDEX = {
@@ -331,6 +335,9 @@ export type AddPhotoState =
 export async function addPhoto(_prev: AddPhotoState, formData: FormData): Promise<AddPhotoState> {
   const actor = await getActor();
   if (!actor) return { status: "error", code: "UNAUTHENTICATED" };
+
+  const rate = await checkRateLimit(prisma, `add-photo:${actor.userId}`, ADD_PHOTO_RATE_LIMIT);
+  if (!rate.allowed) return { status: "error", code: "RATE_LIMITED" };
 
   const file = formData.get("photo");
   if (!(file instanceof File) || file.size === 0) {

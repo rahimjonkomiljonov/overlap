@@ -1,5 +1,6 @@
 "use server";
 
+import { checkRateLimit } from "@/server/auth/rate-limit";
 import { getActor } from "@/server/auth/session";
 import { prisma } from "@/server/db";
 import { getConversationForActor } from "./queries";
@@ -7,9 +8,17 @@ import { reviveConversationSchema, sendMessageSchema } from "./schema";
 
 export type SendMessageState = { status: "idle" } | { status: "success" } | { status: "error"; code: string };
 
+/** S20 hardening: no cap exists on chat message volume otherwise — generous enough for real bursty conversation, tight enough to block scripted flooding. */
+const SEND_MESSAGE_RATE_LIMIT = { max: 60, windowMs: 5 * 60 * 1000 };
+
 export async function sendMessage(_prev: SendMessageState, formData: FormData): Promise<SendMessageState> {
   const actor = await getActor();
   if (!actor) return { status: "error", code: "UNAUTHENTICATED" };
+
+  const rate = await checkRateLimit(prisma, `send-message:${actor.userId}`, SEND_MESSAGE_RATE_LIMIT);
+  if (!rate.allowed) {
+    return { status: "error", code: "RATE_LIMITED" };
+  }
 
   const parsed = sendMessageSchema.safeParse({
     conversationId: formData.get("conversationId"),
