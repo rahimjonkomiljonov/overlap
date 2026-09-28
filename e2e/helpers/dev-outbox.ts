@@ -31,7 +31,9 @@ export async function readLastOtpCode(
         .filter(Boolean)
         .map((line) => JSON.parse(line));
       const match = entries
-        .filter((e) => e.to === email && (!options.after || new Date(e.sentAt) > options.after))
+        // See readLastEmail's comment: `after` and the write can land in the same
+        // millisecond, so this must be `>=`, not a strict `>`.
+        .filter((e) => e.to === email && (!options.after || new Date(e.sentAt) >= options.after))
         .pop();
       const code = match?.text.match(/code is (\d{6})/)?.[1];
       if (code) return code;
@@ -72,7 +74,11 @@ export async function readLastEmail(
         .map((line) => JSON.parse(line));
       const match = entries
         .filter((e) => e.to === email)
-        .filter((e) => !options.after || new Date(e.sentAt) > options.after)
+        // `after` and the write's own timestamp are both `new Date()` calls milliseconds
+        // (or less) apart, so they can legitimately land in the same millisecond — a
+        // strict `>` here permanently excludes the very entry being waited for (found,
+        // over and over, every poll, right up to the deadline) whenever that happens.
+        .filter((e) => !options.after || new Date(e.sentAt) >= options.after)
         .filter((e) => !options.subjectContains || e.subject.includes(options.subjectContains))
         .pop();
       if (match) return match;
