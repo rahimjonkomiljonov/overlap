@@ -5,13 +5,23 @@ import { PrismaClient } from "@/generated/prisma/client";
 // DATABASE_URL is the pooled (pgbouncer transaction-mode) connection; Prisma CLI
 // commands use DIRECT_URL instead, configured separately in prisma.config.ts.
 //
-// max: 1 — Supabase's pooler already multiplexes connections upstream. Opening a
-// local pool of the pg-adapter default (10) per serverless instance would just add
-// another pool on top and can exhaust the pooler's own connection slots faster as
-// instances scale out. One connection per instance is the recommended pattern here.
+// max: 1 by default — Supabase's pooler already multiplexes connections upstream in
+// production. Opening a local pool of the pg-adapter default (10) per serverless
+// instance would just add another pool on top and can exhaust the pooler's own
+// connection slots faster as instances scale out. One connection per instance is the
+// recommended pattern there.
+//
+// DATABASE_POOL_MAX overrides this for environments with no pooler in front of a plain
+// Postgres (this long-running dev server, CI's own throwaway service container) — a
+// single process really is the only thing talking to the database there, and a pool of
+// 1 needlessly serializes concurrent queries onto one physical connection. Kept as a
+// real, low-risk improvement from S23's load test, though it turned out NOT to explain
+// that test's actual finding (see docs/BUILD_PLAN.md's S23 log): raising this alone
+// barely moved the numbers, since Postgres itself was never the bottleneck (buffer-cache
+// hit rate stayed ~100%, connections sat mostly idle). Leave unset in production.
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,
-  max: 1,
+  max: process.env.DATABASE_POOL_MAX ? parseInt(process.env.DATABASE_POOL_MAX, 10) : 1,
   connectionTimeoutMillis: 10_000,
 });
 

@@ -28,7 +28,8 @@
     "db:compute-idf-stats": "tsx scripts/compute-idf-stats.ts",
     "db:evaluate-matching": "tsx scripts/evaluate-matching.ts",
     "db:run-daily-batch": "tsx scripts/run-daily-batch.ts",
-    "db:run-chat-lifecycle": "tsx scripts/run-chat-lifecycle.ts"
+    "db:run-chat-lifecycle": "tsx scripts/run-chat-lifecycle.ts",
+    "db:load-test-chat": "tsx scripts/load-test-chat.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
@@ -77,6 +78,7 @@
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5",
+    "undici": "^7.30.0",
     "vitest": "^5.0.1"
   }
 }
