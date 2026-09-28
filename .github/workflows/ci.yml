@@ -81,6 +81,7 @@ jobs:
       - run: npm ci
       - run: npx prisma migrate deploy
       - run: npx prisma db seed
+      - run: npm run db:import-reference -- --dir reference-data/sample --domain test.ac.kr
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run e2e -- --project=${{ matrix.project }}

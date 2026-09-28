@@ -13,13 +13,43 @@ and the two items I can't do from a sandboxed cloud container, are yours.
 routinely exceeding the job's 20-minute timeout. Nobody had noticed because every
 prior step's own local verification used `--project=desktop` explicitly.
 
-**Fixed:** split `.github/workflows/ci.yml` into a fast `check` job (lint, typecheck,
-unit tests) and a `{desktop, mobile}` matrix `e2e` job, each with its own 15-minute
-budget. See §2 for why `mobile` was safe to actually run for the first time.
+**Fixed (structural):** split `.github/workflows/ci.yml` into a fast `check` job
+(lint, typecheck, unit tests) and a `{desktop, mobile}` matrix `e2e` job, each with its
+own 15-minute budget. See §2 for why `mobile` was safe to actually run for the first
+time. Verified in real CI: `check` now passes cleanly (~90s) and both `e2e` matrix legs
+run as genuine parallel jobs for the first time ever.
+
+**Found and fixed, a second real bug (this one only visible once the split let e2e
+actually run to completion):** the `e2e` job's own CI-fresh Postgres never had any
+reference data — `npx prisma db seed` only creates a dev Campus + `test.ac.kr`
+EmailDomain, never the courses/clubs/interests/prompts/spots that
+`scripts/import-reference.ts` (`npm run db:import-reference`) loads. Every e2e test
+that walks through profile onboarding hits the wizard's prompt-picker step, whose
+`<select>` has zero `<option>`s on a database with no `Prompt` rows — each such test
+then retried `selectOption` for the full 30s test timeout before failing, and with
+nearly every spec in the suite calling `signInAndOnboard()`, this cascaded into
+burning through the entire 15-minute job budget (`cancelled`, not a real fail).
+This was invisible before S22 because this repo's local/dev Postgres is long-lived
+(CLAUDE.md's own gotcha) and had reference data imported once, months ago, by hand —
+CI's Postgres service is thrown away every run, so it never had it. **Fixed** by adding
+`npm run db:import-reference -- --dir reference-data/sample --domain test.ac.kr` to the
+`e2e` job, right after `prisma db seed`. Verified by reproducing CI's exact conditions
+locally (fresh migrate + seed against a scratch database, no leftover data): the
+`promptId` select had 0 options and every onboarding test failed identically to the
+CI logs before the fix, 8 options and all 3 `onboarding-profile.spec.ts` tests passed
+after it. A full `--project=desktop` run against that same fresh database then passed
+125/133 tests; the 8 failures were exactly the heavy multi-context tests this file's
+own CLAUDE.md already documents as this sandbox's known resource-contention flake
+class (golden-path, meetup decline, picks wave-send, privacy consent-withdraw,
+verification approve, ops dashboard, `/plan/[token]` a11y ×2) — no new failure class,
+and real CI's dedicated runner plus built-in `retries: 1` (which this local
+verification run didn't use) gives more headroom than this shared sandbox does.
 
 - [ ] **Owner:** confirm the real GitHub Actions run for this PR shows a `success`
-  conclusion on both `e2e` matrix legs (not `cancelled`). *(I checked this myself
-  right after pushing — see the note below this list for the result.)*
+  conclusion on both `e2e` matrix legs (not `cancelled`). Both real bugs above are
+  fixed and verified as far as I can from this sandbox — the matrix split alone
+  wasn't sufficient, the reference-data fix was needed too — but I'd like your own
+  eyes on the actual run this pushes once it finishes.
 
 ## 2. Accessibility (axe, WCAG 2.x A/AA)
 
