@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -44,7 +45,7 @@ describe("no file under src/ uses the Geolocation API (E3, Location Information 
   it("finds zero offending files", () => {
     // Excludes this test file itself — its own pattern definition and positive-case
     // sample strings above legitimately contain the very substrings being scanned for.
-    const thisFile = new URL(import.meta.url).pathname;
+    const thisFile = fileURLToPath(import.meta.url);
     const files = listSourceFiles(join(process.cwd(), "src")).filter((f) => f !== thisFile);
     expect(files.length).toBeGreaterThan(0);
 
