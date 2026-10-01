@@ -1,10 +1,17 @@
 # Reference data (S06)
 
-Real campus data (courses, clubs, spots, safety contacts) is owner task O4 and isn't
-in yet. `sample/` is placeholder data for local/CI testing only — the campus security
-and counselling phone numbers in `sample/safety-contacts.json` are **fake** and must
-never be imported into a real campus. Per REQUIREMENTS.md G6: "Verify all numbers
-before launch."
+`sample/` is placeholder data for local/CI testing only — the campus security and
+counselling phone numbers in `sample/safety-contacts.json` are **fake** and must never
+be imported into a real campus. Per REQUIREMENTS.md G6: "Verify all numbers before
+launch."
+
+`gachon/` (O4) is real campus data for Gachon University Global Campus, built from
+public information — see `gachon/README.md` for exactly what's verified vs. not before
+relying on it for anything real. The campus itself must exist first:
+
+```sh
+npm run db:create-campus -- --name "Gachon University Global Campus" --domain gachon.ac.kr
+```
 
 Import a directory of CSVs (and an optional `safety-contacts.json`) for one campus:
 

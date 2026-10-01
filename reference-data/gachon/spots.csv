@@ -1,0 +1,16 @@
+name,name_en,kind,is_safe_spot,description
+AI도서관 (비전타워),AI Library (Vision Tower),LIBRARY,true,"비전타워 1층 AI 전용 학습공간, 생성형 AI 비교 실습도 가능해요"
+중앙도서관,Central Library,LIBRARY,true,열람실과 그룹스터디룸이 있는 중앙도서관
+가천대역 연결통로,Gachon Univ. Station Passage,OTHER,true,"지하철역과 캠퍼스가 바로 이어지는 통로, 사람이 항상 많아요"
+글로벌센터,Global Center,OTHER,true,"학생상담센터가 있는 건물, 라운지에서 쉬어가기 좋아요"
+제1생활관 라운지,Dormitory 1 Lounge,LOUNGE,true,기숙사 1관 공용 휴게실
+제2생활관 학생식당,Dormitory 2 Dining Hall,DINING,true,기숙사 2관 1층 학생 식당
+학생회관 식당,Student Union Dining Hall,DINING,true,점심·저녁에 붐비는 학생 식당
+중앙광장,Central Square,OUTDOOR,true,날씨 좋은 날 학생들이 많이 모이는 야외 공간
+교내 편의점,Campus Convenience Store,OTHER,true,24시간 운영하는 교내 편의점
+공학관 라운지,Engineering Building Lounge,LOUNGE,false,"공학관 지하 라운지, 저녁엔 한산해요"
+교내 카페,Campus Cafe,CAFE,true,수업 사이 짬에 들르기 좋은 교내 카페
+체육관,Gymnasium,SPORTS,true,중앙동아리 CONNECT가 정기 연습하는 체육관
+운동장,Sports Field,SPORTS,true,야구 동아리 가천WIND가 연습하는 운동장
+도서관 앞 벤치,Library Front Benches,OUTDOOR,true,"중앙도서관 앞, CCTV와 사람 왕래가 많아요"
+학생회관 동아리방,Student Union Club Rooms,LOUNGE,false,저녁엔 조용한 중앙동아리 공용 공간

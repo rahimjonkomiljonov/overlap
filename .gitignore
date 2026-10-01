@@ -62,3 +62,6 @@ next-env.d.ts
 # dev-only local alerting substitute for Sentry (src/server/ops/alerts.ts, S21), read by
 # the /admin/ops dashboard
 /.dev-alerts.jsonl
+
+.vercel
+.env*
