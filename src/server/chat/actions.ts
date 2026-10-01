@@ -4,6 +4,7 @@ import { checkRateLimit } from "@/server/auth/rate-limit";
 import { getActor } from "@/server/auth/session";
 import { prisma } from "@/server/db";
 import { getConversationForActor } from "./queries";
+import { broadcastNewMessage } from "./realtime";
 import { reviveConversationSchema, sendMessageSchema } from "./schema";
 
 export type SendMessageState = { status: "idle" } | { status: "success" } | { status: "error"; code: string };
@@ -40,7 +41,7 @@ export async function sendMessage(_prev: SendMessageState, formData: FormData): 
   }
 
   const now = new Date();
-  await prisma.$transaction([
+  const [created] = await prisma.$transaction([
     prisma.message.create({
       data: { conversationId: conversation.conversationId, senderId: actor.userId, text: parsed.data.text },
     }),
@@ -49,6 +50,13 @@ export async function sendMessage(_prev: SendMessageState, formData: FormData): 
       data: { lastMessageAt: now, nudgedAt: null },
     }),
   ]);
+
+  await broadcastNewMessage(conversation.conversationId, {
+    id: created.id,
+    senderId: created.senderId,
+    text: created.text,
+    createdAt: created.createdAt,
+  });
 
   return { status: "success" };
 }

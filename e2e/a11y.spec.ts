@@ -48,7 +48,11 @@ async function assertNoViolations(
   page: import("@playwright/test").Page,
   colorScheme: "light" | "dark",
 ) {
-  await page.waitForLoadState("networkidle");
+  // Not "networkidle": the chat thread's realtime subscription (Fast-follow) and every
+  // route's own polling keep a connection open indefinitely, so network silence never
+  // actually arrives. "load" matches the real intent (let the initial page settle)
+  // without depending on it.
+  await page.waitForLoadState("load");
 
   // The theme under test must really be applied.
   if (colorScheme === "dark") {

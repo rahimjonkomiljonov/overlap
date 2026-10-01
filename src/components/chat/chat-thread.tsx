@@ -13,8 +13,11 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { sendMessage, reviveConversation, type ReviveConversationState } from "@/server/chat/actions";
 import { MAX_MESSAGE_LENGTH } from "@/server/chat/schema";
 import type { EmergencyContact } from "@/server/safety/emergency";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 const POLL_INTERVAL_MS = 3_000;
+/** Reconciliation-only poll interval when realtime is active — a safety net, not the primary delivery path. */
+const RECONCILE_POLL_INTERVAL_MS = 20_000;
 
 export interface ChatMessageView {
   id: string;
@@ -42,6 +45,7 @@ export function ChatThread({
   otherFirstName,
   otherPhotoUrl,
   initialMessages,
+  realtimeChannel,
   initialStatus,
   matchStatus,
   revivedAt,
@@ -55,6 +59,8 @@ export function ChatThread({
   otherFirstName: string | null;
   otherPhotoUrl: string | null;
   initialMessages: ChatMessageView[];
+  /** Null when Supabase Realtime isn't configured (local dev/CI without Supabase creds) — polling-only, same as before S15's Fast-follow. */
+  realtimeChannel: string | null;
   initialStatus: "ACTIVE" | "EXPIRED";
   matchStatus: "ACTIVE" | "UNMATCHED";
   revivedAt: string | null;
@@ -89,10 +95,39 @@ export function ChatThread({
   }
 
   useEffect(() => {
-    const id = setInterval(refresh, POLL_INTERVAL_MS);
+    const id = setInterval(refresh, realtimeChannel ? RECONCILE_POLL_INTERVAL_MS : POLL_INTERVAL_MS);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversationId]);
+  }, [conversationId, realtimeChannel]);
+
+  useEffect(() => {
+    if (!realtimeChannel) return;
+    let active = true;
+    let client: SupabaseClient | null = null;
+
+    import("@supabase/supabase-js").then(({ createClient }) => {
+      if (!active) return;
+      client = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!);
+      client
+        .channel(realtimeChannel, { config: { broadcast: { self: false } } })
+        .on("broadcast", { event: "message" }, ({ payload }) => {
+          const incoming = payload as ChatMessageView;
+          setMessages((prev) => (prev.some((m) => m.id === incoming.id) ? prev : [...prev, incoming]));
+        })
+        .subscribe((status) => {
+          // Broadcast has no replay/backlog: a message sent in the gap between page
+          // load and the socket actually reaching SUBSCRIBED would otherwise be missed
+          // forever, not just delayed. One refresh on connect closes exactly that gap.
+          if (status === "SUBSCRIBED" && active) refresh();
+        });
+    });
+
+    return () => {
+      active = false;
+      client?.removeAllChannels();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [realtimeChannel]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: "end" });

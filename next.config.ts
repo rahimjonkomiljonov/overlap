@@ -20,6 +20,13 @@ const isDev = process.env.NODE_ENV === "development";
  * proxy), so the browser loads the raw storage URL directly rather than a same-origin
  * proxied one — this is inert in the local-only phase (dev-storage's fallback route is
  * already same-origin) and only matters once Storage is configured at "publish".
+ *
+ * connect-src needs the same domain, plus the wss: scheme: the Fast-follow realtime-chat
+ * browser client (src/components/chat/chat-thread.tsx) opens a WebSocket straight to
+ * Supabase Realtime, which a bare 'self' CSP silently blocks — this surfaced as a generic
+ * "transport failure" from realtime-js with no CSP violation logged anywhere obvious,
+ * easy to mistake for a network or Realtime-configuration problem instead. Same
+ * "inert until configured" shape as img-src above when Supabase isn't set up at all.
  */
 const cspHeader = `
   default-src 'self';
@@ -27,7 +34,7 @@ const cspHeader = `
   style-src 'self' 'unsafe-inline';
   img-src 'self' data: https://*.supabase.co;
   font-src 'self';
-  connect-src 'self';
+  connect-src 'self' https://*.supabase.co wss://*.supabase.co;
   object-src 'none';
   base-uri 'self';
   form-action 'self';

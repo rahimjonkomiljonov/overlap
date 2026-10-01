@@ -4,6 +4,7 @@ import { redirect } from "@/i18n/navigation";
 import { getActor } from "@/server/auth/session";
 import { prisma } from "@/server/db";
 import { getConversationForActor, getMessages } from "@/server/chat/queries";
+import { chatChannelName, isChatRealtimeConfigured } from "@/server/chat/realtime";
 import { getIcebreakerReasons } from "@/server/chat/icebreakers";
 import { buildLabelMaps, resolveReasons, type ResolvedReason } from "@/server/picks/reasons";
 import { getEmergencyContacts } from "@/server/safety/emergency";
@@ -53,6 +54,7 @@ export default async function ChatPage({
       otherFirstName={conversation.otherFirstName}
       otherPhotoUrl={conversation.otherPhotoUrl}
       initialMessages={messages.map((m) => ({ ...m, createdAt: m.createdAt.toISOString() }))}
+      realtimeChannel={isChatRealtimeConfigured() ? chatChannelName(conversationId) : null}
       initialStatus={conversation.status}
       matchStatus={conversation.matchStatus}
       revivedAt={conversation.revivedAt?.toISOString() ?? null}
