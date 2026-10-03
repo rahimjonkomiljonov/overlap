@@ -2,17 +2,18 @@ import { expect, test } from "@playwright/test";
 import { signIn } from "./helpers/auth";
 import { uniqueTestEmail } from "./helpers/dev-outbox";
 import { completeProfileWizard } from "./helpers/profile";
+import { gotoHydrated } from "./helpers/hydration";
 
 test.use({ locale: "ko-KR" });
 
 test.describe("auth guard", () => {
   test("signed-out visitors are redirected from the app shell to /login", async ({ page }) => {
-    await page.goto("/picks");
+    await gotoHydrated(page, "/picks");
     await expect(page).toHaveURL(/\/login$/);
   });
 
   test("an unrecognized login email is rejected", async ({ page }) => {
-    await page.goto("/login");
+    await gotoHydrated(page, "/login");
     await page.getByLabel("학교 이메일").fill("someone@gmail.com");
     await page.getByRole("button", { name: "인증 코드 받기" }).click();
     await expect(page.getByText("가입 가능한 학교 이메일이 아니에요.")).toBeVisible();
@@ -98,7 +99,7 @@ test.describe("sign-in and onboarding", () => {
     await completeProfileWizard(page);
 
     // Sign out, then sign back in with the same email.
-    await page.goto("/me");
+    await gotoHydrated(page, "/me");
     await page.getByRole("button", { name: "모든 기기에서 로그아웃" }).click();
     await expect(page).toHaveURL(/\/login$/);
 
@@ -116,7 +117,7 @@ test.describe("sign-in and onboarding", () => {
     await page.getByRole("link", { name: "추천 보러 가기" }).click();
     await completeProfileWizard(page);
 
-    await page.goto("/login");
+    await gotoHydrated(page, "/login");
     await expect(page).toHaveURL(/\/picks$/);
   });
 });

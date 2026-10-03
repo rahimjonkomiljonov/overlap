@@ -3,6 +3,7 @@ import { signIn, signInAndOnboard } from "./helpers/auth";
 import { uniqueTestEmail } from "./helpers/dev-outbox";
 import { countAuditLogRows, promoteToRole, Role } from "./helpers/db";
 import { waitForHydration } from "./helpers/hydration";
+import { gotoHydrated } from "./helpers/hydration";
 
 test.use({ locale: "ko-KR" });
 
@@ -20,7 +21,7 @@ function uniqueFirstName(prefix: string): string {
 test.describe("verification (S08)", () => {
   test("a plain user is redirected away from /admin", async ({ page }) => {
     await signInAndOnboard(page, { emailPrefix: "verify-plainuser" });
-    await page.goto("/admin");
+    await gotoHydrated(page, "/admin");
     await expect(page).toHaveURL(/\/picks$/);
   });
 
@@ -33,7 +34,7 @@ test.describe("verification (S08)", () => {
     const userContext = await browser.newContext();
     const userPage = await userContext.newPage();
     await signInAndOnboard(userPage, { emailPrefix: "verify-user", firstName });
-    await userPage.goto("/verify");
+    await gotoHydrated(userPage, "/verify");
     await waitForHydration(userPage, 'input[type="file"][name="selfie"]');
     await userPage
       .locator('input[type="file"][name="selfie"]')
@@ -47,7 +48,7 @@ test.describe("verification (S08)", () => {
     await signIn(modPage, modEmail);
     await promoteToRole(modEmail, Role.MODERATOR);
 
-    await modPage.goto("/admin/verification");
+    await gotoHydrated(modPage, "/admin/verification");
     await expect(modPage.getByRole("heading", { name: "인증 대기열" })).toBeVisible();
 
     const card = modPage.locator('[data-slot="card"]').filter({ hasText: firstName });
@@ -58,7 +59,7 @@ test.describe("verification (S08)", () => {
     await expect(card).toHaveCount(0);
 
     // User A now shows as verified.
-    await userPage.goto("/me");
+    await gotoHydrated(userPage, "/me");
     await expect(userPage.getByText("인증 완료")).toBeVisible();
 
     // The action wrote exactly one new audit row for this decision (H3).
@@ -74,7 +75,7 @@ test.describe("verification (S08)", () => {
     const userContext = await browser.newContext();
     const userPage = await userContext.newPage();
     await signInAndOnboard(userPage, { emailPrefix: "verify-reject-user", firstName });
-    await userPage.goto("/verify");
+    await gotoHydrated(userPage, "/verify");
     await waitForHydration(userPage, 'input[type="file"][name="selfie"]');
     await userPage
       .locator('input[type="file"][name="selfie"]')
@@ -87,19 +88,23 @@ test.describe("verification (S08)", () => {
     await signIn(modPage, modEmail);
     await promoteToRole(modEmail, Role.MODERATOR);
 
-    await modPage.goto("/admin/verification");
+    await gotoHydrated(modPage, "/admin/verification");
     const card = modPage.locator('[data-slot="card"]').filter({ hasText: firstName });
     await expect(card).toHaveCount(1);
 
     await card.getByRole("button", { name: "거절" }).click();
     await expect(card.getByRole("alert")).toBeVisible();
 
-    await card.getByLabel("거절 사유 (거절할 때 필수)").fill("셀피가 프로필 사진과 일치하지 않아요");
+    await card
+      .getByLabel("거절 사유 (거절할 때 필수)")
+      .fill("셀피가 프로필 사진과 일치하지 않아요");
     await card.getByRole("button", { name: "거절" }).click();
     await expect(card).toHaveCount(0);
 
-    await userPage.goto("/verify");
-    await expect(userPage.getByText(/거절되었어요: 셀피가 프로필 사진과 일치하지 않아요/)).toBeVisible();
+    await gotoHydrated(userPage, "/verify");
+    await expect(
+      userPage.getByText(/거절되었어요: 셀피가 프로필 사진과 일치하지 않아요/),
+    ).toBeVisible();
     await expect(userPage.getByLabel("다시 제출하기")).toBeVisible();
 
     await userContext.close();

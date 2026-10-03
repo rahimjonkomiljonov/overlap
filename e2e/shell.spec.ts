@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { signInAndOnboard } from "./helpers/auth";
+import { gotoHydrated } from "./helpers/hydration";
 
 test.use({ locale: "ko-KR" });
 
@@ -13,7 +14,7 @@ test.describe("app shell", () => {
   });
 
   test("bottom navigation switches between the four tabs", async ({ page }) => {
-    await page.goto("/picks");
+    await gotoHydrated(page, "/picks");
     const nav = page.getByRole("navigation", { name: "주요 메뉴" });
     await expect(nav.getByRole("link")).toHaveCount(4);
     await expect(nav.getByRole("link", { name: "추천" })).toHaveAttribute("aria-current", "page");
@@ -25,7 +26,7 @@ test.describe("app shell", () => {
   });
 
   test("navigation targets are at least 44px", async ({ page }) => {
-    await page.goto("/picks");
+    await gotoHydrated(page, "/picks");
     const links = page.getByRole("navigation", { name: "주요 메뉴" }).getByRole("link");
     const count = await links.count();
     expect(count).toBe(4); // guards against this test passing vacuously on an empty locator
@@ -37,7 +38,7 @@ test.describe("app shell", () => {
   });
 
   test("skip link is the first focusable element and targets main content", async ({ page }) => {
-    await page.goto("/picks");
+    await gotoHydrated(page, "/picks");
     await page.keyboard.press("Tab");
     const skip = page.getByRole("link", { name: "본문으로 건너뛰기" });
     await expect(skip).toBeFocused();
@@ -46,17 +47,17 @@ test.describe("app shell", () => {
   });
 
   test("theme toggle switches to dark mode and persists across pages", async ({ page }) => {
-    await page.goto("/me");
+    await gotoHydrated(page, "/me");
     await page.getByRole("button", { name: "다크" }).click();
     await expect(page.locator("html")).toHaveClass(/dark/);
-    await page.goto("/picks");
+    await gotoHydrated(page, "/picks");
     await expect(page.locator("html")).toHaveClass(/dark/);
   });
 });
 
 test.describe("not found", () => {
   test("unknown paths show the localized not-found page", async ({ page }) => {
-    await page.goto("/does-not-exist");
+    await gotoHydrated(page, "/does-not-exist");
     await expect(page.getByRole("heading", { name: "페이지를 찾을 수 없어요" })).toBeVisible();
   });
 });
@@ -74,7 +75,7 @@ test.describe("responsive", () => {
 
   for (const route of publicRoutes) {
     test(`${route} has no horizontal scroll at 360px`, async ({ page }) => {
-      await page.goto(route);
+      await gotoHydrated(page, route);
       await expectNoOverflow(page);
     });
   }
@@ -82,7 +83,7 @@ test.describe("responsive", () => {
   for (const route of shellRoutes) {
     test(`${route} (signed in) has no horizontal scroll at 360px`, async ({ page }) => {
       await signInAndOnboard(page, { emailPrefix: "responsive" });
-      await page.goto(route);
+      await gotoHydrated(page, route);
       await expectNoOverflow(page);
     });
   }
@@ -92,7 +93,7 @@ test.describe("touch targets", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
   test("default and large buttons and inputs are at least 44px tall", async ({ page }) => {
-    await page.goto("/dev/ui");
+    await gotoHydrated(page, "/dev/ui");
     const targets = page.locator(
       'button[data-size="default"], button[data-size="lg"], button[data-size="sm"], input:not([type="hidden"])',
     );

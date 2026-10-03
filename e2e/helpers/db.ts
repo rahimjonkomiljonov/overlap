@@ -13,15 +13,23 @@ import { Pool } from "pg";
  */
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
-export const Role = { USER: "USER", AMBASSADOR: "AMBASSADOR", MODERATOR: "MODERATOR", ADMIN: "ADMIN" } as const;
+export const Role = {
+  USER: "USER",
+  AMBASSADOR: "AMBASSADOR",
+  MODERATOR: "MODERATOR",
+  ADMIN: "ADMIN",
+} as const;
 export type Role = (typeof Role)[keyof typeof Role];
 
 export async function promoteToRole(email: string, role: Role): Promise<void> {
-  await pool.query('UPDATE users SET role = $1 WHERE email = $2', [role, email.toLowerCase()]);
+  await pool.query("UPDATE users SET role = $1 WHERE email = $2", [role, email.toLowerCase()]);
 }
 
 export async function countAuditLogRows(action: string): Promise<number> {
-  const result = await pool.query('SELECT COUNT(*)::int AS count FROM audit_log WHERE action = $1', [action]);
+  const result = await pool.query(
+    "SELECT COUNT(*)::int AS count FROM audit_log WHERE action = $1",
+    [action],
+  );
   return result.rows[0].count;
 }
 
@@ -48,12 +56,18 @@ export async function verifyUser(email: string): Promise<void> {
  */
 export async function deleteTestUser(email: string): Promise<void> {
   const lower = email.toLowerCase();
-  await pool.query('DELETE FROM consents WHERE "userId" = (SELECT id FROM users WHERE email = $1)', [lower]);
+  await pool.query(
+    'DELETE FROM consents WHERE "userId" = (SELECT id FROM users WHERE email = $1)',
+    [lower],
+  );
   await pool.query(
     'DELETE FROM referrals WHERE "referrerId" = (SELECT id FROM users WHERE email = $1) OR "referredUserId" = (SELECT id FROM users WHERE email = $1)',
     [lower],
   );
-  await pool.query('DELETE FROM audit_log WHERE "actorId" = (SELECT id FROM users WHERE email = $1)', [lower]);
+  await pool.query(
+    'DELETE FROM audit_log WHERE "actorId" = (SELECT id FROM users WHERE email = $1)',
+    [lower],
+  );
   await pool.query("DELETE FROM users WHERE email = $1", [lower]);
 }
 
@@ -77,7 +91,9 @@ export async function shareCourseAndClub(emailA: string, emailB: string): Promis
   const courseId = courseRow.rows[0]?.id as string | undefined;
   const clubId = clubRow.rows[0]?.id as string | undefined;
   if (!courseId || !clubId) {
-    throw new Error("shareCourseAndClub: no course/club reference data on this campus — run db:import-reference first.");
+    throw new Error(
+      "shareCourseAndClub: no course/club reference data on this campus — run db:import-reference first.",
+    );
   }
 
   for (const email of [emailA, emailB]) {
@@ -122,7 +138,10 @@ export async function setFreeTimeSlots(email: string, slots: number[]): Promise<
 
 /** Directly expires a `PlanShareLink` (S17), bypassing real wall-clock waiting — for e2e tests of the "the link expires" behavior itself. */
 export async function forceExpireShareLink(token: string): Promise<void> {
-  await pool.query('UPDATE plan_share_links SET "expiresAt" = now() - interval \'1 hour\' WHERE token = $1', [token]);
+  await pool.query(
+    "UPDATE plan_share_links SET \"expiresAt\" = now() - interval '1 hour' WHERE token = $1",
+    [token],
+  );
 }
 
 /** How many `Match` rows exist between these two users, in either userA/userB order — should only ever be 0 or 1 (`@@unique([userAId, userBId])`, always inserted in a normalized order). */
@@ -186,13 +205,19 @@ export async function createMatch(emailA: string, emailB: string): Promise<strin
     [matchId, emailA.toLowerCase(), emailB.toLowerCase()],
   );
   const conversationId = randomUUID();
-  await pool.query('INSERT INTO conversations (id, "matchId") VALUES ($1, $2)', [conversationId, matchId]);
+  await pool.query('INSERT INTO conversations (id, "matchId") VALUES ($1, $2)', [
+    conversationId,
+    matchId,
+  ]);
   return conversationId;
 }
 
 /** Directly marks a conversation EXPIRED, bypassing the 7-day-silence job (unit-tested separately) — for e2e tests of the revive UI/action itself. */
 export async function forceExpireConversation(conversationId: string): Promise<void> {
-  await pool.query('UPDATE conversations SET status = \'EXPIRED\', "expiredAt" = now() WHERE id = $1', [conversationId]);
+  await pool.query(
+    "UPDATE conversations SET status = 'EXPIRED', \"expiredAt\" = now() WHERE id = $1",
+    [conversationId],
+  );
 }
 
 /** The id of the Conversation for the (already-formed) match between these two users. */
@@ -204,7 +229,8 @@ export async function getConversationId(emailA: string, emailB: string): Promise
      WHERE (m."userAId" = a.id AND m."userBId" = b.id) OR (m."userAId" = b.id AND m."userBId" = a.id)`,
     [emailA.toLowerCase(), emailB.toLowerCase()],
   );
-  if (!result.rows[0]) throw new Error(`getConversationId: no conversation found between ${emailA} and ${emailB}`);
+  if (!result.rows[0])
+    throw new Error(`getConversationId: no conversation found between ${emailA} and ${emailB}`);
   return result.rows[0].id as string;
 }
 
@@ -216,7 +242,8 @@ export async function getMatchId(emailA: string, emailB: string): Promise<string
      WHERE (m."userAId" = a.id AND m."userBId" = b.id) OR (m."userAId" = b.id AND m."userBId" = a.id)`,
     [emailA.toLowerCase(), emailB.toLowerCase()],
   );
-  if (!result.rows[0]) throw new Error(`getMatchId: no match found between ${emailA} and ${emailB}`);
+  if (!result.rows[0])
+    throw new Error(`getMatchId: no match found between ${emailA} and ${emailB}`);
   return result.rows[0].id as string;
 }
 
@@ -228,14 +255,19 @@ export async function getMatchId(emailA: string, emailB: string): Promise<string
  * other into the real top-6. `viewerEmail` must have already visited /picks at least
  * once (via `signInAndOnboard`) so a `DailyBatch` row exists to attach to.
  */
-export async function seedPickCandidate(viewerEmail: string, candidateEmail: string): Promise<void> {
+export async function seedPickCandidate(
+  viewerEmail: string,
+  candidateEmail: string,
+): Promise<void> {
   const batchRow = await pool.query(
     `SELECT id FROM daily_batches WHERE "userId" = (SELECT id FROM users WHERE email = $1) ORDER BY "createdAt" DESC LIMIT 1`,
     [viewerEmail.toLowerCase()],
   );
   const dailyBatchId = batchRow.rows[0]?.id as string | undefined;
   if (!dailyBatchId) {
-    throw new Error(`seedPickCandidate: no daily batch found for ${viewerEmail} — visit /picks first`);
+    throw new Error(
+      `seedPickCandidate: no daily batch found for ${viewerEmail} — visit /picks first`,
+    );
   }
   const rankRow = await pool.query(
     'SELECT COALESCE(MAX(rank), 0) + 1 AS "nextRank" FROM batch_items WHERE "dailyBatchId" = $1',
@@ -251,7 +283,9 @@ export async function seedPickCandidate(viewerEmail: string, candidateEmail: str
 
 /** For asserting a moderation action's effect (S16) — the queue itself only shows OPEN reports, so the target's resulting status has to be read directly. */
 export async function getUserStatus(email: string): Promise<string> {
-  const result = await pool.query('SELECT status FROM users WHERE email = $1', [email.toLowerCase()]);
+  const result = await pool.query("SELECT status FROM users WHERE email = $1", [
+    email.toLowerCase(),
+  ]);
   if (!result.rows[0]) throw new Error(`getUserStatus: no user found for ${email}`);
   return result.rows[0].status as string;
 }
@@ -262,7 +296,11 @@ export async function getUserStatus(email: string): Promise<string> {
  * actually queue a notification through a real UI-driven action, not just the isolated
  * fake-db unit tests in src/server/notifications/*.test.ts.
  */
-export async function countNotifications(email: string, type: string, status?: string): Promise<number> {
+export async function countNotifications(
+  email: string,
+  type: string,
+  status?: string,
+): Promise<number> {
   const params: string[] = [email.toLowerCase(), type];
   let query = `SELECT COUNT(*)::int AS count FROM notifications n
      JOIN users u ON u.id = n."userId"
@@ -280,6 +318,11 @@ export async function createIncomingWave(fromEmail: string, toEmail: string): Pr
   await pool.query(
     `INSERT INTO waves (id, "fromUserId", "toUserId", "targetElement", status)
      VALUES ($1, (SELECT id FROM users WHERE email = $2), (SELECT id FROM users WHERE email = $3), $4::jsonb, 'PENDING')`,
-    [randomUUID(), fromEmail.toLowerCase(), toEmail.toLowerCase(), JSON.stringify({ type: "profile" })],
+    [
+      randomUUID(),
+      fromEmail.toLowerCase(),
+      toEmail.toLowerCase(),
+      JSON.stringify({ type: "profile" }),
+    ],
   );
 }

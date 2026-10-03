@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { signInAndOnboard } from "./helpers/auth";
 import { deleteTestUser, shareCourseAndClub, verifyUser } from "./helpers/db";
+import { gotoHydrated } from "./helpers/hydration";
 
 test.use({ locale: "ko-KR" });
 
@@ -19,7 +20,9 @@ function uniqueFirstName(prefix: string): string {
 }
 
 test.describe("picks (S12)", () => {
-  test("sending a wave removes the card and a pass removes a different card", async ({ browser }) => {
+  test("sending a wave removes the card and a pass removes a different card", async ({
+    browser,
+  }) => {
     const firstNameA = uniqueFirstName("추천A");
     const firstNameB = uniqueFirstName("추천B");
 
@@ -36,7 +39,7 @@ test.describe("picks (S12)", () => {
     await shareCourseAndClub(emailA, emailB);
 
     try {
-      await pageA.goto("/picks");
+      await gotoHydrated(pageA, "/picks");
       await expect(pageA.getByRole("heading", { name: "오늘의 추천" })).toBeVisible();
 
       const card = pageA.locator('[data-slot="card"]').filter({ hasText: firstNameB });
@@ -52,24 +55,32 @@ test.describe("picks (S12)", () => {
     }
   });
 
-  test("reacting to a specific photo opens a note composer, and sending it records the wave", async ({ browser }) => {
+  test("reacting to a specific photo opens a note composer, and sending it records the wave", async ({
+    browser,
+  }) => {
     const firstNameA = uniqueFirstName("반응A");
     const firstNameB = uniqueFirstName("반응B");
 
     const contextA = await browser.newContext();
     const pageA = await contextA.newPage();
-    const emailA = await signInAndOnboard(pageA, { emailPrefix: "picks-react-a", firstName: firstNameA });
+    const emailA = await signInAndOnboard(pageA, {
+      emailPrefix: "picks-react-a",
+      firstName: firstNameA,
+    });
 
     const contextB = await browser.newContext();
     const pageB = await contextB.newPage();
-    const emailB = await signInAndOnboard(pageB, { emailPrefix: "picks-react-b", firstName: firstNameB });
+    const emailB = await signInAndOnboard(pageB, {
+      emailPrefix: "picks-react-b",
+      firstName: firstNameB,
+    });
 
     await verifyUser(emailA);
     await verifyUser(emailB);
     await shareCourseAndClub(emailA, emailB);
 
     try {
-      await pageA.goto("/picks");
+      await gotoHydrated(pageA, "/picks");
       const card = pageA.locator('[data-slot="card"]').filter({ hasText: firstNameB });
       await expect(card).toHaveCount(1);
 
@@ -93,18 +104,24 @@ test.describe("picks (S12)", () => {
 
     const contextA = await browser.newContext();
     const pageA = await contextA.newPage();
-    const emailA = await signInAndOnboard(pageA, { emailPrefix: "picks-pass-a", firstName: firstNameA });
+    const emailA = await signInAndOnboard(pageA, {
+      emailPrefix: "picks-pass-a",
+      firstName: firstNameA,
+    });
 
     const contextB = await browser.newContext();
     const pageB = await contextB.newPage();
-    const emailB = await signInAndOnboard(pageB, { emailPrefix: "picks-pass-b", firstName: firstNameB });
+    const emailB = await signInAndOnboard(pageB, {
+      emailPrefix: "picks-pass-b",
+      firstName: firstNameB,
+    });
 
     await verifyUser(emailA);
     await verifyUser(emailB);
     await shareCourseAndClub(emailA, emailB);
 
     try {
-      await pageA.goto("/picks");
+      await gotoHydrated(pageA, "/picks");
       const card = pageA.locator('[data-slot="card"]').filter({ hasText: firstNameB });
       await expect(card).toHaveCount(1);
 
@@ -118,11 +135,15 @@ test.describe("picks (S12)", () => {
     }
   });
 
-  test("/how-matching-works is reachable from /picks and explains the signals", async ({ page }) => {
+  test("/how-matching-works is reachable from /picks and explains the signals", async ({
+    page,
+  }) => {
     await signInAndOnboard(page, { emailPrefix: "picks-hmw" });
-    await page.goto("/picks");
+    await gotoHydrated(page, "/picks");
     await page.getByRole("link", { name: "매칭은 어떻게 이루어지나요" }).click();
     await expect(page).toHaveURL(/\/how-matching-works$/);
-    await expect(page.getByRole("heading", { name: "매칭은 어떻게 이루어지나요", level: 1 })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "매칭은 어떻게 이루어지나요", level: 1 }),
+    ).toBeVisible();
   });
 });

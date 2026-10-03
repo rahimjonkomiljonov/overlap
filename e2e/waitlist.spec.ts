@@ -1,17 +1,18 @@
 import { expect, test } from "@playwright/test";
 import { readLastOtpCode, uniqueTestEmail } from "./helpers/dev-outbox";
+import { gotoHydrated } from "./helpers/hydration";
 
 test.use({ locale: "ko-KR" });
 
 test.describe("waitlist", () => {
   test("landing page CTA links to the waitlist", async ({ page }) => {
-    await page.goto("/");
+    await gotoHydrated(page, "/");
     await page.getByRole("link", { name: "대기자 명단 등록하기" }).click();
     await expect(page).toHaveURL(/\/waitlist$/);
   });
 
   test("rejects a non-eligible email domain", async ({ page }) => {
-    await page.goto("/waitlist");
+    await gotoHydrated(page, "/waitlist");
     await page.getByLabel("학교 이메일").fill("someone@gmail.com");
     await page.getByRole("checkbox").check();
     await page.getByRole("button", { name: "인증 코드 받기" }).click();
@@ -19,7 +20,7 @@ test.describe("waitlist", () => {
   });
 
   test("blocks submission without checking consent", async ({ page }) => {
-    await page.goto("/waitlist");
+    await gotoHydrated(page, "/waitlist");
     await page.getByLabel("학교 이메일").fill(uniqueTestEmail("noconsent"));
     // Consent is a native `required` checkbox: the browser blocks submission and the
     // page stays on step 1 rather than advancing.
@@ -32,7 +33,7 @@ test.describe("waitlist", () => {
   }) => {
     const email = uniqueTestEmail("happy");
 
-    await page.goto("/waitlist");
+    await gotoHydrated(page, "/waitlist");
     await page.getByLabel("학교 이메일").fill(email);
     await page.getByRole("checkbox").check();
     await page.getByRole("button", { name: "인증 코드 받기" }).click();
@@ -58,7 +59,7 @@ test.describe("waitlist", () => {
     const email = uniqueTestEmail("dup");
 
     // First signup, all the way through.
-    await page.goto("/waitlist");
+    await gotoHydrated(page, "/waitlist");
     await page.getByLabel("학교 이메일").fill(email);
     await page.getByRole("checkbox").check();
     await page.getByRole("button", { name: "인증 코드 받기" }).click();
@@ -68,7 +69,7 @@ test.describe("waitlist", () => {
     await expect(page.getByRole("heading", { name: "등록됐어요!" })).toBeVisible();
 
     // Try again with the same email.
-    await page.goto("/waitlist");
+    await gotoHydrated(page, "/waitlist");
     await page.getByLabel("학교 이메일").fill(email);
     await page.getByRole("checkbox").check();
     await page.getByRole("button", { name: "인증 코드 받기" }).click();
@@ -79,7 +80,7 @@ test.describe("waitlist", () => {
     const before = await (await request.get("/api/waitlist/count")).json();
 
     const email = uniqueTestEmail("counter");
-    await page.goto("/waitlist");
+    await gotoHydrated(page, "/waitlist");
     await page.getByLabel("학교 이메일").fill(email);
     await page.getByRole("checkbox").check();
     await page.getByRole("button", { name: "인증 코드 받기" }).click();
@@ -96,7 +97,7 @@ test.describe("waitlist", () => {
 
   test("referral link is captured for a new signup", async ({ page, browser }) => {
     const referrerEmail = uniqueTestEmail("referrer");
-    await page.goto("/waitlist");
+    await gotoHydrated(page, "/waitlist");
     await page.getByLabel("학교 이메일").fill(referrerEmail);
     await page.getByRole("checkbox").check();
     await page.getByRole("button", { name: "인증 코드 받기" }).click();
@@ -109,7 +110,7 @@ test.describe("waitlist", () => {
     const referredContext = await browser.newContext({ locale: "ko-KR" });
     const referredPage = await referredContext.newPage();
     const referredEmail = uniqueTestEmail("referred");
-    await referredPage.goto(`/waitlist?ref=${ref}`);
+    await gotoHydrated(referredPage, `/waitlist?ref=${ref}`);
     await referredPage.getByLabel("학교 이메일").fill(referredEmail);
     await referredPage.getByRole("checkbox").check();
     await referredPage.getByRole("button", { name: "인증 코드 받기" }).click();

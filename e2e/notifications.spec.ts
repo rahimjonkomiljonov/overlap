@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { signInAndOnboard } from "./helpers/auth";
 import { countNotifications, deleteTestUser, shareCourseAndClub, verifyUser } from "./helpers/db";
+import { gotoHydrated } from "./helpers/hydration";
 
 test.use({ locale: "ko-KR" });
 
@@ -26,18 +27,24 @@ test.describe("service notifications (S18)", () => {
 
     const contextA = await browser.newContext();
     const pageA = await contextA.newPage();
-    const emailA = await signInAndOnboard(pageA, { emailPrefix: "notif-match-a", firstName: firstNameA });
+    const emailA = await signInAndOnboard(pageA, {
+      emailPrefix: "notif-match-a",
+      firstName: firstNameA,
+    });
 
     const contextB = await browser.newContext();
     const pageB = await contextB.newPage();
-    const emailB = await signInAndOnboard(pageB, { emailPrefix: "notif-match-b", firstName: firstNameB });
+    const emailB = await signInAndOnboard(pageB, {
+      emailPrefix: "notif-match-b",
+      firstName: firstNameB,
+    });
 
     await verifyUser(emailA);
     await verifyUser(emailB);
     await shareCourseAndClub(emailA, emailB);
 
     try {
-      await pageA.goto("/picks");
+      await gotoHydrated(pageA, "/picks");
       const cardOnA = pageA.locator('[data-slot="card"]').filter({ hasText: firstNameB });
       await expect(cardOnA).toHaveCount(1);
       await cardOnA.getByRole("button", { name: "웨이브", exact: true }).click();
@@ -49,7 +56,7 @@ test.describe("service notifications (S18)", () => {
       expect(await countNotifications(emailA, "MATCH")).toBe(0);
       expect(await countNotifications(emailB, "MATCH")).toBe(0);
 
-      await pageB.goto("/waves");
+      await gotoHydrated(pageB, "/waves");
       const waveOnB = pageB.locator('[data-slot="card"]').filter({ hasText: firstNameA });
       await expect(waveOnB).toHaveCount(1);
       await waveOnB.getByRole("button", { name: "웨이브 보내기" }).click();

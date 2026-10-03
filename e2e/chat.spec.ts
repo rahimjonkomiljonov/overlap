@@ -9,6 +9,7 @@ import {
   shareCourseAndClub,
   verifyUser,
 } from "./helpers/db";
+import { gotoHydrated } from "./helpers/hydration";
 
 test.use({ locale: "ko-KR" });
 
@@ -17,7 +18,9 @@ function uniqueFirstName(prefix: string): string {
 }
 
 test.describe("chat (S15)", () => {
-  test("a message sent by one side appears on the other's screen via polling, and icebreakers show first", async ({ browser }, testInfo) => {
+  test("a message sent by one side appears on the other's screen via polling, and icebreakers show first", async ({
+    browser,
+  }, testInfo) => {
     // Heavier than this suite's other two-context tests (two full onboardings, wave
     // formation, *and* two message-send-and-poll round trips) — comfortably fits the
     // default 30s alone, but under the full suite's shared sandbox contention it can
@@ -43,13 +46,13 @@ test.describe("chat (S15)", () => {
     try {
       // Form the match: A waves at B from /picks, B waves back from the /waves inbox —
       // the same two-step mutual-wave flow e2e/waves.spec.ts's own test drives.
-      await pageA.goto("/picks");
+      await gotoHydrated(pageA, "/picks");
       const cardOnA = pageA.locator('[data-slot="card"]').filter({ hasText: firstNameB });
       await expect(cardOnA).toHaveCount(1);
       await cardOnA.getByRole("button", { name: "웨이브", exact: true }).click();
       await expect(cardOnA).toHaveCount(0);
 
-      await pageB.goto("/waves");
+      await gotoHydrated(pageB, "/waves");
       const waveOnB = pageB.locator('[data-slot="card"]').filter({ hasText: firstNameA });
       await expect(waveOnB).toHaveCount(1);
       await waveOnB.getByRole("button", { name: "웨이브 보내기" }).click();
@@ -57,12 +60,20 @@ test.describe("chat (S15)", () => {
       await expect(waveOnB).toHaveCount(0);
 
       // Both sides reach the chat thread from /matches.
-      await pageA.goto("/matches");
-      await pageA.locator('[data-slot="card"]').filter({ hasText: firstNameB }).getByRole("link", { name: "채팅하기" }).click();
+      await gotoHydrated(pageA, "/matches");
+      await pageA
+        .locator('[data-slot="card"]')
+        .filter({ hasText: firstNameB })
+        .getByRole("link", { name: "채팅하기" })
+        .click();
       await expect(pageA).toHaveURL(/\/matches\/[^/]+$/);
 
-      await pageB.goto("/matches");
-      await pageB.locator('[data-slot="card"]').filter({ hasText: firstNameA }).getByRole("link", { name: "채팅하기" }).click();
+      await gotoHydrated(pageB, "/matches");
+      await pageB
+        .locator('[data-slot="card"]')
+        .filter({ hasText: firstNameA })
+        .getByRole("link", { name: "채팅하기" })
+        .click();
       await expect(pageB).toHaveURL(/\/matches\/[^/]+$/);
 
       // Shared course/club gives real "why you overlap" reasons, so the icebreakers are
@@ -92,9 +103,14 @@ test.describe("chat (S15)", () => {
     }
   });
 
-  test("an expired conversation hides the composer, and reviving it once re-enables sending", async ({ page }) => {
+  test("an expired conversation hides the composer, and reviving it once re-enables sending", async ({
+    page,
+  }) => {
     const firstNameA = uniqueFirstName("만료A");
-    const emailA = await signInAndOnboard(page, { emailPrefix: "chat-expire-a", firstName: firstNameA });
+    const emailA = await signInAndOnboard(page, {
+      emailPrefix: "chat-expire-a",
+      firstName: firstNameA,
+    });
     await verifyUser(emailA);
 
     const senderEmail = `chat-expire-sender-${Date.now()}@test.ac.kr`;
@@ -106,7 +122,7 @@ test.describe("chat (S15)", () => {
       // engine ranking involved) — mirrors e2e/waves.spec.ts's cap test setup. The sender
       // is a bare user with no profile (see createBareUser), so its card has no name text
       // to filter by — there's only one incoming wave here, so `.first()` is unambiguous.
-      await page.goto("/waves");
+      await gotoHydrated(page, "/waves");
       const card = page.locator('[data-slot="card"]').first();
       await expect(page.locator('[data-slot="card"]')).toHaveCount(1);
       await card.getByRole("button", { name: "웨이브 보내기" }).click();
@@ -116,8 +132,12 @@ test.describe("chat (S15)", () => {
       const conversationId = await getConversationId(emailA, senderEmail);
       await forceExpireConversation(conversationId);
 
-      await page.goto(`/matches/${conversationId}`);
-      await expect(page.getByText("7일 동안 대화가 없어서 대화방이 만료됐어요. 한 번만 다시 시작할 수 있어요.")).toBeVisible();
+      await gotoHydrated(page, `/matches/${conversationId}`);
+      await expect(
+        page.getByText(
+          "7일 동안 대화가 없어서 대화방이 만료됐어요. 한 번만 다시 시작할 수 있어요.",
+        ),
+      ).toBeVisible();
       await expect(page.getByLabel("메시지를 입력하세요")).toHaveCount(0);
 
       await page.getByRole("button", { name: "다시 시작하기" }).click();

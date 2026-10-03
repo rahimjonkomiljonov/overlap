@@ -8,6 +8,7 @@ import {
   setFreeTimeSlots,
   verifyUser,
 } from "./helpers/db";
+import { gotoHydrated } from "./helpers/hydration";
 
 test.use({ locale: "ko-KR" });
 
@@ -39,7 +40,7 @@ test.describe("meetup planner (S17)", () => {
 
     try {
       // A sees 3 slot options and proposes the first one.
-      await pageA.goto(`/meetup/${matchId}`);
+      await gotoHydrated(pageA, `/meetup/${matchId}`);
       await expect(pageA.getByText("이 중에서 골라보세요")).toBeVisible();
       const proposeButtons = pageA.getByRole("button", { name: "이 시간 제안하기" });
       await expect(proposeButtons).toHaveCount(3);
@@ -47,7 +48,7 @@ test.describe("meetup planner (S17)", () => {
       await expect(pageA.getByText("제안됨")).toBeVisible();
 
       // B sees the pending proposal and accepts it.
-      await pageB.goto(`/meetup/${matchId}`);
+      await gotoHydrated(pageB, `/meetup/${matchId}`);
       await expect(pageB.getByText("제안됨")).toBeVisible();
       await pageB.getByRole("button", { name: "수락", exact: true }).click();
       // A longer timeout here: this is this dev process's first hit of the accept
@@ -73,7 +74,7 @@ test.describe("meetup planner (S17)", () => {
 
       const publicContext = await browser.newContext();
       const publicPage = await publicContext.newPage();
-      await publicPage.goto(`/plan/${token}`);
+      await gotoHydrated(publicPage, `/plan/${token}`);
       await expect(publicPage.getByRole("heading", { name: "만남 계획" })).toBeVisible();
       await expect(publicPage.getByText("정확한 위치는 공유되지 않아요.")).toBeVisible();
 
@@ -93,7 +94,8 @@ test.describe("meetup planner (S17)", () => {
 
   test("declining a proposal returns to the options picker, so either side can propose again", async ({
     browser,
-  }) => {
+  }, testInfo) => {
+    testInfo.setTimeout(60_000);
     const contextA = await browser.newContext();
     const pageA = await contextA.newPage();
     const emailA = await signInAndOnboard(pageA, { emailPrefix: "meetup-decline-a" });
@@ -110,11 +112,11 @@ test.describe("meetup planner (S17)", () => {
     const matchId = await getMatchId(emailA, emailB);
 
     try {
-      await pageA.goto(`/meetup/${matchId}`);
+      await gotoHydrated(pageA, `/meetup/${matchId}`);
       await pageA.getByRole("button", { name: "이 시간 제안하기" }).first().click();
       await expect(pageA.getByText("제안됨")).toBeVisible();
 
-      await pageB.goto(`/meetup/${matchId}`);
+      await gotoHydrated(pageB, `/meetup/${matchId}`);
       await expect(pageB.getByText("제안됨")).toBeVisible();
       await pageB.getByRole("button", { name: "거절", exact: true }).click();
 

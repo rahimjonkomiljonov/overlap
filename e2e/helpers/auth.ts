@@ -1,6 +1,7 @@
 import type { Page } from "@playwright/test";
 import { readLastOtpCode, uniqueTestEmail } from "./dev-outbox";
 import { completeProfileWizard } from "./profile";
+import { gotoHydrated } from "./hydration";
 
 /**
  * Drives the full email + OTP sign-in flow. Leaves the browser signed in, settled on
@@ -14,7 +15,7 @@ import { completeProfileWizard } from "./profile";
  * otherwise race it, as a plain `goto()` right after can get bounced back mid-chain.
  */
 export async function signIn(page: Page, email: string): Promise<void> {
-  await page.goto("/login");
+  await gotoHydrated(page, "/login");
   await page.getByLabel("학교 이메일").fill(email);
   // Captured before requesting: a test that signs in twice with the same email (sign
   // out, then back in) must not pick up the first attempt's now-stale code.

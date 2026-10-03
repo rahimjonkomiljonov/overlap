@@ -14,6 +14,7 @@ import {
   seedPickCandidate,
   verifyUser,
 } from "./helpers/db";
+import { gotoHydrated } from "./helpers/hydration";
 
 test.use({ locale: "ko-KR" });
 
@@ -36,7 +37,7 @@ test.describe("safety core (S16)", () => {
     // first /picks visit inside signInAndOnboard happens before this, so it composed
     // nothing to seed into.
     await verifyUser(emailA);
-    await page.goto("/picks");
+    await gotoHydrated(page, "/picks");
 
     const emailB = uniqueTestEmail("safety-block-b");
     await createUserWithFirstName(emailB, firstNameB);
@@ -50,13 +51,17 @@ test.describe("safety core (S16)", () => {
       await createIncomingWave(emailB, emailA);
       const conversationId = await createMatch(emailA, emailB);
 
-      await page.goto("/picks");
-      await expect(page.locator('[data-slot="card"]').filter({ hasText: firstNameB })).toHaveCount(1);
+      await gotoHydrated(page, "/picks");
+      await expect(page.locator('[data-slot="card"]').filter({ hasText: firstNameB })).toHaveCount(
+        1,
+      );
 
-      await page.goto("/waves");
-      await expect(page.locator('[data-slot="card"]').filter({ hasText: firstNameB })).toHaveCount(1);
+      await gotoHydrated(page, "/waves");
+      await expect(page.locator('[data-slot="card"]').filter({ hasText: firstNameB })).toHaveCount(
+        1,
+      );
 
-      await page.goto("/matches");
+      await gotoHydrated(page, "/matches");
       const matchCard = page.locator('[data-slot="card"]').filter({ hasText: firstNameB });
       await expect(matchCard).toHaveCount(1);
 
@@ -67,16 +72,22 @@ test.describe("safety core (S16)", () => {
       await expect(matchCard).toHaveCount(0);
 
       // Re-check server-side (not just the client-side optimistic hide) on every surface.
-      await page.goto("/matches");
-      await expect(page.locator('[data-slot="card"]').filter({ hasText: firstNameB })).toHaveCount(0);
+      await gotoHydrated(page, "/matches");
+      await expect(page.locator('[data-slot="card"]').filter({ hasText: firstNameB })).toHaveCount(
+        0,
+      );
 
-      await page.goto("/picks");
-      await expect(page.locator('[data-slot="card"]').filter({ hasText: firstNameB })).toHaveCount(0);
+      await gotoHydrated(page, "/picks");
+      await expect(page.locator('[data-slot="card"]').filter({ hasText: firstNameB })).toHaveCount(
+        0,
+      );
 
-      await page.goto("/waves");
-      await expect(page.locator('[data-slot="card"]').filter({ hasText: firstNameB })).toHaveCount(0);
+      await gotoHydrated(page, "/waves");
+      await expect(page.locator('[data-slot="card"]').filter({ hasText: firstNameB })).toHaveCount(
+        0,
+      );
 
-      await page.goto(`/matches/${conversationId}`);
+      await gotoHydrated(page, `/matches/${conversationId}`);
       await expect(page).toHaveURL(/\/matches$/);
     } finally {
       await deleteTestUser(emailA);
@@ -107,7 +118,7 @@ test.describe("safety core (S16)", () => {
       await createMatch(emailA, emailStandard);
       await createMatch(emailA, emailUrgent);
 
-      await page.goto("/matches");
+      await gotoHydrated(page, "/matches");
       const cards = page.locator('[data-slot="card"]');
       await expect(cards).toHaveCount(2);
 
@@ -124,7 +135,7 @@ test.describe("safety core (S16)", () => {
 
       await signIn(modPage, modEmail);
       await promoteToRole(modEmail, Role.MODERATOR);
-      await modPage.goto("/admin/reports");
+      await gotoHydrated(modPage, "/admin/reports");
       await expect(modPage.getByRole("heading", { name: "신고 대기열" })).toBeVisible();
 
       // The queue is long-lived and can hold leftover reports from other runs, so this
@@ -161,7 +172,7 @@ test.describe("safety core (S16)", () => {
     try {
       await createMatch(emailA, targetEmail);
 
-      await page.goto("/matches");
+      await gotoHydrated(page, "/matches");
       const card = page.locator('[data-slot="card"]').filter({ hasText: targetName });
       await expect(card).toHaveCount(1);
       await card.getByRole("button", { name: "신고", exact: true }).click();
@@ -171,7 +182,7 @@ test.describe("safety core (S16)", () => {
 
       await signIn(modPage, modEmail);
       await promoteToRole(modEmail, Role.MODERATOR);
-      await modPage.goto("/admin/reports");
+      await gotoHydrated(modPage, "/admin/reports");
       const reportCard = modPage.locator('[data-slot="card"]').filter({ hasText: targetName });
       await expect(reportCard).toHaveCount(1);
 

@@ -9,6 +9,7 @@ import {
   shareCourseAndClub,
   verifyUser,
 } from "./helpers/db";
+import { gotoHydrated } from "./helpers/hydration";
 
 test.use({ locale: "ko-KR" });
 
@@ -22,7 +23,11 @@ function uniqueFirstName(prefix: string): string {
 }
 
 test.describe("waves and matches (S14)", () => {
-  test("a mutual wave creates exactly one match, visible to both sides", async ({ browser }) => {
+  test("a mutual wave creates exactly one match, visible to both sides", async ({
+    browser,
+  }, testInfo) => {
+    // Two onboardings plus a mutual wave: heavier than the default 30s under parallel load.
+    testInfo.setTimeout(60_000);
     const firstNameA = uniqueFirstName("웨이브A");
     const firstNameB = uniqueFirstName("웨이브B");
 
@@ -41,7 +46,7 @@ test.describe("waves and matches (S14)", () => {
     try {
       // A waves at B from /picks (already covered end to end by picks.spec.ts — this is
       // just the setup half of a mutual pair).
-      await pageA.goto("/picks");
+      await gotoHydrated(pageA, "/picks");
       const cardOnA = pageA.locator('[data-slot="card"]').filter({ hasText: firstNameB });
       await expect(cardOnA).toHaveCount(1);
       await cardOnA.getByRole("button", { name: "웨이브", exact: true }).click();
@@ -51,7 +56,7 @@ test.describe("waves and matches (S14)", () => {
 
       // B sees the incoming wave in the inbox and waves back — this is the new S14 path,
       // reachable even though B doesn't necessarily have A in B's own /picks batch.
-      await pageB.goto("/waves");
+      await gotoHydrated(pageB, "/waves");
       const waveOnB = pageB.locator('[data-slot="card"]').filter({ hasText: firstNameA });
       await expect(waveOnB).toHaveCount(1);
       await waveOnB.getByRole("button", { name: "웨이브 보내기" }).click();
@@ -61,11 +66,15 @@ test.describe("waves and matches (S14)", () => {
       // Exactly one match, visible from both sides.
       expect(await countMatches(emailA, emailB)).toBe(1);
 
-      await pageA.goto("/matches");
-      await expect(pageA.locator('[data-slot="card"]').filter({ hasText: firstNameB })).toHaveCount(1);
+      await gotoHydrated(pageA, "/matches");
+      await expect(pageA.locator('[data-slot="card"]').filter({ hasText: firstNameB })).toHaveCount(
+        1,
+      );
 
-      await pageB.goto("/matches");
-      await expect(pageB.locator('[data-slot="card"]').filter({ hasText: firstNameA })).toHaveCount(1);
+      await gotoHydrated(pageB, "/matches");
+      await expect(pageB.locator('[data-slot="card"]').filter({ hasText: firstNameA })).toHaveCount(
+        1,
+      );
     } finally {
       await contextA.close();
       await contextB.close();
@@ -80,24 +89,30 @@ test.describe("waves and matches (S14)", () => {
 
     const contextA = await browser.newContext();
     const pageA = await contextA.newPage();
-    const emailA = await signInAndOnboard(pageA, { emailPrefix: "waves-decline-a", firstName: firstNameA });
+    const emailA = await signInAndOnboard(pageA, {
+      emailPrefix: "waves-decline-a",
+      firstName: firstNameA,
+    });
 
     const contextB = await browser.newContext();
     const pageB = await contextB.newPage();
-    const emailB = await signInAndOnboard(pageB, { emailPrefix: "waves-decline-b", firstName: firstNameB });
+    const emailB = await signInAndOnboard(pageB, {
+      emailPrefix: "waves-decline-b",
+      firstName: firstNameB,
+    });
 
     await verifyUser(emailA);
     await verifyUser(emailB);
     await shareCourseAndClub(emailA, emailB);
 
     try {
-      await pageA.goto("/picks");
+      await gotoHydrated(pageA, "/picks");
       const cardOnA = pageA.locator('[data-slot="card"]').filter({ hasText: firstNameB });
       await expect(cardOnA).toHaveCount(1);
       await cardOnA.getByRole("button", { name: "웨이브", exact: true }).click();
       await expect(cardOnA).toHaveCount(0);
 
-      await pageB.goto("/waves");
+      await gotoHydrated(pageB, "/waves");
       const waveOnB = pageB.locator('[data-slot="card"]').filter({ hasText: firstNameA });
       await expect(waveOnB).toHaveCount(1);
       await waveOnB.getByRole("button", { name: "패스" }).click();
@@ -114,7 +129,10 @@ test.describe("waves and matches (S14)", () => {
 
   test("the daily cap holds: 8 waves back succeed, a 9th is rejected", async ({ page }) => {
     const firstNameA = uniqueFirstName("캡A");
-    const emailA = await signInAndOnboard(page, { emailPrefix: "waves-cap-a", firstName: firstNameA });
+    const emailA = await signInAndOnboard(page, {
+      emailPrefix: "waves-cap-a",
+      firstName: firstNameA,
+    });
     await verifyUser(emailA);
 
     const senderEmails: string[] = [];
@@ -126,7 +144,7 @@ test.describe("waves and matches (S14)", () => {
     }
 
     try {
-      await page.goto("/waves");
+      await gotoHydrated(page, "/waves");
       await expect(page.getByRole("heading", { name: "받은 웨이브" })).toBeVisible();
       await expect(page.locator('[data-slot="card"]')).toHaveCount(9);
 
@@ -140,7 +158,9 @@ test.describe("waves and matches (S14)", () => {
       const lastCard = page.locator('[data-slot="card"]').first();
       await lastCard.getByRole("button", { name: "웨이브 보내기" }).click();
       await lastCard.getByRole("button", { name: "웨이브 보내기" }).click();
-      await expect(lastCard.getByText("오늘 보낼 수 있는 웨이브를 모두 사용했어요 (하루 8개).")).toBeVisible();
+      await expect(
+        lastCard.getByText("오늘 보낼 수 있는 웨이브를 모두 사용했어요 (하루 8개)."),
+      ).toBeVisible();
       // The 9th attempt failed, so the card is still there.
       await expect(page.locator('[data-slot="card"]')).toHaveCount(1);
     } finally {
@@ -159,11 +179,17 @@ test.describe("waves and matches (S14)", () => {
 
     const contextA = await browser.newContext();
     const pageA = await contextA.newPage();
-    const emailA = await signInAndOnboard(pageA, { emailPrefix: "waves-blocked-a", firstName: firstNameA });
+    const emailA = await signInAndOnboard(pageA, {
+      emailPrefix: "waves-blocked-a",
+      firstName: firstNameA,
+    });
 
     const contextB = await browser.newContext();
     const pageB = await contextB.newPage();
-    const emailB = await signInAndOnboard(pageB, { emailPrefix: "waves-blocked-b", firstName: firstNameB });
+    const emailB = await signInAndOnboard(pageB, {
+      emailPrefix: "waves-blocked-b",
+      firstName: firstNameB,
+    });
 
     await verifyUser(emailA);
     await verifyUser(emailB);
@@ -171,7 +197,7 @@ test.describe("waves and matches (S14)", () => {
 
     try {
       // Compose A's batch (and B's card in it) *before* the block exists.
-      await pageA.goto("/picks");
+      await gotoHydrated(pageA, "/picks");
       const cardOnA = pageA.locator('[data-slot="card"]').filter({ hasText: firstNameB });
       await expect(cardOnA).toHaveCount(1);
 
@@ -189,7 +215,9 @@ test.describe("waves and matches (S14)", () => {
       // A reload re-fetches the picks list, which now excludes the blocked pair entirely
       // (S16's "blocked users never appear in picks" — src/server/picks/queries.ts).
       await pageA.reload();
-      await expect(pageA.locator('[data-slot="card"]').filter({ hasText: firstNameB })).toHaveCount(0);
+      await expect(pageA.locator('[data-slot="card"]').filter({ hasText: firstNameB })).toHaveCount(
+        0,
+      );
     } finally {
       await contextA.close();
       await contextB.close();
