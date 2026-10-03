@@ -1,6 +1,7 @@
 import path from "node:path";
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
+import { waitForHydration } from "./hydration";
 
 const PHOTO_FIXTURE = path.join(process.cwd(), "e2e/fixtures/photo-with-exif.jpg");
 
@@ -70,9 +71,12 @@ export async function completeProfileWizard(
   // Photos: upload 3 (the minimum) via the same file input, waiting for each to land
   // before the next, since uploads auto-submit on file selection.
   const fileInput = page.locator('input[type="file"][name="photo"]');
+  await waitForHydration(page, 'input[type="file"][name="photo"]');
   for (let i = 1; i <= 3; i++) {
     await fileInput.setInputFiles(PHOTO_FIXTURE);
-    await expect(page.getByText(`${i}/6장`)).toBeVisible();
+    // Uploads go to real Supabase Storage, which is seconds slower than the local dev
+    // fallback CI uses — under the full suite's parallel load that exceeds the default 5s.
+    await expect(page.getByText(`${i}/6장`)).toBeVisible({ timeout: 20_000 });
   }
   await page.getByRole("button", { name: "다음" }).click();
 
