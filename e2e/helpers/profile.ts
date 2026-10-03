@@ -22,7 +22,9 @@ export async function completeProfileWizard(
   page: Page,
   options: { intent?: "친구" | "스터디" | "데이팅" | "다 열려있어요"; firstName?: string } = {},
 ): Promise<void> {
-  await expect(page).toHaveURL(/\/onboarding\/profile$/);
+  // The first hit of the profile wizard in a fresh dev server compiles it on demand, which
+  // can take longer than the default 5s on this machine (measured 3.7s on a warm-ish run).
+  await expect(page).toHaveURL(/\/onboarding\/profile$/, { timeout: 15_000 });
 
   // Basics
   await page.getByLabel("이름 (닉네임 가능)").fill(options.firstName ?? "테스트유저");

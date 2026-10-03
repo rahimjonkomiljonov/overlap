@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import { signIn, signInAndOnboard } from "./helpers/auth";
 import { uniqueTestEmail } from "./helpers/dev-outbox";
 import { countAuditLogRows, promoteToRole, Role } from "./helpers/db";
+import { waitForHydration } from "./helpers/hydration";
 
 test.use({ locale: "ko-KR" });
 
@@ -33,6 +34,7 @@ test.describe("verification (S08)", () => {
     const userPage = await userContext.newPage();
     await signInAndOnboard(userPage, { emailPrefix: "verify-user", firstName });
     await userPage.goto("/verify");
+    await waitForHydration(userPage, 'input[type="file"][name="selfie"]');
     await userPage
       .locator('input[type="file"][name="selfie"]')
       .setInputFiles("e2e/fixtures/photo-with-exif.jpg");
@@ -73,6 +75,7 @@ test.describe("verification (S08)", () => {
     const userPage = await userContext.newPage();
     await signInAndOnboard(userPage, { emailPrefix: "verify-reject-user", firstName });
     await userPage.goto("/verify");
+    await waitForHydration(userPage, 'input[type="file"][name="selfie"]');
     await userPage
       .locator('input[type="file"][name="selfie"]')
       .setInputFiles("e2e/fixtures/photo-with-exif.jpg");
