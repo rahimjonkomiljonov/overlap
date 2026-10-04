@@ -22,6 +22,7 @@
     "db:studio": "prisma studio",
     "db:seed": "prisma db seed",
     "db:create-campus": "tsx scripts/create-campus.ts",
+    "db:check-readiness": "tsx scripts/check-readiness.ts",
     "db:import-reference": "tsx scripts/import-reference.ts",
     "db:promote-role": "tsx scripts/promote-role.ts",
     "db:purge-selfies": "tsx scripts/purge-selfies.ts",

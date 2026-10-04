@@ -569,7 +569,7 @@
         "vercel": {
           "name": "Vercel",
           "sees": "Requests made while using the Service",
-          "location": "Seoul function region (to be confirmed) — not yet active"
+          "location": "Seoul function region (icn1)"
         },
         "resend": {
           "name": "Resend",

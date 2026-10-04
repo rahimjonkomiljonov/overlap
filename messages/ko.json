@@ -569,7 +569,7 @@
         "vercel": {
           "name": "Vercel",
           "sees": "서비스 이용 중 발생하는 요청",
-          "location": "서울 함수 리전(확정 예정) — 아직 미사용"
+          "location": "서울 함수 리전(icn1)"
         },
         "resend": {
           "name": "Resend",

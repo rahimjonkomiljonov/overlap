@@ -13,9 +13,12 @@ relying on it for anything real. The campus itself must exist first:
 npm run db:create-campus -- --name "Gachon University Global Campus" --domain gachon.ac.kr
 ```
 
-Import a directory of CSVs (and an optional `safety-contacts.json`) for one campus:
+`shared/` holds the campus-independent lists (interest taxonomy, prompt library). Every
+database needs them once, whatever its campus. Import `shared/` first, then a campus
+folder:
 
 ```sh
+npm run db:import-reference -- --dir reference-data/shared --domain test.ac.kr
 npm run db:import-reference -- --dir reference-data/sample --domain test.ac.kr
 ```
 
