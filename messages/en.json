@@ -129,7 +129,9 @@
     "matchingCta": "Adjust what matters to me",
     "notificationsTitle": "Notifications",
     "ambassadorTitle": "Ambassador",
-    "ambassadorCta": "Open the ambassador dashboard"
+    "ambassadorCta": "Open the ambassador dashboard",
+    "shareTitle": "Share cards",
+    "shareCta": "Make a card for my classes and clubs"
   },
   "States": {
     "loading": "Loading",
@@ -1254,5 +1256,23 @@
     "sharesHidden": "Too few people yet to show gender shares.",
     "gatePasses": "The gate is met. Dating opens once the team confirms.",
     "gateNotYet": "Once the gate is met, Dating opens after the team confirms."
+  },
+  "Share": {
+    "title": "Share cards",
+    "description": "Make a card showing how many people in your class or club use Overlap. No names, only a rough count, and no card at all under {min} people.",
+    "emptyTitle": "No classes or clubs on your profile yet",
+    "emptyBody": "Add classes or clubs to your profile to make a card here.",
+    "kind": {
+      "course": "Class",
+      "club": "Club"
+    },
+    "tooFew": "Fewer than {min} people yet, so there's no card.",
+    "headline": {
+      "course": "{count}+ people in {label} are on Overlap",
+      "club": "{count}+ people in {label} are on Overlap"
+    },
+    "footer": "Meet through shared classes, clubs and free time",
+    "save": "Save image",
+    "share": "Share"
   }
 }

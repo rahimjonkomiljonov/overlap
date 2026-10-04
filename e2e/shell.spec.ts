@@ -6,7 +6,7 @@ test.use({ locale: "ko-KR" });
 
 const shellRoutes = ["/picks", "/waves", "/matches", "/me"];
 /** Signed-in screens outside the four tabs that still need to fit a 360px phone. */
-const extraSignedInRoutes = ["/me/matching", "/pockets", "/events"];
+const extraSignedInRoutes = ["/me/matching", "/pockets", "/events", "/share"];
 const publicRoutes = ["/", "/en", "/dev/ui", "/waitlist", "/does-not-exist"];
 
 test.describe("app shell", () => {

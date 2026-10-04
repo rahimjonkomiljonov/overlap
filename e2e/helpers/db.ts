@@ -448,3 +448,50 @@ export async function markJoinedWithCode(email: string, code: string): Promise<v
   );
   await pool.query('UPDATE invite_codes SET "useCount" = "useCount" + 1 WHERE code = $1', [code]);
 }
+
+/**
+ * J5: puts `viewerEmail` in a random course on their own campus together with `others`
+ * freshly created, finished, verified classmates. Returns the course title and the
+ * classmates' emails (delete them afterwards).
+ */
+export async function seedCourseClassmates(
+  viewerEmail: string,
+  others: number,
+): Promise<{ title: string; emails: string[] }> {
+  const viewer = await pool.query(
+    'SELECT u."campusId", p.id AS "profileId" FROM users u JOIN profiles p ON p."userId" = u.id WHERE u.email = $1',
+    [viewerEmail.toLowerCase()],
+  );
+  const { campusId, profileId } = viewer.rows[0] as { campusId: string; profileId: string };
+  const course = await pool.query(
+    'SELECT id, title FROM courses WHERE "campusId" = $1 ORDER BY random() LIMIT 1',
+    [campusId],
+  );
+  const { id: courseId, title } = course.rows[0] as { id: string; title: string };
+  await pool.query(
+    'INSERT INTO profile_courses (id, "profileId", "courseId") VALUES ($1, $2, $3) ON CONFLICT ("profileId", "courseId") DO NOTHING',
+    [randomUUID(), profileId, courseId],
+  );
+
+  const emails: string[] = [];
+  for (let i = 0; i < others; i++) {
+    const email = `share-classmate-${Date.now()}-${i}@test.ac.kr`;
+    const userId = randomUUID();
+    const otherProfileId = randomUUID();
+    await pool.query(
+      `INSERT INTO users (id, name, email, "campusId", "verifiedAt", "updatedAt") VALUES ($1, $2, $3, $4, now(), now())`,
+      [userId, `classmate${i}`, email, campusId],
+    );
+    await pool.query(
+      `INSERT INTO profiles (id, "userId", "firstName", "completedAt", "updatedAt") VALUES ($1, $2, $3, now(), now())`,
+      [otherProfileId, userId, `classmate${i}`],
+    );
+    await pool.query('INSERT INTO profile_courses (id, "profileId", "courseId") VALUES ($1, $2, $3)', [
+      randomUUID(),
+      otherProfileId,
+      courseId,
+    ]);
+    emails.push(email);
+  }
+  return { title, emails };
+}

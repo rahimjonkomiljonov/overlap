@@ -129,7 +129,9 @@
     "matchingCta": "나에게 중요한 것 조정하기",
     "notificationsTitle": "알림",
     "ambassadorTitle": "앰배서더",
-    "ambassadorCta": "앰배서더 대시보드 열기"
+    "ambassadorCta": "앰배서더 대시보드 열기",
+    "shareTitle": "공유 카드",
+    "shareCta": "내 수업·동아리 카드 만들기"
   },
   "States": {
     "loading": "불러오는 중",
@@ -1254,5 +1256,23 @@
     "sharesHidden": "인원이 적어서 성별 비율은 아직 보여 드리지 않아요.",
     "gatePasses": "조건을 채웠어요. 운영팀이 확인한 뒤 데이팅이 열려요.",
     "gateNotYet": "조건을 채우면 운영팀이 확인한 뒤 데이팅이 열려요."
+  },
+  "Share": {
+    "title": "공유 카드",
+    "description": "내 수업이나 동아리에 Overlap을 쓰는 사람이 몇 명인지 카드로 만들어 공유해요. 이름은 들어가지 않고, 숫자는 대략으로만 보여 주며, {min}명 미만이면 카드를 만들지 않아요.",
+    "emptyTitle": "아직 등록한 수업이나 동아리가 없어요",
+    "emptyBody": "프로필에 수업이나 동아리를 추가하면 여기서 카드를 만들 수 있어요.",
+    "kind": {
+      "course": "수업",
+      "club": "동아리"
+    },
+    "tooFew": "아직 {min}명이 안 돼서 카드를 만들 수 없어요.",
+    "headline": {
+      "course": "{label} 수업에서 {count}명 이상이 Overlap을 쓰고 있어요",
+      "club": "{label}에서 {count}명 이상이 Overlap을 쓰고 있어요"
+    },
+    "footer": "같은 수업, 같은 동아리, 같은 빈 시간으로 만나요",
+    "save": "이미지 저장",
+    "share": "공유하기"
   }
 }

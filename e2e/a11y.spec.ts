@@ -283,7 +283,7 @@ for (const colorScheme of ["light", "dark"] as const) {
     });
 
     // Month-2 backlog screens: pick preferences (B11), Campus Pockets (C7) and Events.
-    for (const route of ["/me/matching", "/pockets", "/events"]) {
+    for (const route of ["/me/matching", "/pockets", "/events", "/share"]) {
       test(`${route} (signed in, Month-2) has no WCAG A/AA violations`, async ({ page }) => {
         await signInAndOnboard(page, { emailPrefix: `a11y${route.replaceAll("/", "-")}` });
         await gotoHydrated(page, route);
