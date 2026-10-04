@@ -86,8 +86,16 @@ export async function deleteTestUser(email: string): Promise<void> {
  * piling them all onto one.
  */
 export async function shareCourseAndClub(emailA: string, emailB: string): Promise<void> {
-  const courseRow = await pool.query("SELECT id FROM courses ORDER BY random() LIMIT 1");
-  const clubRow = await pool.query("SELECT id FROM clubs ORDER BY random() LIMIT 1");
+  // Scoped to A's campus: another campus's rows (e.g. Gachon's) never count as shared.
+  const campusOfA = 'SELECT "campusId" FROM users WHERE email = $1';
+  const courseRow = await pool.query(
+    `SELECT id FROM courses WHERE "campusId" = (${campusOfA}) ORDER BY random() LIMIT 1`,
+    [emailA.toLowerCase()],
+  );
+  const clubRow = await pool.query(
+    `SELECT id FROM clubs WHERE "campusId" = (${campusOfA}) ORDER BY random() LIMIT 1`,
+    [emailA.toLowerCase()],
+  );
   const courseId = courseRow.rows[0]?.id as string | undefined;
   const clubId = clubRow.rows[0]?.id as string | undefined;
   if (!courseId || !clubId) {
@@ -355,4 +363,17 @@ export async function deleteTestCohort(cohortId: string): Promise<void> {
   await pool.query('UPDATE users SET "cohortId" = NULL WHERE "cohortId" = $1', [cohortId]);
   await pool.query('DELETE FROM invite_codes WHERE "cohortId" = $1', [cohortId]);
   await pool.query("DELETE FROM cohorts WHERE id = $1", [cohortId]);
+}
+
+/**
+ * Fast-follow #4 events: put an event in its 48h connect window (it ended an hour ago).
+ * Times are computed in SQL like the other helpers here: these are timestamp-without-
+ * time-zone columns, and passing a JS Date would store this machine's local time (KST),
+ * nine hours off from the UTC the app writes.
+ */
+export async function endEventAnHourAgo(eventId: string): Promise<void> {
+  await pool.query(
+    `UPDATE events SET "startsAt" = now() - interval '3 hours', "endsAt" = now() - interval '1 hour' WHERE id = $1`,
+    [eventId],
+  );
 }

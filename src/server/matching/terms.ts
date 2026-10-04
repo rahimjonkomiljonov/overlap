@@ -100,7 +100,7 @@ function jaccard<T>(a: readonly T[], b: readonly T[]): number {
  * vs. the same call with `a`/`b` swapped could disagree, breaking this module's whole
  * symmetry guarantee.
  */
-function intersectDeduped<T>(a: readonly T[], b: readonly T[]): T[] {
+export function intersectDeduped<T>(a: readonly T[], b: readonly T[]): T[] {
   const setB = new Set(b);
   return [...new Set(a)].filter((x) => setB.has(x));
 }

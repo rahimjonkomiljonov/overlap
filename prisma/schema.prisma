@@ -34,6 +34,7 @@ model Campus {
   clubs        Club[]
   spots        Spot[]
   idfStats     IdfStat[]
+  events       Event[]
 
   @@map("campuses")
 }
@@ -173,6 +174,10 @@ model User {
   meetupFeedbackEntries     MeetupFeedbackEntry[]
   notifications             Notification[]
   dataRequests              DataRequest[]
+  eventsOrganized           Event[]               @relation("EventOrganizer")
+  eventRsvps                EventRsvp[]
+  eventConnectsMade         EventConnect[]        @relation("EventConnectFrom")
+  eventConnectsReceived     EventConnect[]        @relation("EventConnectTo")
 
   @@index([campusId])
   @@index([cohortId])
@@ -492,6 +497,7 @@ model Spot {
   updatedAt DateTime      @updatedAt
   optedIn   ProfileSpot[]
   meetProposals MeetProposal[]
+  events        Event[]
 
   @@unique([campusId, name])
   @@index([searchText(ops: raw("gin_trgm_ops"))], type: Gin)
@@ -617,6 +623,11 @@ model Profile {
   /// it filters status != ACTIVE). Distinct from pausing (`User.status = PAUSED`), which
   /// also stops the user themselves from receiving new picks.
   incognito Boolean @default(false)
+
+  /// C7 Campus Pockets opt-in: when true, people in the same course or club (with a
+  /// compatible Friends/Study/Open intent) can see this profile in /pockets. Off by
+  /// default; also required to browse pockets yourself (src/server/pockets/queries.ts).
+  pocketsVisible Boolean @default(false)
 
   /// Furthest wizard step reached, so /onboarding/profile can resume here (B1: "saves
   /// progress"). A UI resume point only — completion is `completedAt`, not this.
@@ -1372,4 +1383,64 @@ model DataRequest {
 
   @@index([userId])
   @@map("data_requests")
+}
+
+// --- Fast-follow #4: events and mixers (REQUIREMENTS F1-F3) ---
+
+/// F1: an event from a verified organizer (ambassador or above), always held at one of
+/// the campus's public safe spots.
+model Event {
+  id          String    @id @default(uuid())
+  campusId    String
+  campus      Campus    @relation(fields: [campusId], references: [id], onDelete: Cascade)
+  organizerId String
+  organizer   User      @relation("EventOrganizer", fields: [organizerId], references: [id], onDelete: Cascade)
+  spotId      String
+  spot        Spot      @relation(fields: [spotId], references: [id])
+  title       String
+  description String
+  startsAt    DateTime
+  endsAt      DateTime
+  capacity    Int?
+  cancelledAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  rsvps    EventRsvp[]
+  connects EventConnect[]
+
+  @@index([campusId, startsAt])
+  @@map("events")
+}
+
+/// F1 RSVP. `showInGuestList` is the separate F2 opt-in: RSVPing alone never makes
+/// someone visible in "who's going".
+model EventRsvp {
+  id              String   @id @default(uuid())
+  eventId         String
+  event           Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  showInGuestList Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@unique([eventId, userId])
+  @@index([userId])
+  @@map("event_rsvps")
+}
+
+/// F3: a one-way "I met you" pick in the 48-hour window after an event. A mutual pair
+/// becomes a Match with no wave needed.
+model EventConnect {
+  id         String   @id @default(uuid())
+  eventId    String
+  event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  fromUserId String
+  fromUser   User     @relation("EventConnectFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUserId   String
+  toUser     User     @relation("EventConnectTo", fields: [toUserId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([eventId, fromUserId, toUserId])
+  @@index([toUserId])
+  @@map("event_connects")
 }

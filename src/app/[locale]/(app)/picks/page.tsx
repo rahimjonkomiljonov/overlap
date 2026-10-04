@@ -18,16 +18,29 @@ export default async function PicksPage({ params }: PageProps<"/[locale]/picks">
   // The (app) layout already redirects signed-out/not-yet-onboarded visitors, so an
   // actor with a campus always exists here.
   const actor = await getActor();
-  const intentPicks = actor ? await getPicksForActor(prisma, { userId: actor.userId, campusId: actor.campusId }, locale) : [];
+  const intentPicks = actor
+    ? await getPicksForActor(prisma, { userId: actor.userId, campusId: actor.campusId }, locale)
+    : [];
 
   return (
     <>
       <PageHeader
         title={t("title")}
         action={
-          <Link href="/how-matching-works" className={buttonVariants({ variant: "ghost", size: "sm" })}>
-            {t("howMatchingWorksLink")}
-          </Link>
+          <div className="flex min-w-0 flex-wrap justify-end gap-1">
+            <Link href="/events" className={buttonVariants({ variant: "outline", size: "sm" })}>
+              {t("eventsLink")}
+            </Link>
+            <Link href="/pockets" className={buttonVariants({ variant: "outline", size: "sm" })}>
+              {t("pocketsLink")}
+            </Link>
+            <Link
+              href="/how-matching-works"
+              className={buttonVariants({ variant: "ghost", size: "sm" })}
+            >
+              {t("howMatchingWorksLink")}
+            </Link>
+          </div>
         }
       />
       {intentPicks.length === 0 ? (

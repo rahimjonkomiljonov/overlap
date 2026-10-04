@@ -40,6 +40,7 @@ export async function buildUserDataExport(db: ExportDb, userId: string) {
           valuesAnswers: true,
           interestsFreeText: true,
           incognito: true,
+          pocketsVisible: true,
           completedAt: true,
           createdAt: true,
           courses: { select: { createdAt: true, course: { select: { code: true, term: true } } } },

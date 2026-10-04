@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -43,10 +43,12 @@ export function LoginForm() {
   }
   const showRequestStep = manualStep === "request" || requestState.status !== "sent";
 
-  if (verifyState.status === "verified") {
-    router.push("/onboarding");
-    return null;
-  }
+  // Navigate in an effect: calling router.push during render updates Router mid-render.
+  const verified = verifyState.status === "verified";
+  useEffect(() => {
+    if (verified) router.push("/onboarding");
+  }, [verified, router]);
+  if (verified) return null;
 
   const requestError = requestState.status === "error" ? requestState.code : undefined;
   const verifyError = verifyState.status === "error" ? verifyState.code : undefined;

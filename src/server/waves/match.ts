@@ -23,9 +23,34 @@ export async function formMatch(
   otherWaveId: string,
 ): Promise<void> {
   await db.wave.update({ where: { id: otherWaveId }, data: { status: "MATCHED" } });
+  await createMatchWithConversation(db, userAId, userBId);
+}
+
+export type CreateMatchDb = Pick<PrismaClient, "match" | "conversation" | "notification">;
+
+/**
+ * The shared tail of every way two people can match (mutual wave, mutual event connect):
+ * one Match row for the ordered pair, its Conversation, and a MATCH notification for
+ * both. The caller must have ruled out an existing Match for the pair first; the
+ * (userAId, userBId) unique key makes a second one fail rather than duplicate.
+ */
+export async function createMatchWithConversation(
+  db: CreateMatchDb,
+  userAId: string,
+  userBId: string,
+): Promise<string> {
   const [userA, userB] = orderedPair(userAId, userBId);
   const match = await db.match.create({ data: { userAId: userA, userBId: userB } });
   await db.conversation.create({ data: { matchId: match.id } });
-  await enqueueNotification(db, { userId: userA, type: "MATCH", dedupeKey: `match:${match.id}:${userA}` });
-  await enqueueNotification(db, { userId: userB, type: "MATCH", dedupeKey: `match:${match.id}:${userB}` });
+  await enqueueNotification(db, {
+    userId: userA,
+    type: "MATCH",
+    dedupeKey: `match:${match.id}:${userA}`,
+  });
+  await enqueueNotification(db, {
+    userId: userB,
+    type: "MATCH",
+    dedupeKey: `match:${match.id}:${userB}`,
+  });
+  return match.id;
 }
