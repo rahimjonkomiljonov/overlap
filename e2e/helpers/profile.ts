@@ -60,7 +60,10 @@ export async function completeProfileWizard(
   // Playwright's other locator actions) does not auto-wait for the DOM to settle after
   // the previous "다음" click's server round trip — without this, it can read 0
   // fieldsets from the still-rendering Prompts step and silently skip every check.
-  await expect(page.getByRole("heading", { name: "가치관을 알려줘" })).toBeVisible();
+  // The prompts save is a server round trip that can exceed 5s under parallel load.
+  await expect(page.getByRole("heading", { name: "가치관을 알려줘" })).toBeVisible({
+    timeout: 15_000,
+  });
   const quizFieldsets = page.locator("fieldset");
   const quizCount = await quizFieldsets.count();
   for (let i = 0; i < quizCount; i++) {

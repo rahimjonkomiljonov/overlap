@@ -9,7 +9,7 @@ import {
   shareCourseAndClub,
   verifyUser,
 } from "./helpers/db";
-import { gotoHydrated } from "./helpers/hydration";
+import { clickHydrated, gotoHydrated } from "./helpers/hydration";
 
 test.use({ locale: "ko-KR" });
 
@@ -140,7 +140,7 @@ test.describe("chat (S15)", () => {
       ).toBeVisible();
       await expect(page.getByLabel("메시지를 입력하세요")).toHaveCount(0);
 
-      await page.getByRole("button", { name: "다시 시작하기" }).click();
+      await clickHydrated(page.getByRole("button", { name: "다시 시작하기" }));
       await expect(page.getByLabel("메시지를 입력하세요")).toBeVisible();
 
       const messageText = `다시 안녕하세요 ${Date.now()}`;
