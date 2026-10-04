@@ -76,6 +76,16 @@ export default async function MePage({ params }: PageProps<"/[locale]/me">) {
       </Card>
       <Card className="mt-4">
         <CardHeader>
+          <CardTitle>{t("matchingTitle")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Link href="/me/matching" className={buttonVariants({ variant: "outline" })}>
+            {t("matchingCta")}
+          </Link>
+        </CardContent>
+      </Card>
+      <Card className="mt-4">
+        <CardHeader>
           <CardTitle>{t("safetyTitle")}</CardTitle>
         </CardHeader>
         <CardContent>

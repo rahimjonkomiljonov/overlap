@@ -15,11 +15,8 @@ export interface MatchWeights {
  * unweighted average of the other three, since "open to anything" is the one intent that
  * shouldn't presume any particular kind of overlap matters more.
  *
- * REQUIREMENTS.md B11 also has each user's 3 "what matters" sliders scale wC/wI/wT by
- * 0.5×-1.5× and renormalize (§5.2's "Personalization") — no such field exists on
- * `Profile` (S07 never built that onboarding step), so every user currently gets the
- * plain vector below unscaled. Flagged in docs/BUILD_PLAN.md's S10 log as a real P0 gap,
- * not silently dropped.
+ * Each user's B11 "what matters" sliders then scale wC/wI/wT by 0.5×-1.5× and
+ * renormalize (§5.2's "Personalization", src/server/matching/personalize.ts).
  */
 export const INTENT_WEIGHTS: Record<IntentMode, MatchWeights> = {
   [IntentMode.STUDY]: { wC: 0.45, wK: 0.1, wT: 0.3, wI: 0.1, wV: 0.05 },

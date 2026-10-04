@@ -20,6 +20,8 @@ export interface PickCardData {
   photos: { id: string; url: string }[];
   prompts: { id: string; textKo: string; textEn: string; answer: string }[];
   reasons: ResolvedReason[];
+  /** C8: the viewer passed this person once before for this intent; this is their one return. */
+  secondChance: boolean;
 }
 
 export interface IntentPicks {
@@ -94,6 +96,31 @@ export async function getPicksForActor(
   ]);
   const hidden = new Set(hideRules.map((h) => h.hiddenUserId));
 
+  // C8: anyone the viewer passed in an earlier batch for the same intent is back on a
+  // second chance (candidates.ts never brings someone back after a second pass).
+  const shownIds = batches.flatMap((b) => b.items.map((i) => i.candidateUserId));
+  const earlierPasses =
+    shownIds.length === 0
+      ? []
+      : await db.dailyBatch.findMany({
+          where: {
+            userId: actor.userId,
+            intent: { in: profile.intents },
+            batchDate: { lt: batchDate },
+            items: { some: { decision: "PASSED", candidateUserId: { in: shownIds } } },
+          },
+          select: {
+            intent: true,
+            items: {
+              where: { decision: "PASSED", candidateUserId: { in: shownIds } },
+              select: { candidateUserId: true },
+            },
+          },
+        });
+  const passedBefore = new Set(
+    earlierPasses.flatMap((b) => b.items.map((i) => `${b.intent}:${i.candidateUserId}`)),
+  );
+
   const results: IntentPicks[] = [];
   for (const batch of batches) {
     const items: PickCardData[] = [];
@@ -118,6 +145,7 @@ export async function getPicksForActor(
           answer: a.answer,
         })),
         reasons: resolveReasons(item.reasons as unknown as Explanation[], labelMaps, locale),
+        secondChance: passedBefore.has(`${batch.intent}:${item.candidateUserId}`),
       });
     }
     results.push({ intent: batch.intent, items });

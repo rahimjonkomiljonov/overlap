@@ -377,3 +377,27 @@ export async function endEventAnHourAgo(eventId: string): Promise<void> {
     [eventId],
   );
 }
+
+/**
+ * C8: records that `viewerEmail` passed `candidateEmail` in a batch `daysAgo` days back,
+ * for the same intent as the viewer's latest batch. Pair with `seedPickCandidate` to put
+ * the candidate back in today's batch as their second chance.
+ */
+export async function seedEarlierPass(viewerEmail: string, candidateEmail: string, daysAgo = 40): Promise<void> {
+  const latest = await pool.query(
+    `SELECT "userId", intent FROM daily_batches WHERE "userId" = (SELECT id FROM users WHERE email = $1) ORDER BY "createdAt" DESC LIMIT 1`,
+    [viewerEmail.toLowerCase()],
+  );
+  const row = latest.rows[0] as { userId: string; intent: string } | undefined;
+  if (!row) throw new Error(`seedEarlierPass: no daily batch found for ${viewerEmail} — visit /picks first`);
+  const batchId = randomUUID();
+  await pool.query(
+    `INSERT INTO daily_batches (id, "userId", intent, "batchDate") VALUES ($1, $2, $3, (CURRENT_DATE - $4::int))`,
+    [batchId, row.userId, row.intent, daysAgo],
+  );
+  await pool.query(
+    `INSERT INTO batch_items (id, "dailyBatchId", "candidateUserId", score, reasons, rank, decision, "decidedAt")
+     VALUES ($1, $2, (SELECT id FROM users WHERE email = $3), 50, '[]'::jsonb, 1, 'PASSED', now())`,
+    [randomUUID(), batchId, candidateEmail.toLowerCase()],
+  );
+}

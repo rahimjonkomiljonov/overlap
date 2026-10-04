@@ -5,6 +5,8 @@ import { gotoHydrated } from "./helpers/hydration";
 test.use({ locale: "ko-KR" });
 
 const shellRoutes = ["/picks", "/waves", "/matches", "/me"];
+/** Signed-in screens outside the four tabs that still need to fit a 360px phone. */
+const extraSignedInRoutes = ["/me/matching", "/pockets", "/events"];
 const publicRoutes = ["/", "/en", "/dev/ui", "/waitlist", "/does-not-exist"];
 
 test.describe("app shell", () => {
@@ -80,7 +82,7 @@ test.describe("responsive", () => {
     });
   }
 
-  for (const route of shellRoutes) {
+  for (const route of [...shellRoutes, ...extraSignedInRoutes]) {
     test(`${route} (signed in) has no horizontal scroll at 360px`, async ({ page }) => {
       await signInAndOnboard(page, { emailPrefix: "responsive" });
       await gotoHydrated(page, route);

@@ -60,7 +60,8 @@
       "BLOCKED": "이 상대에게는 웨이브를 보낼 수 없어요.",
       "DAILY_CAP_REACHED": "오늘 보낼 수 있는 웨이브를 모두 사용했어요 (하루 8개).",
       "RATE_LIMITED": "요청이 너무 많아요. 잠시 후 다시 시도해 주세요."
-    }
+    },
+    "secondChance": "다시 만나는 추천"
   },
   "Waves": {
     "title": "받은 웨이브",
@@ -123,7 +124,9 @@
     "safetyTitle": "세이프티",
     "safetyCta": "세이프티 설정으로 이동",
     "privacyTitle": "개인정보",
-    "privacyCta": "개인정보 설정으로 이동"
+    "privacyCta": "개인정보 설정으로 이동",
+    "matchingTitle": "추천 기준",
+    "matchingCta": "나에게 중요한 것 조정하기"
   },
   "States": {
     "loading": "불러오는 중",
@@ -1130,6 +1133,31 @@
       "NOT_FOUND": "이 포켓에서 더 이상 볼 수 없는 사람이에요.",
       "BLOCKED": "이 사람에게는 인사할 수 없어요.",
       "DAILY_CAP_REACHED": "오늘 보낼 수 있는 인사를 모두 보냈어요. 내일 다시 해 주세요."
+    }
+  },
+  "MatchingPreferences": {
+    "title": "나에게 중요한 것",
+    "description": "추천을 고를 때 무엇을 더 중요하게 볼지 정해요.",
+    "classesLabel": "같은 수업",
+    "classesHint": "같은 강의를 듣는 사람을 얼마나 중요하게 볼까요?",
+    "interestsLabel": "같은 관심사",
+    "interestsHint": "관심사가 겹치는 사람을 얼마나 중요하게 볼까요?",
+    "freeTimeLabel": "같은 빈 시간",
+    "freeTimeHint": "공강 시간이 겹치는 사람을 얼마나 중요하게 볼까요?",
+    "stop_0_5": "훨씬 덜 중요",
+    "stop_0_75": "조금 덜 중요",
+    "stop_1": "보통",
+    "stop_1_25": "조금 더 중요",
+    "stop_1_5": "훨씬 더 중요",
+    "save": "저장",
+    "reset": "기본값으로",
+    "saved": "저장했어요. 내일 추천부터 반영돼요.",
+    "appliesFromTomorrow": "오늘 추천은 그대로이고, 다음 추천부터 반영돼요. 상대방에게도 잘 맞는 사람이 우선이에요.",
+    "howItWorks": "추천 방식 보기",
+    "errors": {
+      "UNAUTHENTICATED": "다시 로그인해 주세요.",
+      "INVALID_INPUT": "값을 다시 확인해 주세요.",
+      "NO_PROFILE": "프로필을 먼저 완성해 주세요."
     }
   }
 }

@@ -18,6 +18,9 @@ interface FakeUserRow {
     interestedIn: string | null;
     freeTimeSlots: number[];
     valuesAnswers: number[];
+    weightClasses: number;
+    weightInterests: number;
+    weightFreeTime: number;
     courses: { courseId: string; sectionId: string | null }[];
     clubs: { clubId: string }[];
     spots: { spotId: string }[];
@@ -40,6 +43,9 @@ function baseUser(overrides: Partial<FakeUserRow> & { id: string }): FakeUserRow
       interestedIn: null,
       freeTimeSlots: [],
       valuesAnswers: [3, 3, 3, 3, 3, 3, 3, 3],
+      weightClasses: 1,
+      weightInterests: 1,
+      weightFreeTime: 1,
       courses: [],
       clubs: [],
       spots: [],
@@ -53,7 +59,7 @@ function fakeDb(
   users: FakeUserRow[],
   blocks: { blockerId: string; blockedId: string }[] = [],
   hideRules: { userId: string; hiddenUserId: string }[] = [],
-  batches: { userId: string; intent: string; batchDate: Date; candidateUserIds: string[] }[] = [],
+  batches: { userId: string; intent: string; batchDate: Date; candidateUserIds: string[]; passedUserIds?: string[] }[] = [],
 ): CandidateDb {
   return {
     user: {
@@ -89,12 +95,24 @@ function fakeDb(
         hideRules.filter((h) => where.userId.in.includes(h.userId)),
     },
     dailyBatch: {
-      findMany: async ({ where }: { where: { userId: { in: string[] }; intent: string; batchDate: { gte: Date } } }) =>
-        batches
+      findMany: async ({
+        where,
+      }: {
+        where: { userId: { in: string[] }; intent: string; batchDate?: { gte: Date }; items?: unknown };
+      }) => {
+        const scoped = batches
           .filter((b) => where.userId.in.includes(b.userId))
-          .filter((b) => b.intent === where.intent)
-          .filter((b) => b.batchDate.getTime() >= where.batchDate.gte.getTime())
-          .map((b) => ({ userId: b.userId, items: b.candidateUserIds.map((id) => ({ candidateUserId: id })) })),
+          .filter((b) => b.intent === where.intent);
+        // The C8 pass-history query: every batch ever, PASSED items only.
+        if (where.items) {
+          return scoped
+            .filter((b) => (b.passedUserIds ?? []).length > 0)
+            .map((b) => ({ userId: b.userId, items: (b.passedUserIds ?? []).map((id) => ({ candidateUserId: id })) }));
+        }
+        return scoped
+          .filter((b) => b.batchDate.getTime() >= where.batchDate!.gte.getTime())
+          .map((b) => ({ userId: b.userId, items: b.candidateUserIds.map((id) => ({ candidateUserId: id })) }));
+      },
     },
   } as unknown as CandidateDb;
 }
@@ -179,5 +197,25 @@ describe("loadCampusMatchPool", () => {
     const pool = await loadCampusMatchPool(fakeDb(users, [], [], batches), "campus-a", IntentMode.FRIENDS, { now: NOW });
     expect(pool.recentlyShown.get("a")?.has("b")).toBe(true);
     expect(pool.recentlyShown.get("a")?.has("c")).toBeFalsy();
+  });
+
+  it("marks a candidate passed twice for this intent as final, across any age of history (C8)", async () => {
+    const users = [baseUser({ id: "a" }), baseUser({ id: "b" }), baseUser({ id: "c" })];
+    const batches = [
+      { userId: "a", intent: IntentMode.FRIENDS, batchDate: new Date("2025-01-01"), candidateUserIds: ["b", "c"], passedUserIds: ["b", "c"] },
+      { userId: "a", intent: IntentMode.FRIENDS, batchDate: new Date("2025-03-01"), candidateUserIds: ["b"], passedUserIds: ["b"] },
+      { userId: "a", intent: IntentMode.STUDY, batchDate: new Date("2025-03-01"), candidateUserIds: ["c"], passedUserIds: ["c"] },
+    ];
+    const pool = await loadCampusMatchPool(fakeDb(users, [], [], batches), "campus-a", IntentMode.FRIENDS, { now: NOW });
+    expect(pool.passedTwice.get("a")?.has("b")).toBe(true);
+    // c was passed once for Friends (the Study pass doesn't count), so c still gets a second chance.
+    expect(pool.passedTwice.get("a")?.has("c")).toBeFalsy();
+    expect(pool.passedTwice.get("b")).toBeUndefined();
+  });
+
+  it("loads each user's own sliders", async () => {
+    const users = [baseUser({ id: "a" })];
+    const pool = await loadCampusMatchPool(fakeDb(users), "campus-a", IntentMode.FRIENDS, { now: NOW });
+    expect(pool.profiles[0].sliders).toEqual({ classes: 1, interests: 1, freeTime: 1 });
   });
 });

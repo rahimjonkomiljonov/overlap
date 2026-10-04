@@ -629,6 +629,12 @@ model Profile {
   /// default; also required to browse pockets yourself (src/server/pockets/queries.ts).
   pocketsVisible Boolean @default(false)
 
+  /// B11 "what matters to me" sliders, 0.5-1.5 each (1 = neutral). They scale this
+  /// user's own wC / wI / wT when scoring others (src/server/matching/personalize.ts).
+  weightClasses   Float @default(1)
+  weightInterests Float @default(1)
+  weightFreeTime  Float @default(1)
+
   /// Furthest wizard step reached, so /onboarding/profile can resume here (B1: "saves
   /// progress"). A UI resume point only — completion is `completedAt`, not this.
   onboardingStep Int @default(0)

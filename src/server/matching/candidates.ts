@@ -1,7 +1,8 @@
-import { Gender, IntentMode, UserStatus } from "@/generated/prisma/enums";
+import { Gender, IntentMode, PickDecision, UserStatus } from "@/generated/prisma/enums";
 import type { PrismaClient } from "@/generated/prisma/client";
 import { isCohortReleaseEnabled } from "@/server/cohorts/release";
 import { decryptField } from "@/server/privacy/encryption";
+import type { WeightSliders } from "./personalize";
 import type { MatchableProfile } from "./terms";
 
 export type CandidateDb = Pick<PrismaClient, "user" | "block" | "hideRule" | "dailyBatch">;
@@ -10,6 +11,8 @@ export type CandidateDb = Pick<PrismaClient, "user" | "block" | "hideRule" | "da
 const ACTIVE_WINDOW_DAYS = 14;
 /** "not shown to this user in the last 30 days" (§5.1). */
 const RECENTLY_SHOWN_WINDOW_DAYS = 30;
+/** C8 "second chance": a passed profile may come back once, so a second pass is final. */
+const MAX_PASSES_BEFORE_FINAL = 2;
 
 export interface LoadedProfile extends MatchableProfile {
   gender: Gender;
@@ -17,6 +20,8 @@ export interface LoadedProfile extends MatchableProfile {
   interestedIn: Gender[] | null;
   /** Backs the newcomer composition slot (S11: joined ≤ 7 days ago, REQUIREMENTS.md §5.3/C6). */
   joinedAt: Date;
+  /** B11: this user's own "what matters" sliders, applied when they are the viewer. */
+  sliders: WeightSliders;
 }
 
 export interface CampusMatchPool {
@@ -28,6 +33,8 @@ export interface CampusMatchPool {
   hiddenBy: ReadonlyMap<string, ReadonlySet<string>>;
   /** `recentlyShown.get(viewerId)` is who viewerId has already seen in a batch for this intent in the last 30 days. */
   recentlyShown: ReadonlyMap<string, ReadonlySet<string>>;
+  /** C8: `passedTwice.get(viewerId)` is who viewerId has passed twice for this intent, ever. Never shown again. */
+  passedTwice: ReadonlyMap<string, ReadonlySet<string>>;
 }
 
 function blockPairKey(a: string, b: string): string {
@@ -79,6 +86,9 @@ export async function loadCampusMatchPool(
           interestedIn: true,
           freeTimeSlots: true,
           valuesAnswers: true,
+          weightClasses: true,
+          weightInterests: true,
+          weightFreeTime: true,
           courses: { select: { courseId: true, sectionId: true } },
           clubs: { select: { clubId: true } },
           spots: { select: { spotId: true } },
@@ -104,14 +114,19 @@ export async function loadCampusMatchPool(
       interestTagIds: u.profile.interests.map((i) => i.interestTagId),
       freeTimeSlots: u.profile.freeTimeSlots,
       valuesAnswers: u.profile.valuesAnswers,
+      sliders: {
+        classes: u.profile.weightClasses,
+        interests: u.profile.weightInterests,
+        freeTime: u.profile.weightFreeTime,
+      },
     }));
 
   const userIds = profiles.map((p) => p.userId);
   if (userIds.length === 0) {
-    return { profiles: [], blockedPairs: new Set(), hiddenBy: new Map(), recentlyShown: new Map() };
+    return { profiles: [], blockedPairs: new Set(), hiddenBy: new Map(), recentlyShown: new Map(), passedTwice: new Map() };
   }
 
-  const [blocks, hideRules, recentItems] = await Promise.all([
+  const [blocks, hideRules, recentItems, pastPasses] = await Promise.all([
     db.block.findMany({
       where: { OR: [{ blockerId: { in: userIds } }, { blockedId: { in: userIds } }] },
       select: { blockerId: true, blockedId: true },
@@ -120,6 +135,10 @@ export async function loadCampusMatchPool(
     db.dailyBatch.findMany({
       where: { userId: { in: userIds }, intent, batchDate: { gte: recentlyShownSince } },
       select: { userId: true, items: { select: { candidateUserId: true } } },
+    }),
+    db.dailyBatch.findMany({
+      where: { userId: { in: userIds }, intent, items: { some: { decision: PickDecision.PASSED } } },
+      select: { userId: true, items: { where: { decision: PickDecision.PASSED }, select: { candidateUserId: true } } },
     }),
   ]);
 
@@ -138,5 +157,17 @@ export async function loadCampusMatchPool(
     for (const item of batch.items) set.add(item.candidateUserId);
   }
 
-  return { profiles, blockedPairs, hiddenBy, recentlyShown };
+  const passCounts = new Map<string, Map<string, number>>();
+  for (const batch of pastPasses) {
+    if (!passCounts.has(batch.userId)) passCounts.set(batch.userId, new Map());
+    const counts = passCounts.get(batch.userId)!;
+    for (const item of batch.items) counts.set(item.candidateUserId, (counts.get(item.candidateUserId) ?? 0) + 1);
+  }
+  const passedTwice = new Map<string, Set<string>>();
+  for (const [viewerId, counts] of passCounts) {
+    const final = [...counts].filter(([, n]) => n >= MAX_PASSES_BEFORE_FINAL).map(([id]) => id);
+    if (final.length > 0) passedTwice.set(viewerId, new Set(final));
+  }
+
+  return { profiles, blockedPairs, hiddenBy, recentlyShown, passedTwice };
 }

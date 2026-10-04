@@ -60,7 +60,8 @@
       "BLOCKED": "You can't wave at this person.",
       "DAILY_CAP_REACHED": "You've used all your waves for today (8/day).",
       "RATE_LIMITED": "Too many requests. Please try again in a bit."
-    }
+    },
+    "secondChance": "Second chance"
   },
   "Waves": {
     "title": "Waves for you",
@@ -123,7 +124,9 @@
     "safetyTitle": "Safety",
     "safetyCta": "Go to safety settings",
     "privacyTitle": "Privacy",
-    "privacyCta": "Go to privacy settings"
+    "privacyCta": "Go to privacy settings",
+    "matchingTitle": "Pick preferences",
+    "matchingCta": "Adjust what matters to me"
   },
   "States": {
     "loading": "Loading",
@@ -1130,6 +1133,31 @@
       "NOT_FOUND": "This person isn't visible in this pocket anymore.",
       "BLOCKED": "You can't wave at this person.",
       "DAILY_CAP_REACHED": "You've used today's waves. Try again tomorrow."
+    }
+  },
+  "MatchingPreferences": {
+    "title": "What matters to me",
+    "description": "Choose what your picks should weigh more.",
+    "classesLabel": "Shared classes",
+    "classesHint": "How much should taking the same course count?",
+    "interestsLabel": "Shared interests",
+    "interestsHint": "How much should overlapping interests count?",
+    "freeTimeLabel": "Shared free time",
+    "freeTimeHint": "How much should matching free periods count?",
+    "stop_0_5": "Much less",
+    "stop_0_75": "A bit less",
+    "stop_1": "Normal",
+    "stop_1_25": "A bit more",
+    "stop_1_5": "Much more",
+    "save": "Save",
+    "reset": "Reset to default",
+    "saved": "Saved. Your picks use this from tomorrow.",
+    "appliesFromTomorrow": "Today's picks stay as they are; this applies from your next picks. People who fit you both well still come first.",
+    "howItWorks": "How matching works",
+    "errors": {
+      "UNAUTHENTICATED": "Please sign in again.",
+      "INVALID_INPUT": "Please check the values and try again.",
+      "NO_PROFILE": "Please finish your profile first."
     }
   }
 }

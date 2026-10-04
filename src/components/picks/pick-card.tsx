@@ -82,7 +82,10 @@ export function PickCard({
       )}
 
       <div className="space-y-1">
-        <p className="text-lg font-medium">{pick.firstName}</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-lg font-medium">{pick.firstName}</p>
+          {pick.secondChance && <Badge variant="secondary">{t("secondChance")}</Badge>}
+        </div>
         <p className="text-sm text-muted-foreground">
           {[pick.major, pick.year ? `${pick.year}` : null].filter(Boolean).join(" · ")}
         </p>

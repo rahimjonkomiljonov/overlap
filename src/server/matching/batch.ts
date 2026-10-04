@@ -2,6 +2,7 @@ import type { IntentMode } from "@/generated/prisma/enums";
 import type { CampusMatchPool, LoadedProfile } from "./candidates";
 import { buildExplanations, type Explanation } from "./explain";
 import { passesGenderFilter } from "./filters";
+import { personalizeWeights } from "./personalize";
 import { reciprocityScore, scoreFromTerms } from "./score";
 import { computeMatchTerms, type IdfLookup } from "./terms";
 import { INTENT_WEIGHTS } from "./weights";
@@ -23,7 +24,9 @@ export interface RankedCandidate {
  * 1 adjacent + 1 newcomer, exposure cap) is S11's job, not this function's.
  */
 export function computeCampusMatches(pool: CampusMatchPool, intent: IntentMode, idf: IdfLookup): Map<string, RankedCandidate[]> {
-  const weights = INTENT_WEIGHTS[intent];
+  const base = INTENT_WEIGHTS[intent];
+  // B11: each viewer scores others with their own slider-scaled weights.
+  const weightsOf = new Map(pool.profiles.map((p) => [p.userId, personalizeWeights(base, p.sliders)]));
   const results = new Map<string, RankedCandidate[]>();
   for (const profile of pool.profiles) {
     results.set(profile.userId, []);
@@ -37,17 +40,18 @@ export function computeCampusMatches(pool: CampusMatchPool, intent: IntentMode, 
       if (pool.blockedPairs.has(blockPairKey(a.userId, b.userId))) continue;
 
       const terms = computeMatchTerms(a, b, idf);
-      // Symmetric today (no personalization exists to make the two directions differ — see score.ts), computed this way so nothing here needs to change once it does.
-      const scoreAtoB = scoreFromTerms(terms, weights);
-      const scoreBtoA = scoreFromTerms(terms, weights);
-      const score = reciprocityScore(scoreAtoB, scoreBtoA);
-      const reasons = buildExplanations(terms, weights);
+      // Terms are symmetric; the weights aren't once sliders differ, so each side
+      // scores the pair with its own weights and the harmonic mean (score.ts) ranks
+      // the pair on how well it fits both people. Reasons follow the viewer's weights.
+      const weightsA = weightsOf.get(a.userId)!;
+      const weightsB = weightsOf.get(b.userId)!;
+      const score = reciprocityScore(scoreFromTerms(terms, weightsA), scoreFromTerms(terms, weightsB));
 
       if (isEligibleDirection(pool, a, b, intent)) {
-        results.get(a.userId)!.push({ candidateUserId: b.userId, score, reasons });
+        results.get(a.userId)!.push({ candidateUserId: b.userId, score, reasons: buildExplanations(terms, weightsA) });
       }
       if (isEligibleDirection(pool, b, a, intent)) {
-        results.get(b.userId)!.push({ candidateUserId: a.userId, score, reasons });
+        results.get(b.userId)!.push({ candidateUserId: a.userId, score, reasons: buildExplanations(terms, weightsB) });
       }
     }
   }
@@ -61,6 +65,7 @@ export function computeCampusMatches(pool: CampusMatchPool, intent: IntentMode, 
 function isEligibleDirection(pool: CampusMatchPool, viewer: LoadedProfile, candidate: LoadedProfile, intent: IntentMode): boolean {
   if (pool.hiddenBy.get(viewer.userId)?.has(candidate.userId)) return false;
   if (pool.recentlyShown.get(viewer.userId)?.has(candidate.userId)) return false;
+  if (pool.passedTwice.get(viewer.userId)?.has(candidate.userId)) return false;
   return passesGenderFilter(intent, viewer, candidate);
 }
 
