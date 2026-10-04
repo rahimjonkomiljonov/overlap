@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState } from "react";
 import { CalendarX } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { EmptyState } from "@/components/states/empty-state";
@@ -9,7 +9,6 @@ import { EmergencyCard } from "@/components/safety/emergency-card";
 import { ReportButton } from "@/components/safety/report-button";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useRouter } from "@/i18n/navigation";
 import {
   cancelMeetup,
   createShareLink,
@@ -20,6 +19,7 @@ import {
   type MeetupActionState,
 } from "@/server/meetup/actions";
 import type { EmergencyContact } from "@/server/safety/emergency";
+import { useRefreshOnSuccess } from "@/hooks/use-refresh-on-success";
 
 export interface ProposalView {
   proposalId: string;
@@ -76,7 +76,12 @@ export function MeetupPlanner({
         <SafetyCard />
         <EmergencyCard contacts={emergencyContacts} />
         {proposal ? (
-          <ProposalCard actorUserId={actorUserId} otherUserId={otherUserId} proposal={proposal} now={now} />
+          <ProposalCard
+            actorUserId={actorUserId}
+            otherUserId={otherUserId}
+            proposal={proposal}
+            now={now}
+          />
         ) : (
           <OptionsPicker matchId={matchId} options={options} />
         )}
@@ -104,17 +109,14 @@ function SafetyCard() {
 function OptionsPicker({ matchId, options }: { matchId: string; options: OptionView[] }) {
   const t = useTranslations("Meetup");
   const locale = useLocale();
-  const router = useRouter();
   const [state, action] = useActionState(proposeMeetup, idleAction);
 
-  const [lastState, setLastState] = useState(state);
-  if (state !== lastState) {
-    setLastState(state);
-    if (state.status === "success") router.refresh();
-  }
+  useRefreshOnSuccess(state);
 
   if (options.length === 0) {
-    return <EmptyState icon={CalendarX} title={t("noOptionsTitle")} description={t("noOptionsBody")} />;
+    return (
+      <EmptyState icon={CalendarX} title={t("noOptionsTitle")} description={t("noOptionsBody")} />
+    );
   }
 
   // hourCycle fixed explicitly: the day-period marker ("오전"/"AM") otherwise depends on
@@ -149,7 +151,7 @@ function OptionsPicker({ matchId, options }: { matchId: string; options: OptionV
             <div>
               <p className="font-medium">{formatter.format(new Date(opt.start))}</p>
               <p className="text-sm text-muted-foreground">
-                {locale === "en" ? opt.spotNameEn ?? opt.spotName : opt.spotName}
+                {locale === "en" ? (opt.spotNameEn ?? opt.spotName) : opt.spotName}
               </p>
             </div>
             <Button type="submit">{t("propose")}</Button>
@@ -178,28 +180,15 @@ function ProposalCard({
 }) {
   const t = useTranslations("Meetup");
   const locale = useLocale();
-  const router = useRouter();
 
   const [respondState, respondAction] = useActionState(respondToMeetup, idleAction);
   const [cancelState, cancelAction] = useActionState(cancelMeetup, idleAction);
   const [shareState, shareAction] = useActionState(createShareLink, idleShare);
   const [feedbackState, feedbackAction] = useActionState(submitMeetupFeedback, idleAction);
 
-  const [lastRespond, setLastRespond] = useState(respondState);
-  if (respondState !== lastRespond) {
-    setLastRespond(respondState);
-    if (respondState.status === "success") router.refresh();
-  }
-  const [lastCancel, setLastCancel] = useState(cancelState);
-  if (cancelState !== lastCancel) {
-    setLastCancel(cancelState);
-    if (cancelState.status === "success") router.refresh();
-  }
-  const [lastFeedback, setLastFeedback] = useState(feedbackState);
-  if (feedbackState !== lastFeedback) {
-    setLastFeedback(feedbackState);
-    if (feedbackState.status === "success") router.refresh();
-  }
+  useRefreshOnSuccess(respondState);
+  useRefreshOnSuccess(cancelState);
+  useRefreshOnSuccess(feedbackState);
 
   const formatter = new Intl.DateTimeFormat(locale === "en" ? "en-US" : "ko-KR", {
     dateStyle: "full",
@@ -217,7 +206,7 @@ function ProposalCard({
       <CardContent className="space-y-2">
         <p className="font-medium">{formatter.format(new Date(proposal.scheduledStart))}</p>
         <p className="text-sm text-muted-foreground">
-          {locale === "en" ? proposal.spotNameEn ?? proposal.spotName : proposal.spotName}
+          {locale === "en" ? (proposal.spotNameEn ?? proposal.spotName) : proposal.spotName}
         </p>
         <p className="text-sm">{t("withWhom", { name: proposal.otherFirstName ?? "" })}</p>
       </CardContent>
@@ -284,7 +273,10 @@ function ProposalCard({
             </div>
             {shareState.status === "success" && (
               <p className="text-sm break-all text-muted-foreground">
-                {t("shareLinkReady")}: {typeof window !== "undefined" ? `${window.location.origin}${shareState.path}` : shareState.path}
+                {t("shareLinkReady")}:{" "}
+                {typeof window !== "undefined"
+                  ? `${window.location.origin}${shareState.path}`
+                  : shareState.path}
               </p>
             )}
             {shareState.status === "error" && (
@@ -324,9 +316,11 @@ function ProposalCard({
                 <ReportButton targetUserId={otherUserId} />
               </div>
             )}
-            {isPast && proposal.myFeedbackResponse !== null && proposal.myFeedbackResponse !== "UNCOMFORTABLE" && (
-              <p className="text-sm text-muted-foreground">{t("feedbackThanks")}</p>
-            )}
+            {isPast &&
+              proposal.myFeedbackResponse !== null &&
+              proposal.myFeedbackResponse !== "UNCOMFORTABLE" && (
+                <p className="text-sm text-muted-foreground">{t("feedbackThanks")}</p>
+              )}
           </>
         )}
       </CardFooter>

@@ -7,9 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { useRouter } from "@/i18n/navigation";
 import { takeModerationAction, type TakeModerationActionState } from "@/server/reports/actions";
 import type { ReportQueueItem } from "@/server/reports/queries";
+import { useRefreshOnSuccess } from "@/hooks/use-refresh-on-success";
 
 const idleState: TakeModerationActionState = { status: "idle" };
 
@@ -38,16 +38,11 @@ export function ReportQueueCard({
   overdue: boolean;
 }) {
   const t = useTranslations("AdminReports");
-  const router = useRouter();
   const [showEvidence, setShowEvidence] = useState(false);
   const [reason, setReason] = useState("");
   const [state, action] = useActionState(takeModerationAction, idleState);
 
-  const [lastState, setLastState] = useState(state);
-  if (state !== lastState) {
-    setLastState(state);
-    if (state.status === "success") router.refresh();
-  }
+  useRefreshOnSuccess(state);
 
   return (
     <Card>
@@ -58,7 +53,11 @@ export function ReportQueueCard({
           </Badge>
           <CardTitle className="text-base">{t(`categories.${item.category}` as never)}</CardTitle>
         </div>
-        <p className={overdue ? "text-sm font-medium text-destructive" : "text-sm text-muted-foreground"}>
+        <p
+          className={
+            overdue ? "text-sm font-medium text-destructive" : "text-sm text-muted-foreground"
+          }
+        >
           {slaLabel}
         </p>
       </CardHeader>
@@ -77,7 +76,9 @@ export function ReportQueueCard({
             {item.priorStrikes}
           </p>
         </div>
-        {item.description && <p className="rounded-lg border border-border p-3 text-sm">{item.description}</p>}
+        {item.description && (
+          <p className="rounded-lg border border-border p-3 text-sm">{item.description}</p>
+        )}
         {URGENT_CATEGORIES.has(item.category) && (
           <p className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-sm text-foreground">
             {t("policeReferralChecklist")}
@@ -85,7 +86,12 @@ export function ReportQueueCard({
         )}
         {item.evidence && item.evidence.length > 0 && (
           <div>
-            <Button type="button" variant="outline" size="sm" onClick={() => setShowEvidence((v) => !v)}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowEvidence((v) => !v)}
+            >
               {t(showEvidence ? "hideEvidence" : "showEvidence", { count: item.evidence.length })}
             </Button>
             {showEvidence && (
@@ -93,9 +99,10 @@ export function ReportQueueCard({
                 {item.evidence.map((m, i) => (
                   <p key={i} className="text-sm">
                     <span className="text-muted-foreground">
-                      {new Intl.DateTimeFormat("ko-KR", { dateStyle: "short", timeStyle: "short" }).format(
-                        new Date(m.createdAt),
-                      )}
+                      {new Intl.DateTimeFormat("ko-KR", {
+                        dateStyle: "short",
+                        timeStyle: "short",
+                      }).format(new Date(m.createdAt))}
                       :{" "}
                     </span>
                     {m.text}
@@ -125,7 +132,10 @@ export function ReportQueueCard({
               <input type="hidden" name="reportId" value={item.reportId} />
               <input type="hidden" name="type" value={type} />
               <input type="hidden" name="reason" value={reason} />
-              <Button type="submit" variant={type === "BAN" || type === "SUSPEND" ? "destructive" : "outline"}>
+              <Button
+                type="submit"
+                variant={type === "BAN" || type === "SUSPEND" ? "destructive" : "outline"}
+              >
                 {t(`actionType.${type}`)}
               </Button>
             </form>

@@ -9,7 +9,15 @@ import { buildIdfLookup } from "./terms";
 
 export type RunDailyBatchDb = Pick<
   PrismaClient,
-  "user" | "block" | "hideRule" | "dailyBatch" | "profile" | "profileCourse" | "profileClub" | "profileInterestTag" | "idfStat"
+  | "user"
+  | "block"
+  | "hideRule"
+  | "dailyBatch"
+  | "profile"
+  | "profileCourse"
+  | "profileClub"
+  | "profileInterestTag"
+  | "idfStat"
 >;
 
 export interface RunDailyBatchOptions {
@@ -159,28 +167,36 @@ export async function ensureTodaysBatchForUser(
   await persistBatch(db, userId, intent, batchDate, composed);
 }
 
-async function persistBatch(
+export async function persistBatch(
   db: RunDailyBatchDb,
   userId: string,
   intent: IntentMode,
   batchDate: Date,
   composed: ComposeBatchResult,
 ): Promise<void> {
-  await db.dailyBatch.create({
-    data: {
-      userId,
-      intent,
-      batchDate,
-      items: {
-        create: composed.items.map((item) => ({
-          candidateUserId: item.candidateUserId,
-          score: item.score,
-          rank: item.rank,
-          reasons: item.reasons as unknown as Prisma.InputJsonValue,
-        })),
+  try {
+    await db.dailyBatch.create({
+      data: {
+        userId,
+        intent,
+        batchDate,
+        items: {
+          create: composed.items.map((item) => ({
+            candidateUserId: item.candidateUserId,
+            score: item.score,
+            rank: item.rank,
+            reasons: item.reasons as unknown as Prisma.InputJsonValue,
+          })),
+        },
       },
-    },
-  });
+    });
+  } catch (error) {
+    // Two concurrent /picks renders (a navigation plus its prefetch) can both pass the
+    // "no batch yet" check and race to insert. The (userId, intent, batchDate) unique key
+    // means the other request already wrote today's batch, so losing the race is success.
+    if ((error as { code?: unknown } | null)?.code === "P2002") return;
+    throw error;
+  }
 }
 
 async function loadAlreadyBatchedUserIds(
@@ -197,7 +213,11 @@ async function loadAlreadyBatchedUserIds(
   return new Set(rows.map((r) => r.userId));
 }
 
-async function loadTodayExposureCounts(db: RunDailyBatchDb, campusId: string, batchDate: Date): Promise<Map<string, number>> {
+async function loadTodayExposureCounts(
+  db: RunDailyBatchDb,
+  campusId: string,
+  batchDate: Date,
+): Promise<Map<string, number>> {
   const batches = await db.dailyBatch.findMany({
     where: { batchDate, user: { campusId } },
     select: { items: { select: { candidateUserId: true } } },

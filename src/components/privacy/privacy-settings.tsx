@@ -9,11 +9,17 @@ import { useRouter } from "@/i18n/navigation";
 import { requestAccountDeletion, withdrawConsentAction } from "@/server/privacy/actions";
 import type { RequestAccountDeletionState, WithdrawConsentState } from "@/server/privacy/actions";
 import type { PrivacyOverview } from "@/server/privacy/queries";
+import { useRefreshOnSuccess } from "@/hooks/use-refresh-on-success";
 
 const idleWithdraw: WithdrawConsentState = { status: "idle" };
 const idleDelete: RequestAccountDeletionState = { status: "idle" };
 
-const WITHDRAWABLE_TYPES = new Set(["SENSITIVE_PREFERENCE", "MARKETING", "MARKETING_NIGHT", "OVERSEAS_TRANSFER"]);
+const WITHDRAWABLE_TYPES = new Set([
+  "SENSITIVE_PREFERENCE",
+  "MARKETING",
+  "MARKETING_NIGHT",
+  "OVERSEAS_TRANSFER",
+]);
 
 /** L2's privacy center: consent status + withdraw, data export, account deletion, request history — one client component per row so each control owns its own action state, matching SafetySettings' pattern. */
 export function PrivacySettings({ overview }: { overview: PrivacyOverview }) {
@@ -73,13 +79,8 @@ export function PrivacySettings({ overview }: { overview: PrivacyOverview }) {
 
 function ConsentRow({ entry }: { entry: PrivacyOverview["consents"][number] }) {
   const t = useTranslations("PrivacySettings");
-  const router = useRouter();
   const [state, action] = useActionState(withdrawConsentAction, idleWithdraw);
-  const [last, setLast] = useState(state);
-  if (state !== last) {
-    setLast(state);
-    if (state.status === "success") router.refresh();
-  }
+  useRefreshOnSuccess(state);
 
   const withdrawable = WITHDRAWABLE_TYPES.has(entry.type);
   const canWithdraw = withdrawable && entry.active;
@@ -89,7 +90,13 @@ function ConsentRow({ entry }: { entry: PrivacyOverview["consents"][number] }) {
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm font-medium">{t(`consentType.${entry.type}` as never)}</p>
         <Badge variant={entry.active ? "default" : "secondary"}>
-          {t(entry.active ? "statusActive" : entry.withdrawnAt ? "statusWithdrawn" : "statusNotGranted")}
+          {t(
+            entry.active
+              ? "statusActive"
+              : entry.withdrawnAt
+                ? "statusWithdrawn"
+                : "statusNotGranted",
+          )}
         </Badge>
       </div>
       {entry.type === "SENSITIVE_PREFERENCE" && entry.active && (

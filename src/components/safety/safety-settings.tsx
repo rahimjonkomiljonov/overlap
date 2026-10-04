@@ -7,13 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useRouter } from "@/i18n/navigation";
 import { unblockUser, type BlockActionState } from "@/server/safety/block-actions";
-import { hideByClub, hideByCourse, hideByEmail, unhide, type HideActionState } from "@/server/safety/hide-actions";
+import {
+  hideByClub,
+  hideByCourse,
+  hideByEmail,
+  unhide,
+  type HideActionState,
+} from "@/server/safety/hide-actions";
 import { setIncognito, setPaused, type SafetyToggleState } from "@/server/safety/pause-actions";
 import { submitAppeal, type SubmitAppealState } from "@/server/reports/actions";
 import type { MyModerationAction } from "@/server/reports/queries";
 import type { MySafetySettings } from "@/server/safety/queries";
+import { useRefreshOnSuccess } from "@/hooks/use-refresh-on-success";
 
 const idleHide: HideActionState = { status: "idle" };
 const idleBlock: BlockActionState = { status: "idle" };
@@ -62,20 +68,11 @@ export function SafetySettings({
 
 function PauseIncognitoCard({ paused, incognito }: { paused: boolean; incognito: boolean }) {
   const t = useTranslations("SafetySettings");
-  const router = useRouter();
   const [pauseState, pauseAction] = useActionState(setPaused, idleToggle);
   const [incognitoState, incognitoAction] = useActionState(setIncognito, idleToggle);
 
-  const [lastPause, setLastPause] = useState(pauseState);
-  if (pauseState !== lastPause) {
-    setLastPause(pauseState);
-    if (pauseState.status === "success") router.refresh();
-  }
-  const [lastIncognito, setLastIncognito] = useState(incognitoState);
-  if (incognitoState !== lastIncognito) {
-    setLastIncognito(incognitoState);
-    if (incognitoState.status === "success") router.refresh();
-  }
+  useRefreshOnSuccess(pauseState);
+  useRefreshOnSuccess(incognitoState);
 
   return (
     <Card>
@@ -120,26 +117,13 @@ function HideFromCard({
   clubs: { id: string; name: string }[];
 }) {
   const t = useTranslations("SafetySettings");
-  const router = useRouter();
   const [courseState, courseAction] = useActionState(hideByCourse, idleHide);
   const [clubState, clubAction] = useActionState(hideByClub, idleHide);
   const [emailState, emailAction] = useActionState(hideByEmail, idleHide);
 
-  const [lastCourse, setLastCourse] = useState(courseState);
-  if (courseState !== lastCourse) {
-    setLastCourse(courseState);
-    if (courseState.status === "success") router.refresh();
-  }
-  const [lastClub, setLastClub] = useState(clubState);
-  if (clubState !== lastClub) {
-    setLastClub(clubState);
-    if (clubState.status === "success") router.refresh();
-  }
-  const [lastEmail, setLastEmail] = useState(emailState);
-  if (emailState !== lastEmail) {
-    setLastEmail(emailState);
-    if (emailState.status === "success") router.refresh();
-  }
+  useRefreshOnSuccess(courseState);
+  useRefreshOnSuccess(clubState);
+  useRefreshOnSuccess(emailState);
 
   return (
     <Card>
@@ -192,12 +176,20 @@ function HideFromCard({
           </form>
         )}
         <form action={emailAction} className="flex items-center gap-2">
-          <Input name="email" type="email" placeholder={t("emailPlaceholder")} aria-label={t("emailPlaceholder")} required />
+          <Input
+            name="email"
+            type="email"
+            placeholder={t("emailPlaceholder")}
+            aria-label={t("emailPlaceholder")}
+            required
+          />
           <Button type="submit" variant="outline">
             {t("hide")}
           </Button>
         </form>
-        {(courseState.status === "error" || clubState.status === "error" || emailState.status === "error") && (
+        {(courseState.status === "error" ||
+          clubState.status === "error" ||
+          emailState.status === "error") && (
           <p role="alert" className="text-sm text-destructive">
             {t(
               `errors.${
@@ -244,13 +236,8 @@ function ListCard({
 
 function UnblockRow({ userId, name }: { userId: string; name: string }) {
   const t = useTranslations("SafetySettings");
-  const router = useRouter();
   const [state, action] = useActionState(unblockUser, idleBlock);
-  const [last, setLast] = useState(state);
-  if (state !== last) {
-    setLast(state);
-    if (state.status === "success") router.refresh();
-  }
+  useRefreshOnSuccess(state);
   return (
     <div className="flex items-center justify-between gap-3">
       <p className="text-sm">{name}</p>
@@ -266,13 +253,8 @@ function UnblockRow({ userId, name }: { userId: string; name: string }) {
 
 function UnhideRow({ userId, name }: { userId: string; name: string }) {
   const t = useTranslations("SafetySettings");
-  const router = useRouter();
   const [state, action] = useActionState(unhide, idleHide);
-  const [last, setLast] = useState(state);
-  if (state !== last) {
-    setLast(state);
-    if (state.status === "success") router.refresh();
-  }
+  useRefreshOnSuccess(state);
   return (
     <div className="flex items-center justify-between gap-3">
       <p className="text-sm">{name}</p>
@@ -288,14 +270,9 @@ function UnhideRow({ userId, name }: { userId: string; name: string }) {
 
 function ActionRow({ action }: { action: MyModerationAction }) {
   const t = useTranslations("SafetySettings");
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [state, formAction] = useActionState(submitAppeal, idleAppeal);
-  const [last, setLast] = useState(state);
-  if (state !== last) {
-    setLast(state);
-    if (state.status === "success") router.refresh();
-  }
+  useRefreshOnSuccess(state);
 
   return (
     <div className="space-y-2 rounded-lg border border-border p-3">
@@ -307,11 +284,18 @@ function ActionRow({ action }: { action: MyModerationAction }) {
       </div>
       <p className="text-sm">{action.reason}</p>
       {action.appealNote ? (
-        <p className="text-sm text-muted-foreground">{t("appealSubmitted", { note: action.appealNote })}</p>
+        <p className="text-sm text-muted-foreground">
+          {t("appealSubmitted", { note: action.appealNote })}
+        </p>
       ) : open ? (
         <form action={formAction} className="space-y-2">
           <input type="hidden" name="moderationActionId" value={action.id} />
-          <Textarea name="appealNote" placeholder={t("appealPlaceholder")} aria-label={t("appealPlaceholder")} required />
+          <Textarea
+            name="appealNote"
+            placeholder={t("appealPlaceholder")}
+            aria-label={t("appealPlaceholder")}
+            required
+          />
           {state.status === "error" && (
             <p role="alert" className="text-sm text-destructive">
               {t(`errors.${state.code}` as never)}
