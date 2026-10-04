@@ -28,7 +28,7 @@ test.describe("safety core (S16)", () => {
   }, testInfo) => {
     // Heavier than a plain two-context test: one onboarding plus checks across four
     // separate surfaces (picks, waves, matches, chat) before and after the block.
-    testInfo.setTimeout(60_000);
+    testInfo.setTimeout(150_000);
 
     const firstNameB = uniqueName("차단상대");
     const emailA = await signInAndOnboard(page, { emailPrefix: "safety-block-a" });

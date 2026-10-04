@@ -12,7 +12,7 @@ import {
   shareCourseAndClub,
   verifyUser,
 } from "./helpers/db";
-import { gotoHydrated } from "./helpers/hydration";
+import { clickHydrated, gotoHydrated } from "./helpers/hydration";
 
 const wcagTags = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
@@ -188,7 +188,7 @@ for (const colorScheme of ["light", "dark"] as const) {
     }, testInfo) => {
       // Two full onboardings plus a wave, then a real-storage-backed page load: heavier than
       // the default 30s under the suite's parallel load (CLAUDE.md's documented flake class).
-      testInfo.setTimeout(90_000);
+      testInfo.setTimeout(150_000);
       const firstNameA = `a11yWaveRecipient${Date.now()}`;
       const firstNameB = `a11yWaveSender${Date.now()}`;
       const emailA = await signInAndOnboard(page, {
@@ -277,7 +277,7 @@ for (const colorScheme of ["light", "dark"] as const) {
       page,
       browser,
     }, testInfo) => {
-      testInfo.setTimeout(90_000);
+      testInfo.setTimeout(150_000);
       const emailA = await signInAndOnboard(page, { emailPrefix: "a11y-reports-a" });
       const contextB = await browser.newContext();
       const pageB = await contextB.newPage();
@@ -373,7 +373,7 @@ for (const colorScheme of ["light", "dark"] as const) {
       // Heavier than this suite's other tests (two onboardings, a proposal, an accept,
       // and a share-link generation) — same headroom meetup.spec.ts's own analogous test
       // needs under full-suite resource contention (CLAUDE.md's documented flake class).
-      testInfo.setTimeout(180_000);
+      testInfo.setTimeout(240_000);
 
       const emailA = await signInAndOnboard(page, { emailPrefix: "a11y-plan-a" });
       const contextB = await browser.newContext();
@@ -387,16 +387,18 @@ for (const colorScheme of ["light", "dark"] as const) {
 
       try {
         await gotoHydrated(page, `/meetup/${matchId}`);
-        await page.getByRole("button", { name: "이 시간 제안하기" }).first().click();
+        await clickHydrated(page.getByRole("button", { name: "이 시간 제안하기" }).first());
+        // Let A's proposal land before B loads, or B can see the options picker instead.
+        await expect(page.getByText("제안됨")).toBeVisible({ timeout: 15_000 });
         await gotoHydrated(pageB, `/meetup/${matchId}`);
-        await pageB.getByRole("button", { name: "수락", exact: true }).click();
+        await clickHydrated(pageB.getByRole("button", { name: "수락", exact: true }));
         // This specific assertion has shown up flaky under full-suite contention even
         // with the file's usual 15s headroom (this test's own three-context setup makes
         // it the heaviest in the suite) — a further bump, not a sign of a real hang.
         await expect(pageB.getByText("확정됨")).toBeVisible({ timeout: 30_000 });
 
         await page.reload();
-        await page.getByRole("button", { name: "계획 공유하기" }).click();
+        await clickHydrated(page.getByRole("button", { name: "계획 공유하기" }));
         const shareLinkText = page.locator("text=공유 링크가 만들어졌어요");
         await expect(shareLinkText).toBeVisible();
         const tokenMatch = (await shareLinkText.innerText()).match(/\/plan\/([A-Za-z0-9_-]+)/);

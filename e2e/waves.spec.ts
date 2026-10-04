@@ -27,7 +27,7 @@ test.describe("waves and matches (S14)", () => {
     browser,
   }, testInfo) => {
     // Two onboardings plus a mutual wave: heavier than the default 30s under parallel load.
-    testInfo.setTimeout(60_000);
+    testInfo.setTimeout(150_000);
     const firstNameA = uniqueFirstName("웨이브A");
     const firstNameB = uniqueFirstName("웨이브B");
 

@@ -1,3 +1,5 @@
+import { rm } from "node:fs/promises";
+import path from "node:path";
 import { expect, test } from "@playwright/test";
 import { signIn } from "./helpers/auth";
 import { uniqueTestEmail } from "./helpers/dev-outbox";
@@ -39,10 +41,14 @@ test.describe("admin ops dashboard (S21)", () => {
     await expect(page.getByText("후보 밀도", { exact: true })).toBeVisible();
     await expect(page.getByText("신고 처리 SLA", { exact: true })).toBeVisible();
 
+    // The recent-alerts list reads the long-lived local .dev-alerts.jsonl (capped at 20), so
+    // earlier runs' test alerts would otherwise already be listed. Start from an empty store.
+    await rm(path.join(process.cwd(), ".dev-alerts.jsonl"), { force: true });
+    await gotoHydrated(page, "/admin/ops");
     await page.getByRole("button", { name: "테스트 알림 발생시키기" }).click();
     // First hit of a server action in a fresh `next dev` process can be slow to compile
     // (Turbopack on-demand cold start, CLAUDE.md's documented gotcha) — generous timeout.
-    await expect(page.getByText("ops.testAlert", { exact: false })).toBeVisible({
+    await expect(page.getByText("ops.testAlert", { exact: false })).toHaveCount(1, {
       timeout: 15_000,
     });
   });

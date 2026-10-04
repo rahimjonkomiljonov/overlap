@@ -26,7 +26,7 @@ test.describe("chat (S15)", () => {
     // default 30s alone, but under the full suite's shared sandbox contention it can
     // run past it. Doubling the budget rather than tightening the app's own 3s poll
     // interval, which is the thing this test is actually verifying.
-    testInfo.setTimeout(60_000);
+    testInfo.setTimeout(150_000);
 
     const firstNameA = uniqueFirstName("채팅A");
     const firstNameB = uniqueFirstName("채팅B");

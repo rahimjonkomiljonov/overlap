@@ -4,6 +4,11 @@ const PORT = 3000;
 
 export default defineConfig({
   testDir: "./e2e",
+  // Onboarding a user uploads three photos; against real Supabase Storage that takes
+  // ~15-20s per user, and most specs onboard two users before their own assertions even
+  // start. 30s (Playwright's default) is below that floor. CI's local dev-storage fallback
+  // is much faster, so this only adds headroom there.
+  timeout: 90_000,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,

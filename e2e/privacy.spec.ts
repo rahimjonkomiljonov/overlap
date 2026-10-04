@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { signInAndOnboard } from "./helpers/auth";
 import { deleteTestUser, getUserStatus, shareCourseAndClub, verifyUser } from "./helpers/db";
-import { gotoHydrated } from "./helpers/hydration";
+import { clickHydrated, gotoHydrated } from "./helpers/hydration";
 
 test.use({ locale: "ko-KR" });
 
@@ -77,7 +77,7 @@ test.describe("privacy center (S19)", () => {
       await gotoHydrated(page, "/me/privacy");
       const sensitiveRow = page.locator("div.rounded-lg", { hasText: '"만나고 싶은 상대"' });
       await expect(sensitiveRow).toBeVisible();
-      await sensitiveRow.getByRole("button", { name: "동의 철회" }).click();
+      await clickHydrated(sensitiveRow.getByRole("button", { name: "동의 철회" }));
       // A longer timeout here: withdrawConsentAction's round trip (the server action,
       // then the client's own router.refresh() re-fetch) can occasionally push past
       // Playwright's default 5s under full-suite resource contention — the same class

@@ -8,7 +8,7 @@ import {
   setFreeTimeSlots,
   verifyUser,
 } from "./helpers/db";
-import { gotoHydrated } from "./helpers/hydration";
+import { clickHydrated, gotoHydrated } from "./helpers/hydration";
 
 test.use({ locale: "ko-KR" });
 
@@ -19,7 +19,7 @@ test.describe("meetup planner (S17)", () => {
   test("propose, accept, confirmation card with calendar link, and a share-my-plans link that later expires", async ({
     browser,
   }, testInfo) => {
-    testInfo.setTimeout(60_000);
+    testInfo.setTimeout(150_000);
 
     const contextA = await browser.newContext();
     const pageA = await contextA.newPage();
@@ -44,13 +44,13 @@ test.describe("meetup planner (S17)", () => {
       await expect(pageA.getByText("이 중에서 골라보세요")).toBeVisible();
       const proposeButtons = pageA.getByRole("button", { name: "이 시간 제안하기" });
       await expect(proposeButtons).toHaveCount(3);
-      await proposeButtons.first().click();
+      await clickHydrated(proposeButtons.first());
       await expect(pageA.getByText("제안됨")).toBeVisible();
 
       // B sees the pending proposal and accepts it.
       await gotoHydrated(pageB, `/meetup/${matchId}`);
       await expect(pageB.getByText("제안됨")).toBeVisible();
-      await pageB.getByRole("button", { name: "수락", exact: true }).click();
+      await clickHydrated(pageB.getByRole("button", { name: "수락", exact: true }));
       // A longer timeout here: this is this dev process's first hit of the accept
       // action's own code path, and Turbopack's on-demand compile of it can push the
       // round trip (POST the action, then the client's own router.refresh() re-fetch)
@@ -64,7 +64,7 @@ test.describe("meetup planner (S17)", () => {
       await expect(icsLink).toHaveAttribute("href", /\/api\/meetup\/.+\/ics$/);
 
       // A generates a "share my plans" link and it renders correctly, unauthenticated.
-      await pageA.getByRole("button", { name: "계획 공유하기" }).click();
+      await clickHydrated(pageA.getByRole("button", { name: "계획 공유하기" }));
       const shareLinkText = pageA.locator("text=공유 링크가 만들어졌어요");
       await expect(shareLinkText).toBeVisible();
       const linkLocatorText = await shareLinkText.innerText();
@@ -95,7 +95,7 @@ test.describe("meetup planner (S17)", () => {
   test("declining a proposal returns to the options picker, so either side can propose again", async ({
     browser,
   }, testInfo) => {
-    testInfo.setTimeout(60_000);
+    testInfo.setTimeout(150_000);
     const contextA = await browser.newContext();
     const pageA = await contextA.newPage();
     const emailA = await signInAndOnboard(pageA, { emailPrefix: "meetup-decline-a" });
@@ -113,12 +113,16 @@ test.describe("meetup planner (S17)", () => {
 
     try {
       await gotoHydrated(pageA, `/meetup/${matchId}`);
-      await pageA.getByRole("button", { name: "이 시간 제안하기" }).first().click();
+      await clickHydrated(pageA.getByRole("button", { name: "이 시간 제안하기" }).first());
       await expect(pageA.getByText("제안됨")).toBeVisible();
 
       await gotoHydrated(pageB, `/meetup/${matchId}`);
       await expect(pageB.getByText("제안됨")).toBeVisible();
-      await pageB.getByRole("button", { name: "거절", exact: true }).click();
+      await clickHydrated(pageB.getByRole("button", { name: "거절", exact: true }));
+
+      // Wait for B's own decline to land before A reads: otherwise A's reload can race
+      // the server action and still see the pending proposal.
+      await expect(pageB.getByText("이 중에서 골라보세요")).toBeVisible({ timeout: 15_000 });
 
       // Declined — A is back to the options picker and can propose (a "counter") again.
       await pageA.reload();

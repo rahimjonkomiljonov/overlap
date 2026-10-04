@@ -9,7 +9,7 @@ import {
   setFreeTimeSlots,
   shareCourseAndClub,
 } from "./helpers/db";
-import { gotoHydrated, waitForHydration } from "./helpers/hydration";
+import { clickHydrated, gotoHydrated, waitForHydration } from "./helpers/hydration";
 
 test.use({ locale: "ko-KR" });
 
@@ -37,7 +37,7 @@ function uniqueFirstName(prefix: string): string {
  */
 test.describe("golden path (S22)", () => {
   test("signup through a confirmed meetup, one continuous run", async ({ browser }, testInfo) => {
-    testInfo.setTimeout(120_000);
+    testInfo.setTimeout(240_000);
 
     const firstNameA = uniqueFirstName("골든A");
     const firstNameB = uniqueFirstName("골든B");
@@ -147,13 +147,13 @@ test.describe("golden path (S22)", () => {
         .click();
       await expect(pageA).toHaveURL(/\/meetup\/[^/]+$/);
       await expect(pageA.getByText("이 중에서 골라보세요")).toBeVisible();
-      await pageA.getByRole("button", { name: "이 시간 제안하기" }).first().click();
+      await clickHydrated(pageA.getByRole("button", { name: "이 시간 제안하기" }).first());
       await expect(pageA.getByText("제안됨")).toBeVisible();
 
       const matchId = await getMatchId(emailA, emailB);
       await gotoHydrated(pageB, `/meetup/${matchId}`);
       await expect(pageB.getByText("제안됨")).toBeVisible();
-      await pageB.getByRole("button", { name: "수락", exact: true }).click();
+      await clickHydrated(pageB.getByRole("button", { name: "수락", exact: true }));
       // meetup.spec.ts's own analogous first-hit assertion needs this same headroom
       // under full-suite contention (CLAUDE.md's documented Turbopack cold-start flake
       // class) — bumped further here since this test also carries the verification and

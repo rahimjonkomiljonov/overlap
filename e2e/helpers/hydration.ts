@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 
 /**
  * Waits until React has hydrated the element matching `selector`. Server-rendered HTML
@@ -23,4 +23,19 @@ export async function waitForHydration(page: Page, selector: string): Promise<vo
 export async function gotoHydrated(page: Page, url: string): Promise<void> {
   await page.goto(url);
   await waitForHydration(page, "main");
+}
+
+/**
+ * Clicks `locator` only once React has hydrated that exact element. `<main>` being
+ * hydrated doesn't mean every nested client component is — React can hydrate those
+ * later — and a click on a not-yet-hydrated form button is silently dropped, with no
+ * error, leaving the page unchanged. Use this for action buttons right after navigating.
+ */
+export async function clickHydrated(locator: Locator): Promise<void> {
+  await expect
+    .poll(() =>
+      locator.evaluate((node) => Object.keys(node).some((key) => key.startsWith("__reactProps"))),
+    )
+    .toBe(true);
+  await locator.click();
 }
