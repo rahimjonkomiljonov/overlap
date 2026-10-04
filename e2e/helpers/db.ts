@@ -430,3 +430,21 @@ export async function seedReportsAgainst(targetEmail: string, count: number): Pr
   }
   return reporters;
 }
+
+/** J4: hands an invite code to an ambassador, as `scripts/create-cohort.ts --owner` does. */
+export async function setInviteCodeOwner(code: string, ownerEmail: string): Promise<void> {
+  await pool.query(
+    'UPDATE invite_codes SET "ownerId" = (SELECT id FROM users WHERE email = $2) WHERE code = $1',
+    [code, ownerEmail.toLowerCase()],
+  );
+}
+
+/** J4: records that `email` joined with `code` (what redeemInviteCode does at onboarding). */
+export async function markJoinedWithCode(email: string, code: string): Promise<void> {
+  await pool.query(
+    `UPDATE users SET "inviteCodeId" = c.id, "cohortId" = c."cohortId"
+       FROM invite_codes c WHERE c.code = $2 AND users.email = $1`,
+    [email.toLowerCase(), code],
+  );
+  await pool.query('UPDATE invite_codes SET "useCount" = "useCount" + 1 WHERE code = $1', [code]);
+}

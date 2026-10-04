@@ -127,7 +127,9 @@
     "privacyCta": "Go to privacy settings",
     "matchingTitle": "Pick preferences",
     "matchingCta": "Adjust what matters to me",
-    "notificationsTitle": "Notifications"
+    "notificationsTitle": "Notifications",
+    "ambassadorTitle": "Ambassador",
+    "ambassadorCta": "Open the ambassador dashboard"
   },
   "States": {
     "loading": "Loading",
@@ -1224,5 +1226,33 @@
       "INVALID_INPUT": "Please write a response.",
       "NOT_FOUND": "This appeal was already handled."
     }
+  },
+  "Ambassador": {
+    "title": "Ambassador dashboard",
+    "description": "Your invite codes and how the people you invited are getting started. Numbers only, never anyone's details.",
+    "inviteesTitle": "People who joined with your codes",
+    "stat": {
+      "joined": "Joined",
+      "profileComplete": "Profile done",
+      "verified": "Verified",
+      "activeThisWeek": "Active this week"
+    },
+    "referrals": "Waitlist invite links: {sent} sent, {joined} joined",
+    "codesTitle": "Your invite codes",
+    "noCodes": "No invite codes yet",
+    "noCodesBody": "They'll show up here once the team assigns some to you.",
+    "uses": "{used}/{max} used",
+    "expired": "Expired",
+    "usedUp": "Used up",
+    "copy": "Copy",
+    "copied": "Copied",
+    "copyCode": "Copy code {code}",
+    "datingOpen": "Dating open",
+    "datingClosed": "Dating not open yet",
+    "eligible": "{eligible} verified, active people / {min} needed",
+    "shares": "Women {women} · Men {men} (each needs at least {min})",
+    "sharesHidden": "Too few people yet to show gender shares.",
+    "gatePasses": "The gate is met. Dating opens once the team confirms.",
+    "gateNotYet": "Once the gate is met, Dating opens after the team confirms."
   }
 }

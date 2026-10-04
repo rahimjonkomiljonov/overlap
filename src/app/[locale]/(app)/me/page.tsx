@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link, redirect } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { signOutEverywhere } from "@/server/auth/actions";
+import { can, Role } from "@/server/auth/authz";
 import { getActor } from "@/server/auth/session";
 import { getDatingStatus } from "@/server/cohorts/release";
 import { prisma } from "@/server/db";
@@ -76,6 +77,18 @@ export default async function MePage({ params }: PageProps<"/[locale]/me">) {
           </form>
         </CardContent>
       </Card>
+      {actor && can(actor, Role.AMBASSADOR) && (
+        <Card className="mt-4">
+          <CardHeader>
+            <CardTitle>{t("ambassadorTitle")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Link href="/ambassador" className={buttonVariants({ variant: "outline" })}>
+              {t("ambassadorCta")}
+            </Link>
+          </CardContent>
+        </Card>
+      )}
       <Card className="mt-4">
         <CardHeader>
           <CardTitle>{t("notificationsTitle")}</CardTitle>

@@ -40,16 +40,19 @@ export async function redeemInviteCode(
 ): Promise<boolean> {
   const code = normalizeInviteCode(input.code);
   const now = input.now ?? new Date();
-  const rows = await tx.$queryRaw<{ cohortId: string }[]>`
+  const rows = await tx.$queryRaw<{ id: string; cohortId: string }[]>`
     UPDATE invite_codes
        SET "useCount" = "useCount" + 1
      WHERE code = ${code}
        AND "useCount" < "maxUses"
        AND ("expiresAt" IS NULL OR "expiresAt" > ${now})
        AND "cohortId" IN (SELECT id FROM cohorts WHERE "campusId" = ${input.campusId})
-     RETURNING "cohortId"`;
+     RETURNING id, "cohortId"`;
   if (rows.length === 0) return false;
-  await tx.user.update({ where: { id: input.userId }, data: { cohortId: rows[0].cohortId } });
+  await tx.user.update({
+    where: { id: input.userId },
+    data: { cohortId: rows[0].cohortId, inviteCodeId: rows[0].id },
+  });
   return true;
 }
 

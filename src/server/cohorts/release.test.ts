@@ -37,7 +37,7 @@ describe("invite codes", () => {
   });
 });
 
-function fakeTx(rows: { cohortId: string }[]) {
+function fakeTx(rows: { id?: string; cohortId: string }[]) {
   const queryRaw = vi.fn(async () => rows);
   const update = vi.fn(async () => ({}));
   return { tx: { $queryRaw: queryRaw, user: { update } } as never, queryRaw, update };
@@ -45,10 +45,13 @@ function fakeTx(rows: { cohortId: string }[]) {
 
 describe("redeemInviteCode", () => {
   it("assigns the cohort the atomic update returned", async () => {
-    const { tx, update } = fakeTx([{ cohortId: "cohort-1" }]);
+    const { tx, update } = fakeTx([{ id: "code-1", cohortId: "cohort-1" }]);
     const ok = await redeemInviteCode(tx, { userId: "u1", campusId: "c1", code: "ab-cd" });
     expect(ok).toBe(true);
-    expect(update).toHaveBeenCalledWith({ where: { id: "u1" }, data: { cohortId: "cohort-1" } });
+    expect(update).toHaveBeenCalledWith({
+      where: { id: "u1" },
+      data: { cohortId: "cohort-1", inviteCodeId: "code-1" },
+    });
   });
 
   it("refuses an unknown, used-up, expired or other-campus code without touching the user", async () => {

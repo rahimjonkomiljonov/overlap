@@ -91,12 +91,16 @@ model User {
   /// Null only in the brief window between account creation and onboarding finishing
   /// (every user must end up with a campus; there is no sensible default to fall back
   /// on the way there is for status/trustScore).
-  campusId String?
-  campus   Campus? @relation(fields: [campusId], references: [id])
+  campusId     String?
+  campus       Campus?     @relation(fields: [campusId], references: [id])
   /// J2 cohort release: set when the user redeems an invite code at onboarding. Null
   /// when cohort release is off (COHORT_RELEASE unset), which is the default.
-  cohortId String?
-  cohort   Cohort? @relation(fields: [cohortId], references: [id])
+  cohortId     String?
+  cohort       Cohort?     @relation(fields: [cohortId], references: [id])
+  /// J4: which invite code brought this user in, so an ambassador's dashboard can show
+  /// how their invites activate (counts only). Null with cohort release off.
+  inviteCodeId String?
+  inviteCode   InviteCode? @relation("InviteCodeRedeemers", fields: [inviteCodeId], references: [id], onDelete: SetNull)
 
   /// Set once at the age gate (A2). Never a full date of birth.
   birthYear     Int?
@@ -180,6 +184,7 @@ model User {
   pushSubscriptions         PushSubscription[]
   trustAppeals              TrustAppeal[]         @relation("TrustAppealUser")
   trustAppealsReviewed      TrustAppeal[]         @relation("TrustAppealReviewer")
+  inviteCodesOwned          InviteCode[]          @relation("InviteCodeOwner")
   dataRequests              DataRequest[]
   eventsOrganized           Event[]               @relation("EventOrganizer")
   eventRsvps                EventRsvp[]
@@ -305,12 +310,17 @@ model InviteCode {
   cohort   Cohort @relation(fields: [cohortId], references: [id])
 
   code      String    @unique
+  /// J4: the ambassador handing this code out (scripts/create-cohort.ts --owner). Optional.
+  ownerId   String?
+  owner     User?     @relation("InviteCodeOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  redeemers User[]    @relation("InviteCodeRedeemers")
   maxUses   Int       @default(1)
   useCount  Int       @default(0)
   expiresAt DateTime?
   createdAt DateTime  @default(now())
 
   @@index([cohortId])
+  @@index([ownerId])
   @@map("invite_codes")
 }
 
