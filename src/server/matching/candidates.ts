@@ -2,10 +2,12 @@ import { Gender, IntentMode, PickDecision, UserStatus } from "@/generated/prisma
 import type { PrismaClient } from "@/generated/prisma/client";
 import { isCohortReleaseEnabled } from "@/server/cohorts/release";
 import { decryptField } from "@/server/privacy/encryption";
+import { computeTrustScore, isReachLimited, NO_SIGNALS } from "@/server/trust/score";
+import { loadTrustSignals, type TrustSignalsDb } from "@/server/trust/signals";
 import type { WeightSliders } from "./personalize";
 import type { MatchableProfile } from "./terms";
 
-export type CandidateDb = Pick<PrismaClient, "user" | "block" | "hideRule" | "dailyBatch">;
+export type CandidateDb = Pick<PrismaClient, "user" | "block" | "hideRule" | "dailyBatch"> & TrustSignalsDb;
 
 /** How far back "active" reaches (REQUIREMENTS.md §5.1/C5: "active in last 14 days"). */
 const ACTIVE_WINDOW_DAYS = 14;
@@ -35,6 +37,8 @@ export interface CampusMatchPool {
   recentlyShown: ReadonlyMap<string, ReadonlySet<string>>;
   /** C8: `passedTwice.get(viewerId)` is who viewerId has passed twice for this intent, ever. Never shown again. */
   passedTwice: ReadonlyMap<string, ReadonlySet<string>>;
+  /** G10: candidates whose trust score limits their reach (and who have no restore window). */
+  reachLimited: ReadonlySet<string>;
 }
 
 function blockPairKey(a: string, b: string): string {
@@ -80,6 +84,7 @@ export async function loadCampusMatchPool(
     select: {
       id: true,
       createdAt: true,
+      reachRestoredUntil: true,
       profile: {
         select: {
           gender: true,
@@ -123,10 +128,17 @@ export async function loadCampusMatchPool(
 
   const userIds = profiles.map((p) => p.userId);
   if (userIds.length === 0) {
-    return { profiles: [], blockedPairs: new Set(), hiddenBy: new Map(), recentlyShown: new Map(), passedTwice: new Map() };
+    return {
+      profiles: [],
+      blockedPairs: new Set(),
+      hiddenBy: new Map(),
+      recentlyShown: new Map(),
+      passedTwice: new Map(),
+      reachLimited: new Set(),
+    };
   }
 
-  const [blocks, hideRules, recentItems, pastPasses] = await Promise.all([
+  const [blocks, hideRules, recentItems, pastPasses, trustSignals] = await Promise.all([
     db.block.findMany({
       where: { OR: [{ blockerId: { in: userIds } }, { blockedId: { in: userIds } }] },
       select: { blockerId: true, blockedId: true },
@@ -140,6 +152,7 @@ export async function loadCampusMatchPool(
       where: { userId: { in: userIds }, intent, items: { some: { decision: PickDecision.PASSED } } },
       select: { userId: true, items: { where: { decision: PickDecision.PASSED }, select: { candidateUserId: true } } },
     }),
+    loadTrustSignals(db, userIds, now),
   ]);
 
   const blockedPairs = new Set(blocks.map((b) => blockPairKey(b.blockerId, b.blockedId)));
@@ -169,5 +182,12 @@ export async function loadCampusMatchPool(
     if (final.length > 0) passedTwice.set(viewerId, new Set(final));
   }
 
-  return { profiles, blockedPairs, hiddenBy, recentlyShown, passedTwice };
+  const restoredUntil = new Map(users.map((u) => [u.id, u.reachRestoredUntil]));
+  const reachLimited = new Set(
+    userIds.filter((id) =>
+      isReachLimited(computeTrustScore(trustSignals.get(id) ?? NO_SIGNALS), restoredUntil.get(id) ?? null, now),
+    ),
+  );
+
+  return { profiles, blockedPairs, hiddenBy, recentlyShown, passedTwice, reachLimited };
 }

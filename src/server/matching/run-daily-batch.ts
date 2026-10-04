@@ -6,6 +6,7 @@ import { composeBatch, type ComposeBatchResult } from "./compose";
 import { computeIdfStats } from "./idf";
 import { seoulCalendarDate } from "./seoul-date";
 import { buildIdfLookup } from "./terms";
+import { refreshTrustSnapshots } from "@/server/trust/snapshot";
 
 export type RunDailyBatchDb = Pick<
   PrismaClient,
@@ -18,6 +19,9 @@ export type RunDailyBatchDb = Pick<
   | "profileClub"
   | "profileInterestTag"
   | "idfStat"
+  | "report"
+  | "moderationAction"
+  | "meetupFeedbackEntry"
 >;
 
 export interface RunDailyBatchOptions {
@@ -64,6 +68,7 @@ export async function runDailyBatchForCampus(
   const chunkSize = options.chunkSize ?? DEFAULT_CHUNK_SIZE;
 
   await computeIdfStats(db, campusId);
+  await refreshTrustSnapshots(db, campusId, now);
   const idfRows = await db.idfStat.findMany({
     where: { campusId },
     select: { featureType: true, featureId: true, idf: true },

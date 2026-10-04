@@ -42,6 +42,11 @@ export default async function HowMatchingWorksPage({
         <p className="text-muted-foreground">{t("explanationsBody")}</p>
       </section>
 
+      <section className="space-y-3">
+        <h2 className="text-xl font-semibold tracking-tight">{t("trustTitle")}</h2>
+        <p className="text-muted-foreground">{t("trustBody")}</p>
+      </section>
+
       <section className="space-y-3 rounded-lg border border-border p-4">
         <h2 className="text-xl font-semibold tracking-tight">{t("rightsTitle")}</h2>
         <p className="text-muted-foreground">{t("rightsBody")}</p>

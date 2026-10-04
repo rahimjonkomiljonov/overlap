@@ -721,7 +721,8 @@
     },
     "navVerification": "Verification",
     "navReports": "Reports",
-    "navOps": "Ops"
+    "navOps": "Ops",
+    "navTrust": "Trust appeals"
   },
   "HowMatchingWorks": {
     "title": "How matching works",
@@ -733,11 +734,13 @@
     "signalInterests": "Shared interests from the tag list — rarer interests count for more.",
     "signalValues": "How close your answers are on the 8-item values quiz.",
     "weightsTitle": "It depends on what you're looking for",
-    "weightsBody": "Which of these matters most changes with the mode you're browsing in: study buddy leans on shared courses and free time; friends leans on clubs and interests; dating weighs values and interests more heavily. A match only counts if it looks good from both sides — one person being a great fit for the other isn't enough on its own.",
+    "weightsBody": "Which of these matters most changes with the mode you're browsing in: study buddy leans on shared courses and free time; friends leans on clubs and interests; dating weighs values and interests more heavily. A match only counts if it looks good from both sides — one person being a great fit for the other isn't enough on its own. You can also tune how much shared classes, interests and free time count for you in Me > Pick preferences (0.5× to 1.5×).",
     "batchTitle": "Your 6 daily picks",
-    "batchBody": "Every day at noon we put together 6 people per mode you're active in: your 4 best matches, one person ranked a bit further down the list so you don't only ever see the same kind of profile, and one recent newcomer. No one profile can appear in more than 25 people's picks on the same day, so early or popular profiles don't crowd everyone else out.",
+    "batchBody": "Every day at noon we put together 6 people per mode you're active in: your 4 best matches, one person ranked a bit further down the list so you don't only ever see the same kind of profile, and one recent newcomer. No one profile can appear in more than 25 people's picks on the same day, so early or popular profiles don't crowd everyone else out. Someone you pass won't come back for 30 days, and after that only once, marked \"Second chance\". Pass them twice and they're gone for good.",
     "explanationsTitle": "Why you overlap",
     "explanationsBody": "Each pick shows up to 3 concrete reasons — the specific course, club, interest, free-time overlap or values fit behind the score. We only ever show something you both actually have; nothing about anyone's private preferences is ever revealed this way.",
+    "trustTitle": "Trust and reach",
+    "trustBody": "Accounts that several people reported in the last 180 days (reports a moderator dismissed don't count), that received a moderator warning, or that someone said made a meetup uncomfortable rank lower in other people's picks. This only changes ranking; it never suspends or bans anyone. Suspensions and bans are always decided by a person, with a stated reason. You can see the reasons and appeal in Me > Safety.",
     "rightsTitle": "Your rights",
     "rightsBody": "This is an automated process, which you have the right to ask about. If you'd like an explanation for a specific match, or a human to review how your picks are put together, contact us and we'll follow up.",
     "contactCta": "Contact us"
@@ -1175,6 +1178,51 @@
       "RATE_LIMITED": "Please try again in a moment.",
       "INVALID_INPUT": "Couldn't turn on notifications. Please try again.",
       "SUBSCRIBE_FAILED": "Couldn't turn on notifications. Please try again."
+    }
+  },
+  "Trust": {
+    "title": "Your reach",
+    "normal": "Normal",
+    "limited": "Reach limited",
+    "normalBody": "You show up in other people's picks as usual.",
+    "limitedBody": "Because of recent history, you rank lower in other people's picks. Your account works as usual; suspensions and bans are only ever decided by a person.",
+    "restoredUntil": "Your appeal was accepted, so the limit is lifted until {date}.",
+    "reasonsHeading": "In the last 180 days",
+    "reason": {
+      "reporters": "{count, plural, one {# person} other {# people}} reported you (reports a moderator dismissed don't count)",
+      "warnings": "{count, plural, one {# moderator warning} other {# moderator warnings}}",
+      "uncomfortableMeetups": "{count, plural, one {# person} other {# people}} said a meetup made them uncomfortable"
+    },
+    "reasonsFooter": "We never tell you who reported you. Anything older than 180 days stops counting.",
+    "decision": {
+      "ACCEPTED": "Your appeal was accepted",
+      "REJECTED": "Your appeal wasn't accepted"
+    },
+    "appealPending": "A moderator is reviewing the appeal you sent on {date}.",
+    "appealLabel": "Your appeal",
+    "appealPlaceholder": "Tell us what you think is wrong (at least 10 characters).",
+    "appealSubmit": "Send appeal",
+    "errors": {
+      "UNAUTHENTICATED": "Please sign in again.",
+      "RATE_LIMITED": "Please try again later.",
+      "INVALID_INPUT": "Please write at least 10 characters.",
+      "NOT_LIMITED": "Your reach isn't limited right now.",
+      "ALREADY_OPEN": "You already have an appeal under review."
+    }
+  },
+  "AdminTrust": {
+    "title": "Trust score appeals",
+    "description": "Appeals against automatic reach limits. Accepting lifts the limit for 90 days. Either way, write the response the user will see.",
+    "empty": "No appeals to review",
+    "unnamed": "No name",
+    "score": "Score {score}",
+    "responseLabel": "Response to the user",
+    "accept": "Accept",
+    "reject": "Reject",
+    "errors": {
+      "FORBIDDEN": "You don't have permission.",
+      "INVALID_INPUT": "Please write a response.",
+      "NOT_FOUND": "This appeal was already handled."
     }
   }
 }

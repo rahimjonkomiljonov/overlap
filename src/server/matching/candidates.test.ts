@@ -90,6 +90,9 @@ function fakeDb(
         return blocks.filter((b) => ids.has(b.blockerId) || ids.has(b.blockedId));
       },
     },
+    report: { findMany: async () => [] },
+    moderationAction: { findMany: async () => [] },
+    meetupFeedbackEntry: { findMany: async () => [] },
     hideRule: {
       findMany: async ({ where }: { where: { userId: { in: string[] } } }) =>
         hideRules.filter((h) => where.userId.in.includes(h.userId)),

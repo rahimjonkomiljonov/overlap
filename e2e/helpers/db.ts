@@ -410,3 +410,23 @@ export async function countPushSubscriptions(email: string): Promise<number> {
   );
   return result.rows[0].n as number;
 }
+
+/**
+ * G10: files `count` OPEN harassment reports against `targetEmail`, each from a new bare
+ * reporter user, so the target's trust score drops by one reporter per report. Returns
+ * the reporter emails so the test can delete them afterwards.
+ */
+export async function seedReportsAgainst(targetEmail: string, count: number): Promise<string[]> {
+  const reporters: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const email = `trust-reporter-${Date.now()}-${i}@test.ac.kr`;
+    await createBareUser(email, `reporter${i}`);
+    await pool.query(
+      `INSERT INTO reports (id, "reporterId", "targetId", category, priority)
+       VALUES ($1, (SELECT id FROM users WHERE email = $2), (SELECT id FROM users WHERE email = $3), 'HARASSMENT', 'STANDARD')`,
+      [randomUUID(), email, targetEmail.toLowerCase()],
+    );
+    reporters.push(email);
+  }
+  return reporters;
+}

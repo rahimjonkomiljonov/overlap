@@ -24,7 +24,7 @@ function loadedProfile(overrides: Partial<LoadedProfile> & { userId: string }): 
 }
 
 function pool(profiles: CampusMatchPool["profiles"], overrides: Partial<CampusMatchPool> = {}): CampusMatchPool {
-  return { profiles, blockedPairs: new Set(), hiddenBy: new Map(), recentlyShown: new Map(), passedTwice: new Map(), ...overrides };
+  return { profiles, blockedPairs: new Set(), hiddenBy: new Map(), recentlyShown: new Map(), passedTwice: new Map(), reachLimited: new Set(), ...overrides };
 }
 
 const EMPTY_IDF = buildIdfLookup([]);
@@ -126,6 +126,19 @@ describe("computeCampusMatches", () => {
     // Both people see the same pair score.
     expect(computeCampusMatches(pool([a, b]), IntentMode.FRIENDS, IDF).get("b")![0].score).toBeCloseTo(lopsided, 10);
     expect(scoreOf(neutralA, neutralB)).toBeGreaterThan(0);
+  });
+
+  it("ranks a reach-limited candidate lower for others, without removing them (G10)", () => {
+    const a = loadedProfile({ userId: "a", clubIds: ["k1"] });
+    const b = loadedProfile({ userId: "b", clubIds: ["k1"] });
+    const c = loadedProfile({ userId: "c", clubIds: ["k1"] });
+    const normal = computeCampusMatches(pool([a, b, c]), IntentMode.FRIENDS, EMPTY_IDF).get("a")!;
+    const limited = computeCampusMatches(pool([a, b, c], { reachLimited: new Set(["b"]) }), IntentMode.FRIENDS, EMPTY_IDF);
+    const aList = limited.get("a")!;
+    expect(aList.map((r) => r.candidateUserId)).toEqual(["c", "b"]);
+    expect(aList[1].score).toBeCloseTo(normal.find((r) => r.candidateUserId === "b")!.score * 0.5, 10);
+    // b still sees everyone normally; the limit is on b's reach, not b's own picks.
+    expect(limited.get("b")!.map((r) => r.candidateUserId).sort()).toEqual(["a", "c"]);
   });
 
   it("gives every profile an (empty, at minimum) entry, even with no eligible candidates", () => {

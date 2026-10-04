@@ -102,14 +102,18 @@ model User {
   birthYear     Int?
   ageVerifiedAt DateTime?
 
-  status         UserStatus @default(ACTIVE)
+  status             UserStatus @default(ACTIVE)
   /// Set only alongside `status = SUSPENDED` (G8's 7-day suspension rung). Read by
   /// src/server/auth/session.ts's getActor(), which lazily flips a user back to ACTIVE
   /// once this passes, rather than needing a separate reinstatement job. Meaningless
   /// once status leaves SUSPENDED (a ban or a fresh suspension overwrites it).
-  suspendedUntil DateTime?
-  trustScore     Int        @default(100)
-  role           Role       @default(USER)
+  suspendedUntil     DateTime?
+  /// G10 snapshot, refreshed by the daily batch cron (src/server/trust/). Matching itself
+  /// recomputes it live from report/feedback history, so this is for admin reading only.
+  trustScore         Int        @default(100)
+  /// G10: set when a moderator accepts a trust appeal; reach limits are lifted until then.
+  reachRestoredUntil DateTime?
+  role               Role       @default(USER)
 
   /// S19/L2: set the instant a self-service account-deletion request is processed
   /// (status flips to DELETED in the same action — the request itself is completed
@@ -174,6 +178,8 @@ model User {
   meetupFeedbackEntries     MeetupFeedbackEntry[]
   notifications             Notification[]
   pushSubscriptions         PushSubscription[]
+  trustAppeals              TrustAppeal[]         @relation("TrustAppealUser")
+  trustAppealsReviewed      TrustAppeal[]         @relation("TrustAppealReviewer")
   dataRequests              DataRequest[]
   eventsOrganized           Event[]               @relation("EventOrganizer")
   eventRsvps                EventRsvp[]
@@ -1470,4 +1476,34 @@ model PushSubscription {
 
   @@index([userId])
   @@map("push_subscriptions")
+}
+
+enum TrustAppealStatus {
+  OPEN
+  ACCEPTED
+  REJECTED
+}
+
+/// G10: a user's appeal against an automated reach limit. Decided only by a human
+/// moderator (src/server/trust/actions.ts), with a stated response either way; accepting
+/// sets `User.reachRestoredUntil`. One OPEN appeal per user at a time (enforced in the action).
+model TrustAppeal {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation("TrustAppealUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  note   String
+  status TrustAppealStatus @default(OPEN)
+
+  reviewerId String?
+  reviewer   User?   @relation("TrustAppealReviewer", fields: [reviewerId], references: [id])
+  response   String?
+
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  @@index([status, createdAt])
+  @@index([userId])
+  @@map("trust_appeals")
 }

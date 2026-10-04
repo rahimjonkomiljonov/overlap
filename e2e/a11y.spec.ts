@@ -151,6 +151,15 @@ for (const colorScheme of ["light", "dark"] as const) {
       await assertNoViolations(page, colorScheme);
     });
 
+    test("/admin/trust (moderator, G10) has no WCAG A/AA violations", async ({ page }) => {
+      const email = uniqueTestEmail("a11y-moderator-trust");
+      await signIn(page, email);
+      await promoteToRole(email, Role.MODERATOR);
+      await gotoHydrated(page, "/admin/trust");
+      await expect(page.getByRole("heading", { name: "신뢰 점수 이의신청" })).toBeVisible();
+      await assertNoViolations(page, colorScheme);
+    });
+
     test("/picks (populated with a real pick card + open wave composer, S12) has no WCAG A/AA violations", async ({
       page,
       browser,

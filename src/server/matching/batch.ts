@@ -3,6 +3,7 @@ import type { CampusMatchPool, LoadedProfile } from "./candidates";
 import { buildExplanations, type Explanation } from "./explain";
 import { passesGenderFilter } from "./filters";
 import { personalizeWeights } from "./personalize";
+import { REACH_LIMIT_FACTOR } from "@/server/trust/score";
 import { reciprocityScore, scoreFromTerms } from "./score";
 import { computeMatchTerms, type IdfLookup } from "./terms";
 import { INTENT_WEIGHTS } from "./weights";
@@ -47,11 +48,14 @@ export function computeCampusMatches(pool: CampusMatchPool, intent: IntentMode, 
       const weightsB = weightsOf.get(b.userId)!;
       const score = reciprocityScore(scoreFromTerms(terms, weightsA), scoreFromTerms(terms, weightsB));
 
+      // G10: a reach-limited person ranks lower in everyone else's list, never removed.
       if (isEligibleDirection(pool, a, b, intent)) {
-        results.get(a.userId)!.push({ candidateUserId: b.userId, score, reasons: buildExplanations(terms, weightsA) });
+        const ranked = pool.reachLimited.has(b.userId) ? score * REACH_LIMIT_FACTOR : score;
+        results.get(a.userId)!.push({ candidateUserId: b.userId, score: ranked, reasons: buildExplanations(terms, weightsA) });
       }
       if (isEligibleDirection(pool, b, a, intent)) {
-        results.get(b.userId)!.push({ candidateUserId: a.userId, score, reasons: buildExplanations(terms, weightsB) });
+        const ranked = pool.reachLimited.has(a.userId) ? score * REACH_LIMIT_FACTOR : score;
+        results.get(b.userId)!.push({ candidateUserId: a.userId, score: ranked, reasons: buildExplanations(terms, weightsB) });
       }
     }
   }
