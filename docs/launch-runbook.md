@@ -24,8 +24,8 @@ is how local dev, CI and the private demo run.
 check) and **women and men each at least 35% of the pool**. Non-binary and other
 genders count toward the 150 but not against the 35% rule. Applied literally to every
 group, the rule would keep Dating closed forever whenever a small group exists.
-**(owner) Confirm this interpretation, or change it in `src/server/cohorts/release.ts`
-(`DENSITY_GATE`, `summarizeDensity`).**
+**The owner confirmed this rule on 2026-10-04.** It lives in `src/server/cohorts/release.ts`
+(`DENSITY_GATE`, `summarizeDensity`).
 
 ## Day -3 to -1: prepare
 

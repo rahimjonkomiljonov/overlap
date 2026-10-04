@@ -48,6 +48,6 @@ If a blocker fails, launch smaller (invite-only, 50 users or fewer) or delay.
 
 | Item | Status | Notes |
 |---|---|---|
-| Cohort release with invite codes (REQUIREMENTS J2, P0) | **Code-ready** | Built 2026-10-04 behind `COHORT_RELEASE=on`: invite code required at onboarding, Dating gated per cohort by the density gate (enforced in the wizard, the intents action and matching). Unit tests, a rollback-only test against real Postgres, and `e2e/cohort-release.spec.ts` (run with the flag on) pass. The owner needs to confirm the gender-share interpretation (`docs/launch-runbook.md`) |
+| Cohort release with invite codes (REQUIREMENTS J2, P0) | **Code-ready** | Built 2026-10-04 behind `COHORT_RELEASE=on`: invite code required at onboarding, Dating gated per cohort by the density gate (enforced in the wizard, the intents action and matching). Unit tests, a rollback-only test against real Postgres, and `e2e/cohort-release.spec.ts` (run with the flag on) pass. Gender-share rule (women and men each ≥ 35%) confirmed by the owner on 2026-10-04 |
 | Error tracking | **Open** | No Sentry SDK is wired. Either wire it (small task) or accept Vercel logs for the first cohort |
 | Hourly notifications | **Open** | Daily on Vercel Hobby. Hourly needs Vercel Pro |

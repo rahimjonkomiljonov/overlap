@@ -92,7 +92,7 @@ export type CohortDensity = {
  * Counts the cohort's eligible pool: active, selfie-verified, passed the 19+ age gate.
  * "No gender group under 35%" is applied to the women and men groups. Applied literally
  * to every group, small groups (non-binary, other) would keep Dating closed forever.
- * This interpretation needs the owner's confirmation.
+ * The owner confirmed this rule on 2026-10-04.
  */
 export async function computeCohortDensity(
   db: Pick<PrismaClient, "user">,
