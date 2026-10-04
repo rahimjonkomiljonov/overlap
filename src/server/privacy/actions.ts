@@ -68,6 +68,8 @@ export async function requestAccountDeletion(
     where: { id: actor.userId },
     data: { status: UserStatus.DELETED, deletedAt: now },
   });
+  // Stop device pushes right away; the rest of the scrub waits for the 30-day grace.
+  await prisma.pushSubscription.deleteMany({ where: { userId: actor.userId } });
   await createDataRequest(prisma, actor.userId, DataRequestType.DELETION, { now });
   await signOutEverywhere();
   return { status: "success" };

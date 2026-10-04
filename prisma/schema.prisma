@@ -102,14 +102,14 @@ model User {
   birthYear     Int?
   ageVerifiedAt DateTime?
 
-  status     UserStatus @default(ACTIVE)
+  status         UserStatus @default(ACTIVE)
   /// Set only alongside `status = SUSPENDED` (G8's 7-day suspension rung). Read by
   /// src/server/auth/session.ts's getActor(), which lazily flips a user back to ACTIVE
   /// once this passes, rather than needing a separate reinstatement job. Meaningless
   /// once status leaves SUSPENDED (a ban or a fresh suspension overwrites it).
   suspendedUntil DateTime?
-  trustScore Int        @default(100)
-  role       Role       @default(USER)
+  trustScore     Int        @default(100)
+  role           Role       @default(USER)
 
   /// S19/L2: set the instant a self-service account-deletion request is processed
   /// (status flips to DELETED in the same action — the request itself is completed
@@ -122,7 +122,7 @@ model User {
   /// `deletedAt`) — the idempotency marker, same shape as `Selfie.purgedAt`. The row
   /// itself is never deleted (Waves/Matches/Messages/Reports still reference it), only
   /// its identifying fields are.
-  purgedAt DateTime?
+  purgedAt  DateTime?
 
   /// Set once a moderator approves a selfie submission (S08/A4). Null = not verified;
   /// unverified users are excluded from appearing in others' picks or sending waves
@@ -132,7 +132,7 @@ model User {
   /// True only for rows created by scripts/generate-synthetic-campus.ts (S09),
   /// dev/staging only (CLAUDE.md: "Synthetic users exist only in dev and staging").
   /// src/server/synthetic/guard.ts asserts none exist wherever `NODE_ENV=production`.
-  isSynthetic Boolean @default(false)
+  isSynthetic        Boolean @default(false)
   /// Which planted community (0-indexed) a synthetic user belongs to — lets S10's
   /// offline evaluation (REQUIREMENTS.md §5.5) check precision@6 against known-good
   /// pairs. Null for every real user and meaningless unless `isSynthetic` is true.
@@ -146,33 +146,34 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  sessions            Session[]
-  accounts            Account[]
-  consents            Consent[]
-  auditLogEntries     AuditLog[]
-  referralsAsReferrer Referral[] @relation("ReferrerUser")
-  referralAsReferred  Referral?  @relation("ReferredUser")
-  profile             Profile?
-  selfies             Selfie[]   @relation("SelfieOwner")
-  selfieDecisions     Selfie[]   @relation("SelfieDecidedBy")
-  blocksMade          Block[]      @relation("BlockerUser")
-  blocksReceived      Block[]      @relation("BlockedUser")
-  hideRulesOwned      HideRule[]   @relation("HideRuleOwner")
-  hideRulesTargeting  HideRule[]   @relation("HideRuleTarget")
-  dailyBatches        DailyBatch[]
-  batchAppearances    BatchItem[]  @relation("BatchItemCandidate")
-  wavesSent           Wave[]       @relation("WaveSender")
-  wavesReceived       Wave[]       @relation("WaveRecipient")
-  matchesAsUserA      Match[]      @relation("MatchUserA")
-  matchesAsUserB      Match[]      @relation("MatchUserB")
-  messagesSent        Message[]    @relation("MessageSender")
-  reportsFiled              Report[]           @relation("ReportReporter")
-  reportsAgainst            Report[]           @relation("ReportTarget")
-  moderationActionsTaken    ModerationAction[] @relation("ModerationActionActor")
-  moderationActionsReceived ModerationAction[] @relation("ModerationActionTarget")
+  sessions                  Session[]
+  accounts                  Account[]
+  consents                  Consent[]
+  auditLogEntries           AuditLog[]
+  referralsAsReferrer       Referral[]            @relation("ReferrerUser")
+  referralAsReferred        Referral?             @relation("ReferredUser")
+  profile                   Profile?
+  selfies                   Selfie[]              @relation("SelfieOwner")
+  selfieDecisions           Selfie[]              @relation("SelfieDecidedBy")
+  blocksMade                Block[]               @relation("BlockerUser")
+  blocksReceived            Block[]               @relation("BlockedUser")
+  hideRulesOwned            HideRule[]            @relation("HideRuleOwner")
+  hideRulesTargeting        HideRule[]            @relation("HideRuleTarget")
+  dailyBatches              DailyBatch[]
+  batchAppearances          BatchItem[]           @relation("BatchItemCandidate")
+  wavesSent                 Wave[]                @relation("WaveSender")
+  wavesReceived             Wave[]                @relation("WaveRecipient")
+  matchesAsUserA            Match[]               @relation("MatchUserA")
+  matchesAsUserB            Match[]               @relation("MatchUserB")
+  messagesSent              Message[]             @relation("MessageSender")
+  reportsFiled              Report[]              @relation("ReportReporter")
+  reportsAgainst            Report[]              @relation("ReportTarget")
+  moderationActionsTaken    ModerationAction[]    @relation("ModerationActionActor")
+  moderationActionsReceived ModerationAction[]    @relation("ModerationActionTarget")
   meetProposalsMade         MeetProposal[]        @relation("MeetProposalProposedBy")
   meetupFeedbackEntries     MeetupFeedbackEntry[]
   notifications             Notification[]
+  pushSubscriptions         PushSubscription[]
   dataRequests              DataRequest[]
   eventsOrganized           Event[]               @relation("EventOrganizer")
   eventRsvps                EventRsvp[]
@@ -493,9 +494,9 @@ model Spot {
   searchText  String
   active      Boolean  @default(true)
 
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  optedIn   ProfileSpot[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  optedIn       ProfileSpot[]
   meetProposals MeetProposal[]
   events        Event[]
 
@@ -887,7 +888,7 @@ model DailyBatch {
   id String @id @default(uuid())
 
   userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   intent IntentMode
 
   /// Calendar date only (Asia/Seoul), not a timestamp — "one batch per day" per §5.3.
@@ -980,8 +981,8 @@ model Wave {
   /// recipient's UI (S14) can render it in either locale without a backfill.
   targetElement Json
   /// ≤140 chars, optional (src/server/picks/schema.ts, src/server/waves/schema.ts).
-  note   String?
-  status WaveStatus @default(PENDING)
+  note          String?
+  status        WaveStatus @default(PENDING)
 
   createdAt DateTime @default(now())
 
@@ -1011,7 +1012,7 @@ model Match {
   userBId String
   userB   User   @relation("MatchUserB", fields: [userBId], references: [id], onDelete: Cascade)
 
-  status MatchStatus @default(ACTIVE)
+  status            MatchStatus @default(ACTIVE)
   /// Always equal to userAId or userBId — not its own relation, since Match already
   /// cascades on either matched user's own deletion.
   unmatchedByUserId String?
@@ -1019,8 +1020,8 @@ model Match {
 
   createdAt DateTime @default(now())
 
-  conversation   Conversation?
-  meetProposals  MeetProposal[]
+  conversation  Conversation?
+  meetProposals MeetProposal[]
 
   @@unique([userAId, userBId])
   @@map("matches")
@@ -1043,18 +1044,18 @@ model Conversation {
   matchId String @unique
   match   Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
 
-  status ConversationStatus @default(ACTIVE)
+  status        ConversationStatus @default(ACTIVE)
   /// The last message's `createdAt`, or this row's own `createdAt` if none have been
   /// sent yet — the "silent for N" clock `src/server/chat/lifecycle.ts`'s nudge/expiry
   /// jobs measure against. Reset (and `nudgedAt` cleared) on every new message.
-  lastMessageAt DateTime @default(now())
+  lastMessageAt DateTime           @default(now())
   /// Set once the 72h-silent nudge job actually sends one (D5) — cleared again on the
   /// next message, so a later silent period can nudge again.
-  nudgedAt DateTime?
+  nudgedAt      DateTime?
   /// Set once EXPIRED (7 days silent, D5). D5's "one revive": the revive action refuses
   /// once this is already non-null.
-  revivedAt DateTime?
-  expiredAt DateTime?
+  revivedAt     DateTime?
+  expiredAt     DateTime?
 
   createdAt DateTime @default(now())
 
@@ -1449,4 +1450,24 @@ model EventConnect {
   @@unique([eventId, fromUserId, toUserId])
   @@index([toUserId])
   @@map("event_connects")
+}
+
+/// Month-2 #7 web push: one row per browser/device the user turned push on for.
+/// Subscribing is the opt-in; removing the row (turning it off, a 404/410 from the push
+/// service, or an account deletion request) stops it. Push payloads carry only the
+/// generic notification template, never names, wave notes or chat text.
+model PushSubscription {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  endpoint String @unique
+  p256dh   String
+  auth     String
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("push_subscriptions")
 }

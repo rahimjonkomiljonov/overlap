@@ -72,6 +72,8 @@ jobs:
       CRON_SECRET: ci-only-dummy-cron-secret-0000000000000000
       BETTER_AUTH_SECRET: ci-only-dummy-better-auth-secret-000000000000000000000000
       BETTER_AUTH_URL: http://localhost:3000
+      # Public half only (non-secret) so e2e/push.spec.ts can subscribe; no private key, so nothing is ever sent.
+      VAPID_PUBLIC_KEY: BBjIhML48Vg0CfNM_LjVGLvmZ8CJyuUyMl2nWuyv4-naQqbguVJ8LepCn5eW5L-gHyGzqrSSWkqNAB-PRSxf1x0
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6

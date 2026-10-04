@@ -126,7 +126,8 @@
     "privacyTitle": "개인정보",
     "privacyCta": "개인정보 설정으로 이동",
     "matchingTitle": "추천 기준",
-    "matchingCta": "나에게 중요한 것 조정하기"
+    "matchingCta": "나에게 중요한 것 조정하기",
+    "notificationsTitle": "알림"
   },
   "States": {
     "loading": "불러오는 중",
@@ -1158,6 +1159,22 @@
       "UNAUTHENTICATED": "다시 로그인해 주세요.",
       "INVALID_INPUT": "값을 다시 확인해 주세요.",
       "NO_PROFILE": "프로필을 먼저 완성해 주세요."
+    }
+  },
+  "Push": {
+    "label": "이 기기로 푸시 알림 받기",
+    "hint": "매치, 웨이브, 읽지 않은 메시지를 알려 드려요. 이름이나 메시지 내용은 보내지 않아요. 밤 9시부터 아침 8시까지는 보내지 않아요.",
+    "turnOn": "켜기",
+    "turnOff": "끄기",
+    "onStatus": "이 기기에서 푸시 알림이 켜져 있어요.",
+    "unsupported": "이 브라우저는 푸시 알림을 지원하지 않아요. 휴대폰에서는 홈 화면에 추가한 뒤 사용해 주세요.",
+    "unconfigured": "푸시 알림은 아직 준비 중이에요. 그동안은 이메일로 알려 드려요.",
+    "denied": "브라우저에서 알림이 차단되어 있어요. 브라우저 설정에서 허용한 뒤 다시 시도해 주세요.",
+    "errors": {
+      "UNAUTHENTICATED": "다시 로그인해 주세요.",
+      "RATE_LIMITED": "잠시 후 다시 시도해 주세요.",
+      "INVALID_INPUT": "알림을 켜지 못했어요. 다시 시도해 주세요.",
+      "SUBSCRIBE_FAILED": "알림을 켜지 못했어요. 다시 시도해 주세요."
     }
   }
 }

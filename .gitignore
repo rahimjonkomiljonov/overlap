@@ -65,3 +65,6 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# dev-only web push outbox (src/server/push/send.ts) when VAPID keys are unset
+/.dev-push.jsonl

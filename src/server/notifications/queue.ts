@@ -1,6 +1,7 @@
 import type { NotificationType, PrismaClient } from "@/generated/prisma/client";
 import { sendEmail } from "@/server/email/send";
 import { isSeoulQuietHours } from "@/server/matching/seoul-date";
+import { sendPush } from "@/server/push/send";
 import { type NotificationLocale, renderNotificationEmail } from "./templates";
 
 export type EnqueueNotificationDb = Pick<PrismaClient, "notification">;
@@ -23,7 +24,18 @@ export async function enqueueNotification(
   });
 }
 
-export type ProcessQueueDb = Pick<PrismaClient, "notification" | "message">;
+export type ProcessQueueDb = Pick<PrismaClient, "notification" | "message" | "pushSubscription">;
+
+/** Where tapping a push notification lands, per type; English lives under /en. */
+const PUSH_PATHS: Record<NotificationType, string> = {
+  MATCH: "/matches",
+  WAVE_RECEIVED: "/waves",
+  UNREAD_MESSAGE: "/matches",
+};
+
+function pushUrl(type: NotificationType, locale: NotificationLocale): string {
+  return locale === "en" ? `/en${PUSH_PATHS[type]}` : PUSH_PATHS[type];
+}
 
 interface UnreadMessageData {
   conversationId: string;
@@ -39,23 +51,27 @@ interface UnreadMessageData {
  */
 export async function processQueuedNotifications(
   db: ProcessQueueDb,
-  options: { now?: Date; sendEmail?: typeof sendEmail } = {},
-): Promise<{ sent: number; skipped: number; deferred: boolean }> {
+  options: { now?: Date; sendEmail?: typeof sendEmail; sendPush?: typeof sendPush } = {},
+): Promise<{ sent: number; skipped: number; deferred: boolean; pushed: number }> {
   const now = options.now ?? new Date();
   const send = options.sendEmail ?? sendEmail;
+  const push = options.sendPush ?? sendPush;
 
   if (isSeoulQuietHours(now)) {
-    return { sent: 0, skipped: 0, deferred: true };
+    return { sent: 0, skipped: 0, deferred: true, pushed: 0 };
   }
 
   const queued = await db.notification.findMany({
     where: { status: "QUEUED" },
     orderBy: { createdAt: "asc" },
-    include: { user: { select: { email: true } } },
+    include: {
+      user: { select: { email: true, pushSubscriptions: { select: { endpoint: true, p256dh: true, auth: true } } } },
+    },
   });
 
   let sent = 0;
   let skipped = 0;
+  let pushed = 0;
 
   for (const notification of queued) {
     if (notification.type === "UNREAD_MESSAGE") {
@@ -71,13 +87,25 @@ export async function processQueuedNotifications(
       }
     }
 
-    const { subject, text } = renderNotificationEmail(notification.type, notification.locale as NotificationLocale);
+    const locale = notification.locale as NotificationLocale;
+    const { subject, text } = renderNotificationEmail(notification.type, locale);
     await send({ to: notification.user.email, subject, text });
+
+    // Same quiet hours and the same generic text as the email; a push failure never
+    // holds back the email or the rest of the queue.
+    for (const subscription of notification.user.pushSubscriptions ?? []) {
+      const result = await push(subscription, { title: subject, body: text, url: pushUrl(notification.type, locale) });
+      if (result === "sent" || result === "logged") pushed++;
+      if (result === "gone") {
+        await db.pushSubscription.deleteMany({ where: { endpoint: subscription.endpoint } });
+      }
+    }
+
     await db.notification.update({ where: { id: notification.id }, data: { status: "SENT", sentAt: now } });
     sent++;
   }
 
-  return { sent, skipped, deferred: false };
+  return { sent, skipped, deferred: false, pushed };
 }
 
 /**

@@ -13,6 +13,7 @@ interface FakeNotificationRow {
   createdAt: Date;
   data: unknown;
   email: string;
+  pushSubscriptions?: { endpoint: string; p256dh: string; auth: string }[];
 }
 
 interface FakeMessageRow {
@@ -25,13 +26,14 @@ interface FakeMessageRow {
 function fakeDb(notifications: FakeNotificationRow[], messages: FakeMessageRow[] = []) {
   let nextId = notifications.length;
   const updates: { id: string; data: Record<string, unknown> }[] = [];
+  const deletedEndpoints: string[] = [];
 
   const db: ProcessQueueDb & { notification: { upsert: (args: never) => Promise<unknown> } } = {
     notification: {
       findMany: async ({ where }: { where: { status: string } }) =>
         notifications
           .filter((n) => n.status === where.status)
-          .map((n) => ({ ...n, user: { email: n.email } })),
+          .map((n) => ({ ...n, user: { email: n.email, pushSubscriptions: n.pushSubscriptions ?? [] } })),
       update: async ({ where, data }: { where: { id: string }; data: Record<string, unknown> }) => {
         updates.push({ id: where.id, data });
         const row = notifications.find((n) => n.id === where.id);
@@ -84,8 +86,15 @@ function fakeDb(notifications: FakeNotificationRow[], messages: FakeMessageRow[]
       },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any,
+    pushSubscription: {
+      deleteMany: async ({ where }: { where: { endpoint: string } }) => {
+        deletedEndpoints.push(where.endpoint);
+        return { count: 1 };
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any,
   };
-  return { db, updates, notifications };
+  return { db, updates, notifications, deletedEndpoints };
 }
 
 function row(overrides: Partial<FakeNotificationRow> & { id: string }): FakeNotificationRow {
@@ -130,7 +139,7 @@ describe("processQueuedNotifications", () => {
       now: QUIET,
       sendEmail: async ({ to }) => void sent.push(to),
     });
-    expect(result).toEqual({ sent: 0, skipped: 0, deferred: true });
+    expect(result).toEqual({ sent: 0, skipped: 0, deferred: true, pushed: 0 });
     expect(sent).toEqual([]);
     expect(notifications[0].status).toBe("QUEUED");
   });
@@ -142,7 +151,7 @@ describe("processQueuedNotifications", () => {
       now: DAYTIME,
       sendEmail: async ({ to, subject }) => void sent.push({ to, subject }),
     });
-    expect(result).toEqual({ sent: 1, skipped: 0, deferred: false });
+    expect(result).toEqual({ sent: 1, skipped: 0, deferred: false, pushed: 0 });
     expect(sent).toHaveLength(1);
     expect(sent[0].to).toBe("a@test.ac.kr");
     expect(notifications[0].status).toBe("SENT");
@@ -153,7 +162,7 @@ describe("processQueuedNotifications", () => {
     const { db } = fakeDb([row({ id: "n1", status: "SENT" }), row({ id: "n2", status: "SKIPPED" })]);
     let calls = 0;
     const result = await processQueuedNotifications(db, { now: DAYTIME, sendEmail: async () => void calls++ });
-    expect(result).toEqual({ sent: 0, skipped: 0, deferred: false });
+    expect(result).toEqual({ sent: 0, skipped: 0, deferred: false, pushed: 0 });
     expect(calls).toBe(0);
   });
 
@@ -171,7 +180,7 @@ describe("processQueuedNotifications", () => {
     );
     let calls = 0;
     const result = await processQueuedNotifications(db, { now: DAYTIME, sendEmail: async () => void calls++ });
-    expect(result).toEqual({ sent: 1, skipped: 0, deferred: false });
+    expect(result).toEqual({ sent: 1, skipped: 0, deferred: false, pushed: 0 });
     expect(notifications[0].status).toBe("SENT");
   });
 
@@ -192,9 +201,102 @@ describe("processQueuedNotifications", () => {
     );
     let calls = 0;
     const result = await processQueuedNotifications(db, { now: DAYTIME, sendEmail: async () => void calls++ });
-    expect(result).toEqual({ sent: 0, skipped: 1, deferred: false });
+    expect(result).toEqual({ sent: 0, skipped: 1, deferred: false, pushed: 0 });
     expect(calls).toBe(0);
     expect(notifications[0].status).toBe("SKIPPED");
+  });
+});
+
+describe("processQueuedNotifications web push (Month-2 #7)", () => {
+  const subA = { endpoint: "https://push.example/a", p256dh: "pa", auth: "aa" };
+  const subB = { endpoint: "https://push.example/b", p256dh: "pb", auth: "ab" };
+
+  it("pushes the same generic template to every subscription, linking to the locale's page", async () => {
+    const { db } = fakeDb([
+      row({ id: "n1", type: "WAVE_RECEIVED", locale: "en", pushSubscriptions: [subA, subB] }),
+    ]);
+    const pushes: { endpoint: string; title: string; body: string; url: string }[] = [];
+    const result = await processQueuedNotifications(db, {
+      now: DAYTIME,
+      sendEmail: async () => {},
+      sendPush: async (target, payload) => {
+        pushes.push({ endpoint: target.endpoint, ...payload });
+        return "sent";
+      },
+    });
+    expect(result).toEqual({ sent: 1, skipped: 0, deferred: false, pushed: 2 });
+    expect(pushes.map((p) => p.endpoint)).toEqual([subA.endpoint, subB.endpoint]);
+    expect(pushes[0]).toMatchObject({
+      title: "You received a wave on Overlap",
+      body: "Someone sent you a wave. Open Overlap to see who it is.",
+      url: "/en/waves",
+    });
+  });
+
+  it("uses the unprefixed path for Korean", async () => {
+    const { db } = fakeDb([row({ id: "n1", type: "MATCH", locale: "ko", pushSubscriptions: [subA] })]);
+    const urls: string[] = [];
+    await processQueuedNotifications(db, {
+      now: DAYTIME,
+      sendEmail: async () => {},
+      sendPush: async (_t, payload) => {
+        urls.push(payload.url);
+        return "logged";
+      },
+    });
+    expect(urls).toEqual(["/matches"]);
+  });
+
+  it("deletes a subscription the push service reports gone, and keeps going after a failure", async () => {
+    const { db, notifications, deletedEndpoints } = fakeDb([
+      row({ id: "n1", pushSubscriptions: [subA, subB] }),
+      row({ id: "n2", userId: "u2", email: "u2@test.ac.kr" }),
+    ]);
+    let emails = 0;
+    const result = await processQueuedNotifications(db, {
+      now: DAYTIME,
+      sendEmail: async () => void emails++,
+      sendPush: async (target) => (target.endpoint === subA.endpoint ? "gone" : "failed"),
+    });
+    expect(deletedEndpoints).toEqual([subA.endpoint]);
+    expect(emails).toBe(2);
+    expect(result).toEqual({ sent: 2, skipped: 0, deferred: false, pushed: 0 });
+    expect(notifications.every((n) => n.status === "SENT")).toBe(true);
+  });
+
+  it("pushes nothing during quiet hours", async () => {
+    const { db } = fakeDb([row({ id: "n1", pushSubscriptions: [subA] })]);
+    let pushes = 0;
+    await processQueuedNotifications(db, {
+      now: QUIET,
+      sendEmail: async () => {},
+      sendPush: async () => {
+        pushes++;
+        return "sent";
+      },
+    });
+    expect(pushes).toBe(0);
+  });
+
+  it("never puts a name, note or message text in the push, only the template", async () => {
+    const { db } = fakeDb([
+      row({
+        id: "n1",
+        type: "UNREAD_MESSAGE",
+        data: null,
+        pushSubscriptions: [subA],
+      }),
+    ]);
+    const payloads: string[] = [];
+    await processQueuedNotifications(db, {
+      now: DAYTIME,
+      sendEmail: async () => {},
+      sendPush: async (_t, payload) => {
+        payloads.push(JSON.stringify(payload));
+        return "sent";
+      },
+    });
+    expect(Object.keys(JSON.parse(payloads[0])).sort()).toEqual(["body", "title", "url"]);
   });
 });
 
@@ -209,7 +311,7 @@ describe("processQueuedNotifications with the real sendEmail (dev outbox, local-
 
       const result = await processQueuedNotifications(db, { now: DAYTIME });
 
-      expect(result).toEqual({ sent: 1, skipped: 0, deferred: false });
+      expect(result).toEqual({ sent: 1, skipped: 0, deferred: false, pushed: 0 });
       // readLastEmail's own poll loop defaults to a 5s budget, which a real CI runner
       // (slower than this sandbox — first seen in S22) can exceed even though the write
       // itself is fast; the *outer* vitest test timeout was the wrong thing to bump
@@ -229,7 +331,7 @@ describe("processQueuedNotifications with the real sendEmail (dev outbox, local-
 
     const result = await processQueuedNotifications(db, { now: QUIET });
 
-    expect(result).toEqual({ sent: 0, skipped: 0, deferred: true });
+    expect(result).toEqual({ sent: 0, skipped: 0, deferred: true, pushed: 0 });
     expect(notifications[0].status).toBe("QUEUED");
     const entry = await readLastEmail(to, { after, timeoutMs: 500 });
     expect(entry).toBeNull();

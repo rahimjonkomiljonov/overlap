@@ -65,6 +65,7 @@ export async function buildUserDataExport(db: ExportDb, userId: string) {
         select: { category: true, status: true, description: true, createdAt: true, resolvedAt: true },
       },
       notifications: { select: { type: true, status: true, createdAt: true, sentAt: true } },
+      pushSubscriptions: { select: { endpoint: true, createdAt: true } },
       dataRequests: { select: { type: true, status: true, createdAt: true, dueAt: true, completedAt: true } },
       meetProposalsMade: {
         select: { day: true, block: true, scheduledStart: true, scheduledEnd: true, status: true, createdAt: true },
@@ -95,6 +96,7 @@ export async function buildUserDataExport(db: ExportDb, userId: string) {
     messagesSent: user.messagesSent,
     reportsFiled: user.reportsFiled,
     notifications: user.notifications,
+    pushSubscriptions: user.pushSubscriptions,
     meetProposalsMade: user.meetProposalsMade,
     dataRequests: user.dataRequests,
   };

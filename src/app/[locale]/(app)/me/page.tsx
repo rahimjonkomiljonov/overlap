@@ -1,5 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageHeader } from "@/components/states/page-header";
+import { PushToggle } from "@/components/push/push-toggle";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { signOutEverywhere } from "@/server/auth/actions";
 import { getActor } from "@/server/auth/session";
 import { getDatingStatus } from "@/server/cohorts/release";
 import { prisma } from "@/server/db";
+import { getVapidPublicKey } from "@/server/push/send";
 import { getMyVerificationStatus } from "@/server/verification/queries";
 
 export default async function MePage({ params }: PageProps<"/[locale]/me">) {
@@ -72,6 +74,14 @@ export default async function MePage({ params }: PageProps<"/[locale]/me">) {
               {t("signOutEverywhere")}
             </Button>
           </form>
+        </CardContent>
+      </Card>
+      <Card className="mt-4">
+        <CardHeader>
+          <CardTitle>{t("notificationsTitle")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PushToggle vapidPublicKey={getVapidPublicKey()} />
         </CardContent>
       </Card>
       <Card className="mt-4">

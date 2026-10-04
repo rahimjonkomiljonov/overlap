@@ -126,7 +126,8 @@
     "privacyTitle": "Privacy",
     "privacyCta": "Go to privacy settings",
     "matchingTitle": "Pick preferences",
-    "matchingCta": "Adjust what matters to me"
+    "matchingCta": "Adjust what matters to me",
+    "notificationsTitle": "Notifications"
   },
   "States": {
     "loading": "Loading",
@@ -1158,6 +1159,22 @@
       "UNAUTHENTICATED": "Please sign in again.",
       "INVALID_INPUT": "Please check the values and try again.",
       "NO_PROFILE": "Please finish your profile first."
+    }
+  },
+  "Push": {
+    "label": "Push notifications on this device",
+    "hint": "We'll let you know about matches, waves and unread messages, without names or message text. Nothing is sent between 9pm and 8am.",
+    "turnOn": "Turn on",
+    "turnOff": "Turn off",
+    "onStatus": "Push notifications are on for this device.",
+    "unsupported": "This browser doesn't support push notifications. On a phone, add Overlap to your home screen first.",
+    "unconfigured": "Push notifications aren't ready yet. We'll email you in the meantime.",
+    "denied": "Notifications are blocked in this browser. Allow them in your browser settings, then try again.",
+    "errors": {
+      "UNAUTHENTICATED": "Please sign in again.",
+      "RATE_LIMITED": "Please try again in a moment.",
+      "INVALID_INPUT": "Couldn't turn on notifications. Please try again.",
+      "SUBSCRIBE_FAILED": "Couldn't turn on notifications. Please try again."
     }
   }
 }

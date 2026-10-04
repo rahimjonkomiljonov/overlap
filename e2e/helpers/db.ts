@@ -401,3 +401,12 @@ export async function seedEarlierPass(viewerEmail: string, candidateEmail: strin
     [randomUUID(), batchId, candidateEmail.toLowerCase()],
   );
 }
+
+/** Month-2 #7: how many push subscriptions a user has saved. */
+export async function countPushSubscriptions(email: string): Promise<number> {
+  const result = await pool.query(
+    'SELECT COUNT(*)::int AS n FROM push_subscriptions WHERE "userId" = (SELECT id FROM users WHERE email = $1)',
+    [email.toLowerCase()],
+  );
+  return result.rows[0].n as number;
+}
