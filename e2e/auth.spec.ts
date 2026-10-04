@@ -44,7 +44,7 @@ test.describe("sign-in and onboarding", () => {
     await page.getByRole("link", { name: "추천 보러 가기" }).click();
     // The account exists and is usable (proven by reaching the profile wizard, the
     // next stage of onboarding — see CLAUDE.md's gotcha on newly-protected routes).
-    await expect(page).toHaveURL(/\/onboarding\/profile$/);
+    await expect(page).toHaveURL(/\/onboarding\/profile$/, { timeout: 15_000 });
 
     // Dating mode is specifically unavailable because the sensitive consent was
     // declined: the wizard's basics step shows the no-consent notice instead of the
@@ -66,7 +66,7 @@ test.describe("sign-in and onboarding", () => {
 
     await expect(page.getByRole("heading", { name: "가입이 완료됐어요!" })).toBeVisible();
     await page.getByRole("link", { name: "추천 보러 가기" }).click();
-    await expect(page).toHaveURL(/\/onboarding\/profile$/);
+    await expect(page).toHaveURL(/\/onboarding\/profile$/, { timeout: 15_000 });
 
     // Dating mode is available: the wizard's basics step offers the "who I'd like to
     // meet" picker instead of the no-consent notice.

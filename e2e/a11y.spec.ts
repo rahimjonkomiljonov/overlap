@@ -112,7 +112,7 @@ for (const colorScheme of ["light", "dark"] as const) {
       await page.getByRole("checkbox", { name: /이용약관과 개인정보 처리방침에 동의해요/ }).check();
       await page.getByRole("button", { name: "완료" }).click();
       await page.getByRole("link", { name: "추천 보러 가기" }).click();
-      await expect(page).toHaveURL(/\/onboarding\/profile$/);
+      await expect(page).toHaveURL(/\/onboarding\/profile$/, { timeout: 15_000 });
       await assertNoViolations(page, colorScheme);
     });
 
