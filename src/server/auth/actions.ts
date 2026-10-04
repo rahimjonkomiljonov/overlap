@@ -2,6 +2,7 @@
 
 import { headers } from "next/headers";
 import { ConsentType } from "@/generated/prisma/enums";
+import { getDatingStatus, isCohortReleaseEnabled, redeemInviteCode } from "@/server/cohorts/release";
 import { recordConsent } from "@/server/consent/consent";
 import { prisma } from "@/server/db";
 import { auth } from "./auth";
@@ -38,6 +39,7 @@ export type OnboardingState =
         | "IMPLAUSIBLE_YEAR"
         | "NOT_ATTESTED"
         | "TOO_YOUNG"
+        | "INVALID_INVITE"
         | "UNKNOWN";
     };
 
@@ -127,9 +129,24 @@ export async function completeOnboarding(
   }
 
   const sensitiveGranted = parsed.data.sensitivePreference === "on";
+  const cohortRelease = isCohortReleaseEnabled();
+  if (cohortRelease && !parsed.data.inviteCode) {
+    return { status: "error", code: "INVALID_INVITE" };
+  }
 
-  await prisma.$transaction(async (tx) => {
-    await tx.user.update({
+  try {
+    await prisma.$transaction(async (tx) => {
+      // Redeemed first and in the same transaction: a bad code leaves the account
+      // exactly as it was, with no consents recorded and no campus set.
+      if (cohortRelease) {
+        const redeemed = await redeemInviteCode(tx, {
+          userId: actor.userId,
+          campusId: campus.id,
+          code: parsed.data.inviteCode!,
+        });
+        if (!redeemed) throw new InvalidInviteError();
+      }
+      await tx.user.update({
       where: { id: actor.userId },
       data: {
         campusId: campus.id,
@@ -155,10 +172,17 @@ export async function completeOnboarding(
       granted: sensitiveGranted,
       source: "onboarding",
     });
-  });
+    });
+  } catch (error) {
+    if (error instanceof InvalidInviteError) return { status: "error", code: "INVALID_INVITE" };
+    throw error;
+  }
 
-  return { status: "complete", datingAvailable: sensitiveGranted };
+  const datingStatus = await getDatingStatus(prisma, actor.userId, { cohortRelease });
+  return { status: "complete", datingAvailable: datingStatus === "available" };
 }
+
+class InvalidInviteError extends Error {}
 
 export async function signOutEverywhere(): Promise<void> {
   await auth.api.revokeSessions({ headers: await headers() });

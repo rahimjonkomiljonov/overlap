@@ -2,7 +2,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Logo } from "@/components/logo";
 import { redirect } from "@/i18n/navigation";
 import { getActor, needsOnboarding } from "@/server/auth/session";
-import { canUseDatingMode } from "@/server/consent/consent";
+import { getDatingStatus } from "@/server/cohorts/release";
 import { prisma } from "@/server/db";
 import { getMissingRequiredSteps, getWizardState } from "@/server/profile/queries";
 import { VALUES_QUIZ_ITEMS } from "@/server/profile/values-quiz";
@@ -25,9 +25,9 @@ export default async function ProfileOnboardingPage({
     return;
   }
 
-  const [wizardState, canUseDating, promptLibrary, missing] = await Promise.all([
+  const [wizardState, datingStatus, promptLibrary, missing] = await Promise.all([
     getWizardState(actor.userId),
-    canUseDatingMode(prisma, actor.userId),
+    getDatingStatus(prisma, actor.userId),
     prisma.prompt.findMany({
       where: { active: true },
       orderBy: { sortOrder: "asc" },
@@ -45,7 +45,7 @@ export default async function ProfileOnboardingPage({
       <ProfileWizard
         initial={wizardState}
         locale={locale}
-        canUseDating={canUseDating}
+        datingStatus={datingStatus}
         valuesQuizItems={[...VALUES_QUIZ_ITEMS]}
         promptLibrary={promptLibrary}
         missing={missing}

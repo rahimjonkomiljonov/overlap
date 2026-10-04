@@ -79,6 +79,8 @@ Build it step by step from `docs/BUILD_PLAN.md`. The full product spec is `docs/
 - **E2E hydration and two-user races (2026-10-04):** a server-rendered button is visible before React attaches its handler, and a click on it then is silently dropped. Navigate with `gotoHydrated()` and click action buttons inside nested client components with `clickHydrated()` (`e2e/helpers/hydration.ts`). When user B acts and user A then reads, wait for B's own success state first (meetup decline, `/plan` proposal). The suite default timeout is 90s because onboarding uploads three photos to real Supabase Storage (~15-20s per user).
 - `ensureTodaysBatchForUser` is check-then-insert, so two concurrent `/picks` renders can race on the `(userId, intent, batchDate)` unique key. `persistBatch` treats that P2002 as success (fixed 2026-10-04); keep any new "create today's X if missing" path idempotent the same way.
 
+- **Cohort release (S26 prep, 2026-10-04)** is behind `COHORT_RELEASE=on`, off by default. "Can this user use Dating?" has one answer, `getDatingStatus()` (`src/server/cohorts/release.ts`): `needs_consent` (the user's choice), `cohort_closed` (the launch's density gate), or `available`. Storing "who I'd like to meet" stays consent-only (`canUseDatingMode`), so a closed cohort can still fill it in ahead of time. `e2e/cohort-release.spec.ts` skips itself unless the flag is on, and it needs a fresh server started with the flag (`reuseExistingServer` would pick up one without it). Launch steps: `docs/deploy-runbook.md` (S24), `docs/go-no-go.md` (S25), `docs/launch-runbook.md` (S26).
+
 ## Commands
 
 - `npm run dev` starts the app, `npm run check` runs lint, typecheck and unit tests, `npm run e2e` runs Playwright.

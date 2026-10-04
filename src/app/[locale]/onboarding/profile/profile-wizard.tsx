@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { DatingStatus } from "@/server/cohorts/release";
 import type { WizardState } from "@/server/profile/queries";
 import type { ValuesQuizItem } from "@/server/profile/values-quiz";
 import { BasicsStep } from "./steps/basics-step";
@@ -27,14 +28,14 @@ export const TOTAL_STEPS = 11;
 export function ProfileWizard({
   initial,
   locale,
-  canUseDating,
+  datingStatus,
   valuesQuizItems,
   promptLibrary,
   missing,
 }: {
   initial: WizardState;
   locale: string;
-  canUseDating: boolean;
+  datingStatus: DatingStatus;
   valuesQuizItems: ValuesQuizItem[];
   promptLibrary: { id: string; textKo: string; textEn: string }[];
   missing: string[];
@@ -53,7 +54,9 @@ export function ProfileWizard({
           stepIndex={step}
           totalSteps={TOTAL_STEPS}
           onNext={next}
-          canUseDating={canUseDating}
+          // "Who I'd like to meet" depends on the sensitive consent only, so people in a
+          // cohort that hasn't opened Dating yet can still fill it in ahead of time.
+          canUseDating={datingStatus !== "needs_consent"}
           initial={initial}
         />
       );
@@ -64,7 +67,7 @@ export function ProfileWizard({
           totalSteps={TOTAL_STEPS}
           onNext={next}
           onBack={back}
-          canUseDating={canUseDating}
+          datingStatus={datingStatus}
           initialIntents={initial.intents}
         />
       );

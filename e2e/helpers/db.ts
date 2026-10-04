@@ -326,3 +326,33 @@ export async function createIncomingWave(fromEmail: string, toEmail: string): Pr
     ],
   );
 }
+
+/**
+ * S26 cohort release: a throwaway cohort on the test.ac.kr campus with one fresh invite
+ * code. Pair with `deleteTestCohort` (after deleting the users in it).
+ */
+export async function createTestCohort(): Promise<{ cohortId: string; code: string }> {
+  const cohortId = randomUUID();
+  const code = `E2E${randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase()}`;
+  await pool.query(
+    `INSERT INTO cohorts (id, "campusId", name, "datingOpen")
+     SELECT $1, "campusId", $2, false FROM email_domains WHERE domain = 'test.ac.kr'`,
+    [cohortId, `e2e-${cohortId}`],
+  );
+  await pool.query(
+    `INSERT INTO invite_codes (id, "cohortId", code, "maxUses", "useCount") VALUES ($1, $2, $3, 1, 0)`,
+    [randomUUID(), cohortId, code],
+  );
+  return { cohortId, code };
+}
+
+export async function getInviteUseCount(code: string): Promise<number> {
+  const result = await pool.query('SELECT "useCount" FROM invite_codes WHERE code = $1', [code]);
+  return result.rows[0]?.useCount ?? -1;
+}
+
+export async function deleteTestCohort(cohortId: string): Promise<void> {
+  await pool.query('UPDATE users SET "cohortId" = NULL WHERE "cohortId" = $1', [cohortId]);
+  await pool.query('DELETE FROM invite_codes WHERE "cohortId" = $1', [cohortId]);
+  await pool.query("DELETE FROM cohorts WHERE id = $1", [cohortId]);
+}

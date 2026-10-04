@@ -15,4 +15,6 @@ export const onboardingSchema = z.object({
   termsPrivacy: z.literal("on", { error: "You must agree to the Terms and Privacy Policy." }),
   // A checked HTML checkbox submits "on"; an unchecked one omits the field entirely.
   sensitivePreference: z.literal("on").optional(),
+  // Required only when cohort release is on (checked in completeOnboarding).
+  inviteCode: z.string().trim().max(32).optional(),
 });

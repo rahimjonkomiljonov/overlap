@@ -3,6 +3,7 @@
 import { IntentMode } from "@/generated/prisma/enums";
 import { checkRateLimit } from "@/server/auth/rate-limit";
 import { getActor } from "@/server/auth/session";
+import { getDatingStatus } from "@/server/cohorts/release";
 import { canUseDatingMode } from "@/server/consent/consent";
 import { prisma } from "@/server/db";
 import { encryptField } from "@/server/privacy/encryption";
@@ -111,8 +112,10 @@ export async function saveIntents(_prev: StepState, formData: FormData): Promise
   const parsed = intentsSchema.safeParse({ intents: formData.getAll("intents") });
   if (!parsed.success) return { status: "error", code: "INVALID_INPUT" };
 
-  if (parsed.data.intents.includes(IntentMode.DATING) && !(await canUseDatingMode(prisma, actor.userId))) {
-    return { status: "error", code: "DATING_REQUIRES_CONSENT" };
+  if (parsed.data.intents.includes(IntentMode.DATING)) {
+    const datingStatus = await getDatingStatus(prisma, actor.userId);
+    if (datingStatus === "needs_consent") return { status: "error", code: "DATING_REQUIRES_CONSENT" };
+    if (datingStatus === "cohort_closed") return { status: "error", code: "DATING_NOT_OPEN" };
   }
 
   const profile = await ensureProfile(actor.userId);

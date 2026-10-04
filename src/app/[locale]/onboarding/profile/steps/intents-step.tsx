@@ -4,6 +4,7 @@ import { useActionState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { IntentMode } from "@/generated/prisma/enums";
 import { Checkbox } from "@/components/ui/checkbox";
+import type { DatingStatus } from "@/server/cohorts/release";
 import { saveIntents, type StepState } from "@/server/profile/actions";
 import { StepShell } from "./step-shell";
 
@@ -16,14 +17,14 @@ export function IntentsStep({
   totalSteps,
   onNext,
   onBack,
-  canUseDating,
+  datingStatus,
   initialIntents,
 }: {
   stepIndex: number;
   totalSteps: number;
   onNext: () => void;
   onBack: () => void;
-  canUseDating: boolean;
+  datingStatus: DatingStatus;
   initialIntents: string[];
 }) {
   const t = useTranslations("ProfileOnboarding");
@@ -49,7 +50,7 @@ export function IntentsStep({
     >
       <fieldset className="space-y-1">
         {INTENTS.map((intent) => {
-          const locked = intent === IntentMode.DATING && !canUseDating;
+          const locked = intent === IntentMode.DATING && datingStatus !== "available";
           return (
             <label
               key={intent}
@@ -59,7 +60,15 @@ export function IntentsStep({
               <Checkbox name="intents" value={intent} defaultChecked={initialIntents.includes(intent)} disabled={locked} />
               <span>
                 {t(`intents.option_${intent}` as never)}
-                {locked && <span className="block text-xs text-muted-foreground">{t("intents.datingLocked")}</span>}
+                {locked && (
+                  <span className="block text-xs text-muted-foreground">
+                    {t(
+                      datingStatus === "cohort_closed"
+                        ? "intents.datingCohortClosed"
+                        : "intents.datingLocked",
+                    )}
+                  </span>
+                )}
               </span>
             </label>
           );

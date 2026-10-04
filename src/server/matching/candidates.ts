@@ -1,5 +1,6 @@
 import { Gender, IntentMode, UserStatus } from "@/generated/prisma/enums";
 import type { PrismaClient } from "@/generated/prisma/client";
+import { isCohortReleaseEnabled } from "@/server/cohorts/release";
 import { decryptField } from "@/server/privacy/encryption";
 import type { MatchableProfile } from "./terms";
 
@@ -63,6 +64,11 @@ export async function loadCampusMatchPool(
       verifiedAt: { not: null },
       lastActiveAt: { gte: activeSince },
       profile: { completedAt: { not: null }, intents: { has: intent }, incognito: false },
+      // J2: with cohort release on, Dating only matches people whose cohort passed the
+      // density gate. Profile intents alone aren't enough: a cohort can close again.
+      ...(intent === IntentMode.DATING && isCohortReleaseEnabled()
+        ? { cohort: { datingOpen: true } }
+        : {}),
     },
     select: {
       id: true,

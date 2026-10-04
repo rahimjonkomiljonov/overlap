@@ -8,7 +8,7 @@ import { Link, redirect } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { signOutEverywhere } from "@/server/auth/actions";
 import { getActor } from "@/server/auth/session";
-import { canUseDatingMode } from "@/server/consent/consent";
+import { getDatingStatus } from "@/server/cohorts/release";
 import { prisma } from "@/server/db";
 import { getMyVerificationStatus } from "@/server/verification/queries";
 
@@ -21,7 +21,12 @@ export default async function MePage({ params }: PageProps<"/[locale]/me">) {
 
   // The (app) layout already redirects signed-out visitors, so an actor always exists here.
   const actor = await getActor();
-  const datingAvailable = actor ? await canUseDatingMode(prisma, actor.userId) : false;
+  const datingStatus = actor ? await getDatingStatus(prisma, actor.userId) : "needs_consent";
+  const datingLabel = {
+    available: "datingAvailable",
+    needs_consent: "datingUnavailable",
+    cohort_closed: "datingCohortClosed",
+  } as const;
   const verification = actor ? await getMyVerificationStatus(actor.userId) : null;
 
   async function signOutAction() {
@@ -59,8 +64,8 @@ export default async function MePage({ params }: PageProps<"/[locale]/me">) {
           <CardTitle>{t("account")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Badge variant={datingAvailable ? "default" : "secondary"}>
-            {t(datingAvailable ? "datingAvailable" : "datingUnavailable")}
+          <Badge variant={datingStatus === "available" ? "default" : "secondary"}>
+            {t(datingLabel[datingStatus])}
           </Badge>
           <form action={signOutAction}>
             <Button type="submit" variant="outline">

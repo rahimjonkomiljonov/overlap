@@ -113,6 +113,7 @@
     "account": "Account",
     "datingAvailable": "Dating mode: available",
     "datingUnavailable": "Dating mode: unavailable (consent needed)",
+    "datingCohortClosed": "Dating mode: not open yet (it opens once enough people in your group join)",
     "signOutEverywhere": "Sign out everywhere",
     "signOutDone": "Signed out",
     "verificationTitle": "Photo verification",
@@ -196,6 +197,9 @@
     "sensitiveLegend": "Dating mode (optional)",
     "sensitiveBody": "Using Dating mode needs a separate agreement to share who you'd like to meet. Declining still creates your account, and Friends/Study modes work either way.",
     "sensitivePreferenceLabel": "I agree to share my match preferences for Dating mode.",
+    "inviteLegend": "Invite code",
+    "inviteCodeLabel": "Invite code",
+    "inviteCodeHint": "We're opening group by group for now. Enter the invite code you received.",
     "submit": "Finish",
     "submitting": "Saving…",
     "error_INVALID_INPUT": "Please check what you entered.",
@@ -204,6 +208,7 @@
     "error_IMPLAUSIBLE_YEAR": "Please check your birth year.",
     "error_NOT_ATTESTED": "Please confirm you are 19 or older.",
     "error_TOO_YOUNG": "You must be 19 or older to join.",
+    "error_INVALID_INVITE": "That invite code isn't valid or has already been used up.",
     "error_UNKNOWN": "Something went wrong. Please try again in a moment.",
     "successTitle": "You're all set!",
     "goToPicks": "See your picks"
@@ -256,7 +261,8 @@
       "option_STUDY": "Study buddy",
       "option_DATING": "Dating",
       "option_OPEN": "Open to anything",
-      "datingLocked": "Dating mode needs the sensitive-preference consent first."
+      "datingLocked": "Dating mode needs the sensitive-preference consent first.",
+      "datingCohortClosed": "Dating mode opens once enough people in your group join."
     },
     "courses": {
       "title": "Courses this term",
@@ -348,6 +354,7 @@
       "INVALID_INPUT": "Please check what you entered.",
       "UNAUTHENTICATED": "Please sign in first.",
       "DATING_REQUIRES_CONSENT": "Dating mode needs the sensitive-preference consent first.",
+      "DATING_NOT_OPEN": "Dating mode opens once enough people in your group join. For now, use Friends or Study mode.",
       "TOO_MANY_INTERESTS": "You can pick up to 12 interests.",
       "SENSITIVE_CONTENT": "That looks like it touches a sensitive topic — please rephrase.",
       "DUPLICATE_PROMPT": "You can't pick the same prompt twice.",

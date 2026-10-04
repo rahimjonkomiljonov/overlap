@@ -25,7 +25,7 @@ function SubmitButton({ label, pendingLabel }: { label: string; pendingLabel: st
   );
 }
 
-export function OnboardingForm() {
+export function OnboardingForm({ inviteRequired = false }: { inviteRequired?: boolean }) {
   const t = useTranslations("Onboarding");
   const [state, action] = useActionState(completeOnboarding, initialState);
 
@@ -51,6 +51,31 @@ export function OnboardingForm() {
     <Card>
       <CardContent>
         <form action={action} className="space-y-6">
+          {inviteRequired && (
+            <>
+              <fieldset className="space-y-3">
+                <legend className="text-sm font-semibold">{t("inviteLegend")}</legend>
+                <p id="inviteCodeHint" className="text-sm text-muted-foreground">
+                  {t("inviteCodeHint")}
+                </p>
+                <div className="space-y-2">
+                  <Label htmlFor="inviteCode">{t("inviteCodeLabel")}</Label>
+                  <Input
+                    id="inviteCode"
+                    name="inviteCode"
+                    autoComplete="off"
+                    autoCapitalize="characters"
+                    maxLength={32}
+                    required
+                    aria-describedby="inviteCodeHint"
+                    aria-invalid={error === "INVALID_INVITE" ? "true" : undefined}
+                  />
+                </div>
+              </fieldset>
+              <Separator />
+            </>
+          )}
+
           <fieldset className="space-y-3">
             <legend className="text-sm font-semibold">{t("ageLegend")}</legend>
             <div className="space-y-2">

@@ -92,6 +92,10 @@ model User {
   /// on the way there is for status/trustScore).
   campusId String?
   campus   Campus? @relation(fields: [campusId], references: [id])
+  /// J2 cohort release: set when the user redeems an invite code at onboarding. Null
+  /// when cohort release is off (COHORT_RELEASE unset), which is the default.
+  cohortId String?
+  cohort   Cohort? @relation(fields: [cohortId], references: [id])
 
   /// Set once at the age gate (A2). Never a full date of birth.
   birthYear     Int?
@@ -171,6 +175,7 @@ model User {
   dataRequests              DataRequest[]
 
   @@index([campusId])
+  @@index([cohortId])
   @@map("users")
 }
 
@@ -275,7 +280,9 @@ model Cohort {
 
   createdAt   DateTime     @default(now())
   inviteCodes InviteCode[]
+  users       User[]
 
+  @@unique([campusId, name])
   @@index([campusId])
   @@map("cohorts")
 }
