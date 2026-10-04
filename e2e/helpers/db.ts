@@ -421,6 +421,11 @@ export async function seedReportsAgainst(targetEmail: string, count: number): Pr
   for (let i = 0; i < count; i++) {
     const email = `trust-reporter-${Date.now()}-${i}@test.ac.kr`;
     await createBareUser(email, `reporter${i}`);
+    // Trust only counts verified reporters whose account was a week old when they filed.
+    await pool.query(
+      `UPDATE users SET "verifiedAt" = now(), "createdAt" = now() - interval '30 days' WHERE email = $1`,
+      [email],
+    );
     await pool.query(
       `INSERT INTO reports (id, "reporterId", "targetId", category, priority)
        VALUES ($1, (SELECT id FROM users WHERE email = $2), (SELECT id FROM users WHERE email = $3), 'HARASSMENT', 'STANDARD')`,

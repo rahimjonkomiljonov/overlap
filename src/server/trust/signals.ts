@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@/generated/prisma/client";
-import { NO_SIGNALS, TRUST_WINDOW_DAYS, type TrustSignals } from "./score";
+import { MIN_REPORTER_ACCOUNT_AGE_DAYS, NO_SIGNALS, TRUST_WINDOW_DAYS, type TrustSignals } from "./score";
 
 export type TrustSignalsDb = Pick<PrismaClient, "report" | "moderationAction" | "meetupFeedbackEntry">;
 
@@ -24,8 +24,10 @@ export async function loadTrustSignals(
         createdAt: { gte: since },
         // A moderator's dismissal means the report doesn't count against anyone.
         actions: { none: { type: "DISMISS" } },
+        // Only verified reporters count; their account age is checked below.
+        reporter: { verifiedAt: { not: null } },
       },
-      select: { targetId: true, reporterId: true },
+      select: { targetId: true, reporterId: true, createdAt: true, reporter: { select: { createdAt: true } } },
     }),
     db.moderationAction.findMany({
       where: { targetId: { in: ids }, type: "WARN", createdAt: { gte: since } },
@@ -46,7 +48,11 @@ export async function loadTrustSignals(
     return result.get(id)!;
   };
 
-  const reporterPairs = new Set(reports.map((r) => `${r.targetId}:${r.reporterId}`));
+  // Against coordinated reporting from fresh accounts: the reporter's account must have
+  // been at least a week old when they filed. (Prisma can't compare two columns, so here.)
+  const minAgeMs = MIN_REPORTER_ACCOUNT_AGE_DAYS * 24 * 60 * 60 * 1000;
+  const counted = reports.filter((r) => r.createdAt.getTime() - r.reporter.createdAt.getTime() >= minAgeMs);
+  const reporterPairs = new Set(counted.map((r) => `${r.targetId}:${r.reporterId}`));
   for (const pair of reporterPairs) get(pair.split(":")[0]).reporters++;
 
   for (const w of warnings) get(w.targetId).warnings++;

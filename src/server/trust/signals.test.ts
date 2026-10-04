@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { loadTrustSignals, type TrustSignalsDb } from "./signals";
 
+const OLD = new Date("2026-01-01T00:00:00Z");
+const FILED = new Date("2026-10-01T00:00:00Z");
+
 function fakeDb(data: {
-  reports?: { targetId: string; reporterId: string }[];
+  reports?: { targetId: string; reporterId: string; createdAt?: Date; reporterCreatedAt?: Date }[];
   warnings?: { targetId: string }[];
   feedback?: { userId: string; userAId: string; userBId: string }[];
 }) {
@@ -11,7 +14,12 @@ function fakeDb(data: {
     report: {
       findMany: async (args: unknown) => {
         seen.report = args;
-        return data.reports ?? [];
+        return (data.reports ?? []).map((r) => ({
+          targetId: r.targetId,
+          reporterId: r.reporterId,
+          createdAt: r.createdAt ?? FILED,
+          reporter: { createdAt: r.reporterCreatedAt ?? OLD },
+        }));
       },
     },
     moderationAction: {
@@ -43,11 +51,24 @@ describe("loadTrustSignals", () => {
     expect(signals.get("t")).toEqual({ reporters: 2, warnings: 0, uncomfortableMeetups: 0 });
   });
 
+  it("ignores reports filed by accounts younger than 7 days at the time", async () => {
+    const { db } = fakeDb({
+      reports: [
+        { targetId: "t", reporterId: "fresh", reporterCreatedAt: new Date("2026-09-28T00:00:00Z") },
+        { targetId: "t", reporterId: "week", reporterCreatedAt: new Date("2026-09-24T00:00:00Z") },
+        { targetId: "t", reporterId: "old" },
+      ],
+    });
+    const signals = await loadTrustSignals(db, ["t"], NOW);
+    expect(signals.get("t")?.reporters).toBe(2);
+  });
+
   it("excludes dismissed reports and anything older than the window in the query itself", async () => {
     const { db, seen } = fakeDb({});
     await loadTrustSignals(db, ["t"], NOW);
     const where = (seen.report as { where: Record<string, unknown> }).where;
     expect(where.actions).toEqual({ none: { type: "DISMISS" } });
+    expect(where.reporter).toEqual({ verifiedAt: { not: null } });
     expect((where.createdAt as { gte: Date }).gte.getTime()).toBeLessThan(NOW.getTime());
     expect((seen.moderationAction as { where: { type: string } }).where.type).toBe("WARN");
   });

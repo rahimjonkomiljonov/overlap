@@ -744,7 +744,7 @@
     "explanationsTitle": "Why you overlap",
     "explanationsBody": "Each pick shows up to 3 concrete reasons — the specific course, club, interest, free-time overlap or values fit behind the score. We only ever show something you both actually have; nothing about anyone's private preferences is ever revealed this way.",
     "trustTitle": "Trust and reach",
-    "trustBody": "Accounts that several people reported in the last 180 days (reports a moderator dismissed don't count), that received a moderator warning, or that someone said made a meetup uncomfortable rank lower in other people's picks. This only changes ranking; it never suspends or bans anyone. Suspensions and bans are always decided by a person, with a stated reason. You can see the reasons and appeal in Me > Safety.",
+    "trustBody": "Accounts that several people reported in the last 180 days (reports a moderator dismissed, and reports from unverified accounts or accounts under a week old, don't count), that received a moderator warning, or that someone said made a meetup uncomfortable rank lower in other people's picks. This only changes ranking; it never suspends or bans anyone. Suspensions and bans are always decided by a person, with a stated reason. You can see the reasons and appeal in Me > Safety.",
     "rightsTitle": "Your rights",
     "rightsBody": "This is an automated process, which you have the right to ask about. If you'd like an explanation for a specific match, or a human to review how your picks are put together, contact us and we'll follow up.",
     "contactCta": "Contact us"
@@ -1193,7 +1193,7 @@
     "restoredUntil": "Your appeal was accepted, so the limit is lifted until {date}.",
     "reasonsHeading": "In the last 180 days",
     "reason": {
-      "reporters": "{count, plural, one {# person} other {# people}} reported you (reports a moderator dismissed don't count)",
+      "reporters": "{count, plural, one {# person} other {# people}} reported you (not counting reports a moderator dismissed, or reports from unverified accounts or accounts under a week old)",
       "warnings": "{count, plural, one {# moderator warning} other {# moderator warnings}}",
       "uncomfortableMeetups": "{count, plural, one {# person} other {# people}} said a meetup made them uncomfortable"
     },

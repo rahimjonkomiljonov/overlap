@@ -7,6 +7,8 @@
 
 /** How far back signals count. Older history stops affecting reach on its own. */
 export const TRUST_WINDOW_DAYS = 180;
+/** A report only counts if the reporter's account was at least this old when they filed it. */
+export const MIN_REPORTER_ACCOUNT_AGE_DAYS = 7;
 /** At or below this score, reach is limited. */
 export const REACH_LIMIT_THRESHOLD = 55;
 /** A reach-limited candidate's score in other people's rankings is multiplied by this. */
