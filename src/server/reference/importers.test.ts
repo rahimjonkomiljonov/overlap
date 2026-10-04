@@ -86,7 +86,13 @@ function fakeDb(): ReferenceDb {
         }
         return { count };
       },
-      update: async ({ where, data }: { where: Record<string, unknown>; data: Record<string, unknown> }) => {
+      update: async ({
+        where,
+        data,
+      }: {
+        where: Record<string, unknown>;
+        data: Record<string, unknown>;
+      }) => {
         const k = keyFor(where);
         const existing = (k ? table.get(k) : undefined) ?? { id: where.id };
         const row = { ...existing, ...data };
@@ -109,7 +115,9 @@ function fakeDb(): ReferenceDb {
   }
 
   return {
-    course: makeModel(tables.course, [["campusId", "term", "code"]]) as unknown as ReferenceDb["course"],
+    course: makeModel(tables.course, [
+      ["campusId", "term", "code"],
+    ]) as unknown as ReferenceDb["course"],
     courseSection: makeModel(tables.courseSection, [
       ["courseId", "section"],
     ]) as unknown as ReferenceDb["courseSection"],
@@ -122,7 +130,7 @@ function fakeDb(): ReferenceDb {
 }
 
 const CAMPUS_ID = "campus-1";
-const SAMPLE_DIR = join(__dirname, "../../../reference-data/sample");
+const SHARED_DIR = join(__dirname, "../../../reference-data/shared");
 
 describe("importCourses", () => {
   let db: ReferenceDb;
@@ -131,14 +139,16 @@ describe("importCourses", () => {
   });
 
   it("creates courses and sections from a CSV", async () => {
-    const csv = "term,code,title,title_en,section,instructor,meeting_times\n2026-2,CSE2010,자료구조,Data Structures,001,김민준,월 10:30-12:00\n";
+    const csv =
+      "term,code,title,title_en,section,instructor,meeting_times\n2026-2,CSE2010,자료구조,Data Structures,001,김민준,월 10:30-12:00\n";
     const result = await importCourses(db, CAMPUS_ID, "courses.csv", csv);
     expect(result.created).toBe(1);
     expect(result.skipped).toBe(0);
   });
 
   it("is idempotent: re-running the same file updates, not duplicates", async () => {
-    const csv = "term,code,title,title_en,section,instructor,meeting_times\n2026-2,CSE2010,자료구조,Data Structures,001,김민준,월 10:30-12:00\n";
+    const csv =
+      "term,code,title,title_en,section,instructor,meeting_times\n2026-2,CSE2010,자료구조,Data Structures,001,김민준,월 10:30-12:00\n";
     await importCourses(db, CAMPUS_ID, "courses.csv", csv);
     const second = await importCourses(db, CAMPUS_ID, "courses.csv", csv);
     expect(second.created).toBe(0);
@@ -150,7 +160,8 @@ describe("importCourses", () => {
       "term,code,title,title_en,section,instructor,meeting_times\n2026-2,CSE2010,자료구조,,001,,\n2026-2,ECO1001,경제학원론,,001,,\n";
     await importCourses(db, CAMPUS_ID, "courses.csv", first);
 
-    const second = "term,code,title,title_en,section,instructor,meeting_times\n2026-2,CSE2010,자료구조,,001,,\n";
+    const second =
+      "term,code,title,title_en,section,instructor,meeting_times\n2026-2,CSE2010,자료구조,,001,,\n";
     const result = await importCourses(db, CAMPUS_ID, "courses.csv", second);
     expect(result.deactivated).toBe(1);
 
@@ -161,7 +172,8 @@ describe("importCourses", () => {
   });
 
   it("skips a malformed row and reports it", async () => {
-    const csv = "term,code,title,title_en,section,instructor,meeting_times\nbad-term,CSE2010,자료구조,,001,,\n";
+    const csv =
+      "term,code,title,title_en,section,instructor,meeting_times\nbad-term,CSE2010,자료구조,,001,,\n";
     const result = await importCourses(db, CAMPUS_ID, "courses.csv", csv);
     expect(result.skipped).toBe(1);
     expect(result.issues[0].line).toBe(2);
@@ -180,13 +192,15 @@ describe("importClubs", () => {
   });
 
   it("creates a clean club", async () => {
-    const csv = "name,name_en,category,description\n사진동아리 빛,Photography Club,취미,사진 동아리\n";
+    const csv =
+      "name,name_en,category,description\n사진동아리 빛,Photography Club,취미,사진 동아리\n";
     const result = await importClubs(db, CAMPUS_ID, "clubs.csv", csv);
     expect(result.created).toBe(1);
   });
 
   it("rejects a club whose name reveals a sensitive category", async () => {
-    const csv = "name,name_en,category,description\n기독교 동아리,Christian Fellowship,종교,함께 예배해요\n";
+    const csv =
+      "name,name_en,category,description\n기독교 동아리,Christian Fellowship,종교,함께 예배해요\n";
     const result = await importClubs(db, CAMPUS_ID, "clubs.csv", csv);
     expect(result.created).toBe(0);
     expect(result.skipped).toBe(1);
@@ -205,7 +219,9 @@ describe("importSpots", () => {
     const db = fakeDb();
     const csv = "name,kind,is_safe_spot\n중앙광장,OUTDOOR,true\n공학관 라운지,LOUNGE,false\n";
     await importSpots(db, CAMPUS_ID, "spots.csv", csv);
-    const safe = await db.spot.findUnique({ where: { campusId_name: { campusId: CAMPUS_ID, name: "중앙광장" } } });
+    const safe = await db.spot.findUnique({
+      where: { campusId_name: { campusId: CAMPUS_ID, name: "중앙광장" } },
+    });
     const unsafe = await db.spot.findUnique({
       where: { campusId_name: { campusId: CAMPUS_ID, name: "공학관 라운지" } },
     });
@@ -241,8 +257,8 @@ describe("importPrompts", () => {
 });
 
 describe("the taxonomy has no sensitive categories (B8 requirement)", () => {
-  it("the sample interests.csv contains no religion/politics/health/sexual-life keywords", () => {
-    const csv = readFileSync(join(SAMPLE_DIR, "interests.csv"), "utf-8");
+  it("the shared interests.csv contains no religion/politics/health/sexual-life keywords", () => {
+    const csv = readFileSync(join(SHARED_DIR, "interests.csv"), "utf-8");
     const rows = csv.split("\n").slice(1).filter(Boolean);
     expect(rows.length).toBeGreaterThan(0);
     for (const row of rows) {
@@ -250,8 +266,8 @@ describe("the taxonomy has no sensitive categories (B8 requirement)", () => {
     }
   });
 
-  it("the sample prompts.csv contains no sensitive keywords", () => {
-    const csv = readFileSync(join(SAMPLE_DIR, "prompts.csv"), "utf-8");
+  it("the shared prompts.csv contains no sensitive keywords", () => {
+    const csv = readFileSync(join(SHARED_DIR, "prompts.csv"), "utf-8");
     const rows = csv.split("\n").slice(1).filter(Boolean);
     expect(rows.length).toBeGreaterThan(0);
     for (const row of rows) {
@@ -259,9 +275,9 @@ describe("the taxonomy has no sensitive categories (B8 requirement)", () => {
     }
   });
 
-  it("every importInterests row from the sample CSV is actually accepted", async () => {
+  it("every importInterests row from the shared CSV is actually accepted", async () => {
     const db = fakeDb();
-    const csv = readFileSync(join(SAMPLE_DIR, "interests.csv"), "utf-8");
+    const csv = readFileSync(join(SHARED_DIR, "interests.csv"), "utf-8");
     const result = await importInterests(db, "interests.csv", csv);
     expect(result.skipped).toBe(0);
     expect(result.created).toBeGreaterThan(0);
