@@ -1,9 +1,27 @@
 # Production deploy runbook (S24)
 
-**Do not start this until the owner explicitly says "publish".** Until then the app runs
-only as the owner-only private Preview deploy (see CLAUDE.md, "Private-deploy
-exception"). Everything here is written so the owner, or whoever runs launch day, can
-follow it top to bottom. Steps marked **(owner)** need an account, money or a signature.
+The owner said "publish" on 2026-10-05, on free plans, invite-only. Everything here is
+written so the owner, or whoever runs launch day, can follow it top to bottom. Steps
+marked **(owner)** need an account or a signature.
+
+## Free launch path (owner's decision, 2026-10-05)
+
+The owner chose free plans and accepted the matching risks in writing (BUILD_PLAN
+Progress Log, 2026-10-05). Where this differs from the sections below, this wins:
+
+| Piece | Free choice | What changes below |
+|---|---|---|
+| Domain | GitHub Student Developer Pack: free first year at Name.com or Namecheap (`.me`) | §0 domain, §3 DNS |
+| Database | A **second, new** Supabase **Free** project in Seoul (the free plan allows two) | §1 step 1: Free, not Pro; no PITR |
+| Backups | None on Free (risk accepted). Mitigation: the owner runs `pg_dump` weekly to their own encrypted disk. Never upload a dump anywhere | §6 "Data loss" has no PITR |
+| Email | Resend Free: 3,000 a month, **100 a day** | §2. Keep the first cohort small; logins are email codes |
+| Hosting | Vercel Hobby (non-commercial: no payments, no ads) | §3 step 3 |
+| Hourly notifications | `.github/workflows/cron-notifications.yml` calls the route hourly; add repository secrets `PRODUCTION_URL` and `CRON_SECRET` | §3 step 3 |
+| Errors | Vercel runtime logs (no Sentry) | — |
+| Launch size | `COHORT_RELEASE=on`, **50 people or fewer** (go-no-go rule when blockers are accepted, not met) | §3 env |
+
+**Hard stop before inviting anyone:** two trained moderators promoted and on call
+(go-no-go "Safety (never waivable)"), and the campus numbers phoned once.
 
 S24 is done when: the production smoke test passes, backups are on, and
 `npm run db:check-readiness` passes against the production database.
@@ -47,8 +65,8 @@ e2e test users, 48 test admin accounts, and the dev-only `test.ac.kr` campus.
    ```
 5. **(owner)** Phone the campus security office, counselling center and human-rights
    center, then fix `reference-data/gachon/safety-contacts.json` if any number is wrong.
-   The sexual-violence line is still a placeholder (main switchboard). Re-run the
-   import afterwards.
+   The human-rights center number came from Gachon's site on 2026-10-05; campus
+   security is still the main switchboard. Re-run the import afterwards.
 
 ## 2. Email (owner + operator)
 
@@ -79,6 +97,9 @@ secrets for production. Never copy the development values.
 | `CHAT_CHANNEL_SECRET` | `openssl rand -hex 32` |
 | `BETTER_AUTH_URL`, `NEXT_PUBLIC_SITE_URL` | `https://<your domain>` (no trailing slash) |
 | `RESEND_API_KEY`, `EMAIL_FROM` | From step 2 |
+| `COHORT_RELEASE` | `on` (invite codes required; Dating per cohort density gate) |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | Run `npx web-push generate-vapid-keys` yourself and paste both. Optional: without them, push stays off and email still works |
+| `VAPID_SUBJECT` | `mailto:<owner address>` |
 
 Never set `ENABLE_DEV_UI` in production.
 

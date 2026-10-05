@@ -1,0 +1,40 @@
+# Hourly notifications for production on Vercel Hobby, which only allows daily crons.
+# GitHub Actions calls the same protected route Vercel's cron would. The route checks
+# CRON_SECRET itself and does nothing during quiet hours (21:00-08:00 Seoul), so an
+# hourly call is always safe.
+#
+# Needs two repository secrets (Settings > Secrets and variables > Actions):
+#   PRODUCTION_URL  e.g. https://your-domain.me (no trailing slash)
+#   CRON_SECRET     the same value as CRON_SECRET in Vercel's production env
+# Until both exist, the job skips itself.
+name: cron-notifications
+
+on:
+  schedule:
+    - cron: "15 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Call the notifications cron route
+        env:
+          PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$PRODUCTION_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "PRODUCTION_URL or CRON_SECRET not set; skipping."
+            exit 0
+          fi
+          status=$(curl -sS -o response.json -w "%{http_code}" --max-time 120 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$PRODUCTION_URL/api/cron/notifications")
+          echo "HTTP $status"
+          if [ "$status" != "200" ]; then
+            cat response.json
+            exit 1
+          fi
