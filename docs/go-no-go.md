@@ -27,7 +27,7 @@ If a blocker fails, launch smaller (invite-only, 50 users or fewer) or delay.
 | Blocker | Status | Evidence / what's left | Owner |
 |---|---|---|---|
 | Report, block and hide-from work end to end; safety tests green | **Green** | `e2e/safety.spec.ts` passed in the 2026-10-04 full desktop and mobile runs | — |
-| Two moderators trained and on call | **Open** | O9. Promote them with `npm run db:promote-role -- --role MODERATOR` | Owner |
+| Two moderators trained and on call | **Open** | O9. Two people chosen on 2026-10-05 (the owner as ADMIN, one MODERATOR); promote them on launch day after they sign up on production (`npm run db:promote-role`), then brief them on `docs/moderation-playbook.md` | Owner |
 | Urgent SLA (< 2 h) agreed | **Code-ready** | Written in `docs/moderation-playbook.md`. The admin queue sorts urgent reports first (e2e tested). Needs the on-call rota to make it real | Owner |
 | Emergency numbers verified | **Open** | National numbers (112, 119, 1366) are code constants. Gachon Human Rights Center (sexual harassment/violence) set to 031-750-8964 / 8965 from the official site on 2026-10-05 and imported. **Campus security is still the main switchboard** (031-750-5114). Phone each campus number once before launch (`reference-data/gachon/README.md`) | Owner |
 | Police-referral procedure written | **Green** | `docs/moderation-playbook.md` (evidence preservation, referral checklist) | — |
