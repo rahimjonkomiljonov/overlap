@@ -9,14 +9,17 @@ a personal/demo deployment, not a verified institutional dataset.
 - Global Campus main switchboard: 031-750-5114.
 - Student Counseling Center (학생상담센터), Global Campus: 031-750-5965, Global Center
   4th floor, room 401 — https://www.gachon.ac.kr/counseling/index.do
+- Human Rights Center (인권센터, sexual harassment/violence support), Global Campus:
+  031-750-8964 / 031-750-8965, Central Library rooms 310-311, weekdays 09:00-17:30
+  (lunch 12:00-13:00), equality@gachon.ac.kr. Provided by the owner from Gachon's
+  official site on 2026-10-05; still call once before launch to confirm it answers.
 - The 9 central club names and categories (College list and 중앙동아리 names), and the
   AI Library / Vision Tower, Central Library, and dormitory facilities in `spots.csv`.
 
 **Not independently verified — confirm before relying on them for anything real:**
-- `safety-contacts.json`'s `sexualViolenceCenterPhone`: no dedicated 인권센터/성고충상담
-  direct line was found by search, so it falls back to the main switchboard. Per
-  REQUIREMENTS.md G6 ("verify all numbers before launch"), call and confirm the real
-  number before trusting this for an actual report.
+- `safety-contacts.json`'s `campusSecurityPhone` is still the main switchboard
+  (031-750-5114); no direct campus-security line has been confirmed yet. Per
+  REQUIREMENTS.md G6 ("verify all numbers before launch"), call and confirm it.
 - `courses.csv`'s instructor names are invented placeholders (same convention as
   `reference-data/sample/`), not real Gachon faculty — course codes/titles reflect
   Gachon's real college structure but aren't copied from an actual term's catalog.
