@@ -4,7 +4,9 @@ import { normalizeQuery } from "./normalize";
 export type SearchDb = Pick<PrismaClient, "course" | "club" | "spot" | "interestTag">;
 
 const MAX_RESULTS = 20;
-const MIN_QUERY_LENGTH = 1;
+// 0: an empty query returns the first MAX_RESULTS alphabetically, so the wizard pickers can
+// offer suggestions before the person types anything.
+const MIN_QUERY_LENGTH = 0;
 
 export type CourseResult = { id: string; code: string; title: string; titleEn: string | null };
 export type ClubResult = { id: string; name: string; nameEn: string | null; category: string | null };

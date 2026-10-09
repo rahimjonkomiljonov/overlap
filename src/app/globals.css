@@ -129,6 +129,12 @@
     outline: 2px solid var(--ring);
     outline-offset: 2px;
   }
+  /* The native <select> pop-up ignores the page's transparent background and inherits the
+     light text colour, so without this the options are white on white in dark mode. */
+  select option {
+    background-color: var(--popover);
+    color: var(--popover-foreground);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

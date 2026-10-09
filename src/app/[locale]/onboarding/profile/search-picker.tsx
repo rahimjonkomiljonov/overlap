@@ -55,12 +55,8 @@ export function SearchPicker({
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    // No setResults([]) here for the empty-query case — `visibleResults` below derives
-    // that during render instead, so this effect never calls setState synchronously
-    // (react-hooks/set-state-in-effect; see waitlist-form.tsx for the same pattern).
-    if (query.trim().length === 0) {
-      return;
-    }
+    // An empty query fetches the first suggestions, so the list is not blank until the
+    // person starts typing.
     debounceRef.current = setTimeout(() => {
       const params = new URLSearchParams({ type: searchType, q: query });
       fetch(`/api/reference/search?${params.toString()}`)
@@ -81,7 +77,7 @@ export function SearchPicker({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `selected` intentionally excluded, only used to filter at fetch time
   }, [query, searchType, locale]);
 
-  const visibleResults = query.trim().length === 0 ? [] : results;
+  const visibleResults = results;
   const atMax = selected.length >= max;
 
   function add(item: PickerItem) {

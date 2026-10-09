@@ -32,11 +32,13 @@ test.describe("reference data autocomplete API (S06)", () => {
     }
   });
 
-  test("an empty query returns no results rather than the whole table", async ({ page }) => {
+  test("an empty query returns a capped list of suggestions, not the whole table", async ({ page }) => {
     await signInAndOnboard(page, { emailPrefix: "refsearch-empty" });
     const response = await page.request.get("/api/reference/search?type=interest&q=");
     expect(response.status()).toBe(200);
     const body = await response.json();
-    expect(body.results).toEqual([]);
+    // The wizard pickers show these before the person types; the cap keeps it bounded.
+    expect(body.results.length).toBeGreaterThan(0);
+    expect(body.results.length).toBeLessThanOrEqual(20);
   });
 });

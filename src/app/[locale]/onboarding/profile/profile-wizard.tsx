@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { DatingStatus } from "@/server/cohorts/release";
 import type { WizardState } from "@/server/profile/queries";
@@ -44,7 +45,15 @@ export function ProfileWizard({
     Math.min(Math.max(initial.onboardingStep, 0), TOTAL_STEPS - 1),
   );
 
-  const next = () => setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1));
+  const router = useRouter();
+
+  // Step position is local state, but `initial` and `missing` come from the server render.
+  // Refresh after each saved step so the final preview shows what was actually saved
+  // instead of the (empty) state from when the page first loaded.
+  const next = () => {
+    setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1));
+    router.refresh();
+  };
   const back = () => setStep((s) => Math.max(s - 1, 0));
 
   switch (step) {
