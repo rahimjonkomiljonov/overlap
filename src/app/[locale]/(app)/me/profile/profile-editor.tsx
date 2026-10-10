@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { BookOpen, Camera, Clock, Compass, MapPin, MessageSquareQuote, Sparkles, UserRound, Users, Target, type LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link, useRouter } from "@/i18n/navigation";
+import { cn } from "@/lib/utils";
 import { BasicsStep } from "@/app/[locale]/onboarding/profile/steps/basics-step";
 import { ClubsStep } from "@/app/[locale]/onboarding/profile/steps/clubs-step";
 import { CoursesStep } from "@/app/[locale]/onboarding/profile/steps/courses-step";
@@ -33,6 +35,29 @@ const SECTIONS = [
   "photos",
 ] as const;
 type Section = (typeof SECTIONS)[number];
+
+/** An icon and tint for each part of the profile, so the list is easy to scan. */
+const SECTION_STYLE: Record<Section, { icon: LucideIcon; tint: string }> = {
+  basics: { icon: UserRound, tint: "bg-friends-soft text-friends-foreground" },
+  intents: { icon: Target, tint: "bg-dating-soft text-dating-foreground" },
+  courses: { icon: BookOpen, tint: "bg-study-soft text-study-foreground" },
+  clubs: { icon: Users, tint: "bg-friends-soft text-friends-foreground" },
+  spots: { icon: MapPin, tint: "bg-accent text-accent-foreground" },
+  freeTime: { icon: Clock, tint: "bg-open-soft text-open-foreground" },
+  interests: { icon: Sparkles, tint: "bg-dating-soft text-dating-foreground" },
+  prompts: { icon: MessageSquareQuote, tint: "bg-study-soft text-study-foreground" },
+  values: { icon: Compass, tint: "bg-accent text-accent-foreground" },
+  photos: { icon: Camera, tint: "bg-open-soft text-open-foreground" },
+};
+
+function SectionIcon({ section }: { section: Section }) {
+  const { icon: Icon, tint } = SECTION_STYLE[section];
+  return (
+    <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-full", tint)}>
+      <Icon className="size-4.5" aria-hidden="true" />
+    </span>
+  );
+}
 
 export function ProfileEditor({
   initial,
@@ -158,9 +183,10 @@ export function ProfileEditor({
                 <button
                   type="button"
                   onClick={() => open(key)}
-                  className="flex min-h-12 w-full items-center justify-between gap-3 py-3 text-left text-sm outline-none focus-visible:underline"
+                  className="flex min-h-14 w-full items-center gap-3 py-3 text-left text-sm outline-none focus-visible:underline"
                 >
-                  <span className="font-medium">{t(`section_${key}` as never)}</span>
+                  <SectionIcon section={key} />
+                  <span className="mr-auto font-medium">{t(`section_${key}` as never)}</span>
                   <span aria-hidden="true" className="text-muted-foreground">
                     ›
                   </span>

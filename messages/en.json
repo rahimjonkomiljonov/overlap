@@ -76,7 +76,8 @@
       "RATE_LIMITED": "Too many requests. Please try again in a bit.",
       "ACCOUNT_RESTRICTED": "Your account is restricted right now, so you can't do this. See Safety for details."
     },
-    "secondChance": "Second chance"
+    "secondChance": "Second chance",
+    "swipeHint": "Swipe a card right to wave, left to pass"
   },
   "Waves": {
     "title": "Waves for you",

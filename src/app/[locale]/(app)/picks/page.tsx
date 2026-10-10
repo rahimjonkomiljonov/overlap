@@ -1,7 +1,8 @@
-import { Sparkles } from "lucide-react";
+import { MoveHorizontal, Sparkles } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { EmptyState } from "@/components/states/empty-state";
 import { PageHeader } from "@/components/states/page-header";
+import { IntentBadge } from "@/components/picks/intent-style";
 import { PicksFlow } from "@/components/picks/picks-flow";
 import { buttonVariants } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
@@ -43,6 +44,13 @@ export default async function PicksPage({ params }: PageProps<"/[locale]/picks">
           </div>
         }
       />
+      {intentPicks.length > 0 && (
+        // Only on touch screens: with a mouse there is nothing to swipe.
+        <p className="-mt-3 mb-5 hidden items-center gap-2 text-sm text-muted-foreground [@media(pointer:coarse)]:flex">
+          <MoveHorizontal className="size-4" aria-hidden="true" />
+          {t("swipeHint")}
+        </p>
+      )}
       {intentPicks.length === 0 ? (
         <EmptyState icon={Sparkles} title={t("emptyTitle")} description={t("emptyBody")} />
       ) : (
@@ -50,11 +58,11 @@ export default async function PicksPage({ params }: PageProps<"/[locale]/picks">
           {intentPicks.map(({ intent, items }) => (
             <section key={intent} className="space-y-4">
               {intentPicks.length > 1 && (
-                <h2 className="text-lg font-semibold tracking-tight">
-                  {tIntents(`option_${intent}` as never)}
+                <h2>
+                  <IntentBadge intent={intent} label={tIntents(`option_${intent}` as never)} />
                 </h2>
               )}
-              <PicksFlow items={items} />
+              <PicksFlow items={items} intent={intent} />
             </section>
           ))}
         </div>

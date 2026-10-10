@@ -31,6 +31,18 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-overlap: var(--overlap);
   --color-overlap-foreground: var(--overlap-foreground);
+  --color-friends: var(--friends);
+  --color-friends-soft: var(--friends-soft);
+  --color-friends-foreground: var(--friends-foreground);
+  --color-study: var(--study);
+  --color-study-soft: var(--study-soft);
+  --color-study-foreground: var(--study-foreground);
+  --color-dating: var(--dating);
+  --color-dating-soft: var(--dating-soft);
+  --color-dating-foreground: var(--dating-foreground);
+  --color-open: var(--open);
+  --color-open-soft: var(--open-soft);
+  --color-open-foreground: var(--open-foreground);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
@@ -69,6 +81,21 @@
   --accent-foreground: oklch(0.3 0.06 200);
   --overlap: oklch(0.84 0.14 80);
   --overlap-foreground: oklch(0.28 0.05 60);
+  /* One hue per way of meeting. "-soft" is a tint for chips and badges, "-foreground" is the
+     text colour that sits on it (both pairs pass WCAG AA), and the plain colour is for
+     solid fills and icons. */
+  --friends: oklch(0.6 0.14 235);
+  --friends-soft: oklch(0.95 0.035 235);
+  --friends-foreground: oklch(0.37 0.1 240);
+  --study: oklch(0.56 0.17 290);
+  --study-soft: oklch(0.95 0.035 290);
+  --study-foreground: oklch(0.38 0.14 295);
+  --dating: oklch(0.6 0.19 10);
+  --dating-soft: oklch(0.955 0.03 10);
+  --dating-foreground: oklch(0.42 0.16 10);
+  --open: oklch(0.78 0.15 80);
+  --open-soft: oklch(0.96 0.05 85);
+  --open-foreground: oklch(0.4 0.09 70);
   --success: oklch(0.5 0.12 150);
   --success-foreground: oklch(0.99 0.003 85);
   --warning: oklch(0.86 0.15 90);
@@ -98,6 +125,18 @@
   --accent-foreground: oklch(0.92 0.03 190);
   --overlap: oklch(0.8 0.13 80);
   --overlap-foreground: oklch(0.24 0.05 60);
+  --friends: oklch(0.74 0.12 235);
+  --friends-soft: oklch(0.3 0.05 235);
+  --friends-foreground: oklch(0.88 0.06 235);
+  --study: oklch(0.72 0.14 290);
+  --study-soft: oklch(0.3 0.06 290);
+  --study-foreground: oklch(0.88 0.07 290);
+  --dating: oklch(0.72 0.15 10);
+  --dating-soft: oklch(0.31 0.06 10);
+  --dating-foreground: oklch(0.9 0.06 10);
+  --open: oklch(0.82 0.13 85);
+  --open-soft: oklch(0.32 0.06 80);
+  --open-foreground: oklch(0.9 0.08 85);
   --success: oklch(0.74 0.14 150);
   --success-foreground: oklch(0.2 0.04 150);
   --warning: oklch(0.82 0.14 90);

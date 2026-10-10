@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import type { DatingStatus } from "@/server/cohorts/release";
 import { saveIntents, type StepState } from "@/server/profile/actions";
 import { StepShell } from "./step-shell";
+import { IntentIcon } from "@/components/picks/intent-style";
 
 const INTENTS = [IntentMode.FRIENDS, IntentMode.STUDY, IntentMode.DATING, IntentMode.OPEN] as const;
 
@@ -58,7 +59,8 @@ export function IntentsStep({
               aria-disabled={locked}
             >
               <Checkbox name="intents" value={intent} defaultChecked={initialIntents.includes(intent)} disabled={locked} />
-              <span>
+              <IntentIcon intent={intent} />
+              <span className="font-medium">
                 {t(`intents.option_${intent}` as never)}
                 {locked && (
                   <span className="block text-xs text-muted-foreground">

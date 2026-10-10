@@ -76,7 +76,8 @@
       "RATE_LIMITED": "요청이 너무 많아요. 잠시 후 다시 시도해 주세요.",
       "ACCOUNT_RESTRICTED": "계정이 제한된 상태라 지금은 할 수 없어요. 자세한 내용은 안전 페이지에서 확인해 주세요."
     },
-    "secondChance": "다시 만나는 추천"
+    "secondChance": "다시 만나는 추천",
+    "swipeHint": "카드를 오른쪽으로 밀면 웨이브, 왼쪽으로 밀면 패스"
   },
   "Waves": {
     "title": "받은 웨이브",
