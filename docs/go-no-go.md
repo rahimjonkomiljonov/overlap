@@ -38,7 +38,7 @@ If a blocker fails, launch smaller (invite-only, 50 users or fewer) or delay.
 |---|---|---|---|
 | Golden-path e2e passes against production | **Open** | Passes locally (desktop and mobile, 2026-10-04). Production needs the manual team smoke test in `docs/deploy-runbook.md` §5 | Team |
 | Matching tests green | **Green** | Unit tests pass (`npm run check`: 69 files, 453 tests) | — |
-| No synthetic users in production | **Code-ready** | `npm run db:check-readiness` checks this. Run it against the production database | Operator |
+| No synthetic users in production | **Green** | `npm run db:check-readiness` checks this. Run against production on 2026-10-10: 0 synthetic rows, "Ready" (8 of 8 checks) | Operator |
 | Backups verified | **Accepted risk** | Owner chose Supabase Free (no backups) on 2026-10-05. Mitigation: weekly owner-run `pg_dump` to the owner's own encrypted disk (deploy runbook, free path) | Owner |
 | No critical or high bug open | **Green** | Fixed 2026-10-04: screens not updating after actions (16 components), and a `/picks` crash on concurrent loads. No known critical or high bug is open | — |
 | Tabletop breach drill done once | **Open** | Walk through `docs/incident-runbook.md` once with the team | Owner |
