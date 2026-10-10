@@ -1,6 +1,7 @@
 "use server";
 
 import { checkRateLimit } from "@/server/auth/rate-limit";
+import { isRestricted } from "@/server/auth/authz";
 import { getActor } from "@/server/auth/session";
 import { prisma } from "@/server/db";
 import { isBlockedEitherWay } from "@/server/waves/blocks";
@@ -20,6 +21,7 @@ export type SendWaveState = { status: "idle" } | { status: "success" } | { statu
 export async function sendWave(_prev: SendWaveState, formData: FormData): Promise<SendWaveState> {
   const actor = await getActor();
   if (!actor) return { status: "error", code: "UNAUTHENTICATED" };
+  if (isRestricted(actor)) return { status: "error", code: "ACCOUNT_RESTRICTED" };
 
   const rate = await checkRateLimit(prisma, `wave-attempt:${actor.userId}`, WAVE_ATTEMPT_RATE_LIMIT);
   if (!rate.allowed) {

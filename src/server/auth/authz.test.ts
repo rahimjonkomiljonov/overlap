@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { UserStatus } from "@/generated/prisma/enums";
-import { type Actor, AuthError, can, Role, requireRole, requireUser } from "./authz";
+import { type Actor, AuthError, can, isRestricted, Role, requireRole, requireUser } from "./authz";
 
 function actor(overrides: Partial<NonNullable<Actor>> = {}): Actor {
   return {
@@ -71,5 +71,18 @@ describe("can", () => {
     expect(can(actor({ role: Role.ADMIN }), Role.MODERATOR)).toBe(true);
     expect(can(actor({ role: Role.USER }), Role.MODERATOR)).toBe(false);
     expect(can(null, Role.USER)).toBe(false);
+  });
+});
+
+describe("isRestricted", () => {
+  const actorWith = (status: UserStatus): Actor => ({ userId: "u", campusId: "c", role: Role.USER, status });
+
+  it("is true only for suspended and banned accounts", () => {
+    expect(isRestricted(actorWith(UserStatus.SUSPENDED))).toBe(true);
+    expect(isRestricted(actorWith(UserStatus.BANNED))).toBe(true);
+    expect(isRestricted(actorWith(UserStatus.ACTIVE))).toBe(false);
+    // Pausing is the user's own choice, not a restriction.
+    expect(isRestricted(actorWith(UserStatus.PAUSED))).toBe(false);
+    expect(isRestricted(null)).toBe(false);
   });
 });

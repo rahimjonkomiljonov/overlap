@@ -11,6 +11,9 @@ export const verifyLoginOtpSchema = z.object({
 
 export const onboardingSchema = z.object({
   birthYear: z.coerce.number().int(),
+  // Used for the age check only; never stored (see age-verifier.ts).
+  birthMonth: z.coerce.number().int(),
+  birthDay: z.coerce.number().int(),
   attestedAdult: z.literal("on", { error: "You must confirm you are 19 or older." }),
   termsPrivacy: z.literal("on", { error: "You must agree to the Terms and Privacy Policy." }),
   // A checked HTML checkbox submits "on"; an unchecked one omits the field entirely.

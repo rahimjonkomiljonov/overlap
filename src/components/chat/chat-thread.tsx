@@ -258,6 +258,7 @@ export function ChatThread({
           <input type="hidden" name="conversationId" value={conversationId} />
           <Input
             name="text"
+            autoComplete="off"
             value={text}
             onChange={(e) => setText(e.target.value.slice(0, MAX_MESSAGE_LENGTH))}
             placeholder={t("composerPlaceholder")}

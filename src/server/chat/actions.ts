@@ -1,6 +1,7 @@
 "use server";
 
 import { checkRateLimit } from "@/server/auth/rate-limit";
+import { isRestricted } from "@/server/auth/authz";
 import { getActor } from "@/server/auth/session";
 import { prisma } from "@/server/db";
 import { getConversationForActor } from "./queries";
@@ -15,6 +16,7 @@ const SEND_MESSAGE_RATE_LIMIT = { max: 60, windowMs: 5 * 60 * 1000 };
 export async function sendMessage(_prev: SendMessageState, formData: FormData): Promise<SendMessageState> {
   const actor = await getActor();
   if (!actor) return { status: "error", code: "UNAUTHENTICATED" };
+  if (isRestricted(actor)) return { status: "error", code: "ACCOUNT_RESTRICTED" };
 
   const rate = await checkRateLimit(prisma, `send-message:${actor.userId}`, SEND_MESSAGE_RATE_LIMIT);
   if (!rate.allowed) {

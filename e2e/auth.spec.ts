@@ -34,7 +34,9 @@ test.describe("sign-in and onboarding", () => {
     await signIn(page, email);
     await expect(page).toHaveURL(/\/onboarding$/);
 
-    await page.getByLabel("태어난 연도").fill("1995");
+    await page.getByLabel("태어난 연도").selectOption("1995");
+    await page.getByLabel("월", { exact: true }).selectOption("6");
+    await page.getByLabel("일", { exact: true }).selectOption("15");
     await page.getByRole("checkbox", { name: "저는 만 19세 이상이에요." }).check();
     await page.getByRole("checkbox", { name: /이용약관과 개인정보 처리방침에 동의해요/ }).check();
     // Sensitive preference checkbox deliberately left unchecked.
@@ -58,7 +60,9 @@ test.describe("sign-in and onboarding", () => {
     const email = uniqueTestEmail("acceptsensitive");
     await signIn(page, email);
 
-    await page.getByLabel("태어난 연도").fill("1995");
+    await page.getByLabel("태어난 연도").selectOption("1995");
+    await page.getByLabel("월", { exact: true }).selectOption("6");
+    await page.getByLabel("일", { exact: true }).selectOption("15");
     await page.getByRole("checkbox", { name: "저는 만 19세 이상이에요." }).check();
     await page.getByRole("checkbox", { name: /이용약관과 개인정보 처리방침에 동의해요/ }).check();
     await page.getByRole("checkbox", { name: /데이팅 모드를 위해 상대방 선호 정보를/ }).check();
@@ -78,7 +82,9 @@ test.describe("sign-in and onboarding", () => {
     await signIn(page, email);
 
     const currentYear = new Date().getFullYear();
-    await page.getByLabel("태어난 연도").fill(String(currentYear - 10));
+    await page.getByLabel("태어난 연도").selectOption(String(currentYear - 10));
+    await page.getByLabel("월", { exact: true }).selectOption("1");
+    await page.getByLabel("일", { exact: true }).selectOption("1");
     await page.getByRole("checkbox", { name: "저는 만 19세 이상이에요." }).check();
     await page.getByRole("checkbox", { name: /이용약관과 개인정보 처리방침에 동의해요/ }).check();
     await page.getByRole("button", { name: "완료" }).click();
@@ -91,7 +97,9 @@ test.describe("sign-in and onboarding", () => {
   test("a returning, already-onboarded user goes straight to /picks", async ({ page }) => {
     const email = uniqueTestEmail("returning");
     await signIn(page, email);
-    await page.getByLabel("태어난 연도").fill("1995");
+    await page.getByLabel("태어난 연도").selectOption("1995");
+    await page.getByLabel("월", { exact: true }).selectOption("6");
+    await page.getByLabel("일", { exact: true }).selectOption("15");
     await page.getByRole("checkbox", { name: "저는 만 19세 이상이에요." }).check();
     await page.getByRole("checkbox", { name: /이용약관과 개인정보 처리방침에 동의해요/ }).check();
     await page.getByRole("button", { name: "완료" }).click();
@@ -110,7 +118,9 @@ test.describe("sign-in and onboarding", () => {
   test("visiting /login while already signed in redirects away", async ({ page }) => {
     const email = uniqueTestEmail("alreadyin");
     await signIn(page, email);
-    await page.getByLabel("태어난 연도").fill("1995");
+    await page.getByLabel("태어난 연도").selectOption("1995");
+    await page.getByLabel("월", { exact: true }).selectOption("6");
+    await page.getByLabel("일", { exact: true }).selectOption("15");
     await page.getByRole("checkbox", { name: "저는 만 19세 이상이에요." }).check();
     await page.getByRole("checkbox", { name: /이용약관과 개인정보 처리방침에 동의해요/ }).check();
     await page.getByRole("button", { name: "완료" }).click();

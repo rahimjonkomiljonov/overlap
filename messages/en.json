@@ -59,7 +59,8 @@
       "UNKNOWN": "Something went wrong. Please try again in a moment.",
       "BLOCKED": "You can't wave at this person.",
       "DAILY_CAP_REACHED": "You've used all your waves for today (8/day).",
-      "RATE_LIMITED": "Too many requests. Please try again in a bit."
+      "RATE_LIMITED": "Too many requests. Please try again in a bit.",
+      "ACCOUNT_RESTRICTED": "Your account is restricted right now, so you can't do this. See Safety for details."
     },
     "secondChance": "Second chance"
   },
@@ -84,7 +85,8 @@
       "BLOCKED": "You can't wave at this person.",
       "DAILY_CAP_REACHED": "You've used all your waves for today (8/day).",
       "UNKNOWN": "Something went wrong. Please try again in a moment.",
-      "RATE_LIMITED": "Too many requests. Please try again in a bit."
+      "RATE_LIMITED": "Too many requests. Please try again in a bit.",
+      "ACCOUNT_RESTRICTED": "Your account is restricted right now, so you can't do this. See Safety for details."
     }
   },
   "Matches": {
@@ -199,6 +201,10 @@
     "title": "Just a couple more things",
     "ageLegend": "Age check",
     "birthYearLabel": "Birth year",
+    "birthMonthLabel": "Month",
+    "birthDayLabel": "Day",
+    "selectPlaceholder": "Select…",
+    "birthDateNote": "We check your age with your full birth date, then keep only the year.",
     "attestedAdultLabel": "I am 19 or older.",
     "consentLegend": "Terms",
     "termsPrivacyLabel": "I agree to the Terms of Service and Privacy Policy. (draft, under legal review)",
@@ -216,6 +222,7 @@
     "error_UNAUTHENTICATED": "Please sign in first.",
     "error_INVALID_DOMAIN": "There was a problem confirming your campus email.",
     "error_IMPLAUSIBLE_YEAR": "Please check your birth year.",
+    "error_INVALID_DATE": "That date doesn't exist. Please check your birth date.",
     "error_NOT_ATTESTED": "Please confirm you are 19 or older.",
     "error_TOO_YOUNG": "You must be 19 or older to join.",
     "error_INVALID_INVITE": "That invite code isn't valid or has already been used up.",
@@ -260,6 +267,8 @@
       "pronounsLabel": "Pronouns (optional)",
       "yearLabel": "Year",
       "majorLabel": "Major",
+      "selectPlaceholder": "Select…",
+      "majorOther": "Other",
       "interestedInLabel": "Who would you like to meet?",
       "interestedInHint": "This is encrypted and used only for matching — never shown to anyone else.",
       "noSensitiveConsent": "To use Dating mode, go back to the consent step and agree to share your preference."
@@ -463,7 +472,7 @@
         },
         "ageVerification": {
           "item": "Birth year, age-verification result",
-          "purpose": "Confirming you're 19+",
+          "purpose": "Confirming you're 19+ (we check your full birth date, then keep only the year)",
           "note": "Required"
         },
         "selfie": {
@@ -775,7 +784,8 @@
       "NOT_EXPIRED": "This conversation hasn't expired.",
       "ALREADY_REVIVED": "This conversation has already been restarted once.",
       "UNKNOWN": "Something went wrong. Please try again in a moment.",
-      "RATE_LIMITED": "Too many requests. Please try again in a bit."
+      "RATE_LIMITED": "Too many requests. Please try again in a bit.",
+      "ACCOUNT_RESTRICTED": "Your account is restricted right now, so you can't do this. See Safety for details."
     },
     "planMeetup": "Plan a meetup"
   },
@@ -992,7 +1002,8 @@
       "NOT_PENDING": "This proposal has already been responded to.",
       "CANNOT_ACCEPT_OWN": "You can't accept your own proposal.",
       "NOT_ACCEPTED": "This is only available for a confirmed meetup.",
-      "UNKNOWN": "Something went wrong. Please try again."
+      "UNKNOWN": "Something went wrong. Please try again.",
+      "ACCOUNT_RESTRICTED": "Your account is restricted right now, so you can't do this. See Safety for details."
     }
   },
   "Emergency": {
@@ -1274,5 +1285,16 @@
     "footer": "Meet through shared classes, clubs and free time",
     "save": "Save image",
     "share": "Share"
+  },
+  "Restriction": {
+    "suspendedTitle": "Your account is suspended",
+    "suspendedBody": "You can't wave, send messages or plan meetups for {remaining}.",
+    "suspendedBodyNoDate": "You can't wave, send messages or plan meetups right now.",
+    "bannedTitle": "Your account has been closed",
+    "bannedBody": "You can't wave, send messages or plan meetups. You can still read the reason and appeal.",
+    "details": "See details and appeal",
+    "remainingDaysHours": "{days} d {hours} h",
+    "remainingHoursMinutes": "{hours} h {minutes} min",
+    "remainingMinutes": "{minutes} min"
   }
 }

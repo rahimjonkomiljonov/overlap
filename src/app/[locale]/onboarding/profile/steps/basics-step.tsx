@@ -7,12 +7,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
+import { MAJOR_GROUPS, OTHER_MAJOR, STUDY_YEARS, MAX_STUDY_YEAR } from "@/server/profile/majors";
 import { saveBasics, type StepState } from "@/server/profile/actions";
 import { StepShell } from "./step-shell";
 
 const GENDERS = [Gender.WOMAN, Gender.MAN, Gender.NONBINARY, Gender.OTHER] as const;
 
 const initialState: StepState = { status: "idle" };
+
+const selectClass =
+  "h-11 w-full rounded-lg border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 export function BasicsStep({
   stepIndex,
@@ -82,20 +86,34 @@ export function BasicsStep({
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
           <Label htmlFor="year">{t("basics.yearLabel")}</Label>
-          <Input
-            id="year"
-            name="year"
-            type="number"
-            inputMode="numeric"
-            min={1}
-            max={8}
-            defaultValue={initial.year ?? undefined}
-            required
-          />
+          <select id="year" name="year" required defaultValue={initial.year ?? ""} className={selectClass}>
+            <option value="" disabled>
+              {t("basics.selectPlaceholder")}
+            </option>
+            {STUDY_YEARS.map((y) => (
+              <option key={y} value={y}>
+                {y === MAX_STUDY_YEAR ? `${y}+` : y}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="space-y-2">
           <Label htmlFor="major">{t("basics.majorLabel")}</Label>
-          <Input id="major" name="major" defaultValue={initial.major} maxLength={100} required />
+          <select id="major" name="major" required defaultValue={initial.major} className={selectClass}>
+            <option value="" disabled>
+              {t("basics.selectPlaceholder")}
+            </option>
+            {MAJOR_GROUPS.map((group) => (
+              <optgroup key={group.college} label={group.college}>
+                {group.majors.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+            <option value={OTHER_MAJOR}>{t("basics.majorOther")}</option>
+          </select>
         </div>
       </div>
 

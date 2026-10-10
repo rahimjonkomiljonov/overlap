@@ -14,7 +14,9 @@ test.use({ locale: "ko-KR" });
 async function startAccountOnboarding(page: import("@playwright/test").Page, emailPrefix: string) {
   const email = uniqueTestEmail(emailPrefix);
   await signIn(page, email);
-  await page.getByLabel("태어난 연도").fill("1995");
+  await page.getByLabel("태어난 연도").selectOption("1995");
+  await page.getByLabel("월", { exact: true }).selectOption("6");
+  await page.getByLabel("일", { exact: true }).selectOption("15");
   await page.getByRole("checkbox", { name: "저는 만 19세 이상이에요." }).check();
   await page.getByRole("checkbox", { name: /이용약관과 개인정보 처리방침에 동의해요/ }).check();
   await page.getByRole("button", { name: "완료" }).click();
@@ -39,8 +41,8 @@ test("uploaded photos carry no EXIF metadata", async ({ page }) => {
   // onboarding/profile/steps/preview-step.tsx's early "done" return).
   await page.getByLabel("이름 (닉네임 가능)").fill("테스트유저");
   await page.getByRole("radio", { name: "여성" }).check();
-  await page.getByLabel("학년").fill("2");
-  await page.getByLabel("전공").fill("컴퓨터공학");
+  await page.getByLabel("학년").selectOption("2");
+  await page.getByLabel("전공").selectOption("컴퓨터공학과");
   await page.getByRole("button", { name: "다음" }).click();
   await page.getByRole("checkbox", { name: "친구" }).check();
   await page.getByRole("button", { name: "다음" }).click();

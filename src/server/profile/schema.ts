@@ -1,5 +1,6 @@
 import * as z from "zod";
 import { Gender, IntentMode } from "@/generated/prisma/enums";
+import { MAX_STUDY_YEAR, isKnownMajor } from "./majors";
 
 /**
  * Per-step validation for the onboarding profile wizard (S07/B1-B10). Every step
@@ -31,8 +32,9 @@ export const basicsSchema = z.object({
     .max(30)
     .optional()
     .transform((v) => (v ? v : undefined)),
-  year: z.coerce.number().int().min(1).max(8),
-  major: z.string().trim().min(1, "Required").max(100),
+  year: z.coerce.number().int().min(1).max(MAX_STUDY_YEAR),
+  // Picked from the Gachon department list (./majors.ts), so a typed-in value is refused.
+  major: z.string().trim().refine(isKnownMajor, "Pick a department from the list"),
   // Only meaningful (and only ever submitted) when the sensitive consent was granted;
   // src/server/profile/actions.ts drops it otherwise regardless of what's posted.
   interestedIn: z.array(z.enum(Gender)).max(4).default([]),

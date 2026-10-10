@@ -34,3 +34,33 @@ describe("renderNotificationEmail", () => {
     }
   });
 });
+
+describe("MODERATION_ACTION notice", () => {
+  const until = "2026-10-17T06:30:00.000Z"; // 15:30 on 17 Oct, Seoul time
+
+  it("says what happened for warn, suspend and ban, in both languages", () => {
+    for (const locale of LOCALES) {
+      const warn = renderNotificationEmail("MODERATION_ACTION", locale, { action: "WARN" });
+      const suspend = renderNotificationEmail("MODERATION_ACTION", locale, { action: "SUSPEND", until });
+      const ban = renderNotificationEmail("MODERATION_ACTION", locale, { action: "BAN" });
+      expect(new Set([warn.subject, suspend.subject, ban.subject]).size).toBe(3);
+    }
+  });
+
+  it("puts the end of a suspension in Seoul time", () => {
+    expect(renderNotificationEmail("MODERATION_ACTION", "en", { action: "SUSPEND", until }).text).toContain("15:30");
+    expect(renderNotificationEmail("MODERATION_ACTION", "ko", { action: "SUSPEND", until }).text).toContain("15:30");
+  });
+
+  it("never carries a moderator note, a name or any other placeholder", () => {
+    const { subject, text } = renderNotificationEmail("MODERATION_ACTION", "en", {
+      action: "SUSPEND",
+      until,
+      reason: "secret chat text",
+      reporter: "someone",
+    });
+    expect(text).not.toContain("secret chat text");
+    expect(text).not.toContain("someone");
+    expect(`${subject}${text}`).not.toMatch(/{|}|undefined/);
+  });
+});

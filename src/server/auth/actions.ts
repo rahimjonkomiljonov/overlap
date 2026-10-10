@@ -37,6 +37,7 @@ export type OnboardingState =
         | "UNAUTHENTICATED"
         | "INVALID_DOMAIN"
         | "IMPLAUSIBLE_YEAR"
+        | "INVALID_DATE"
         | "NOT_ATTESTED"
         | "TOO_YOUNG"
         | "INVALID_INVITE"
@@ -122,6 +123,8 @@ export async function completeOnboarding(
   const verifier = getActiveAgeVerifier();
   const result = verifier.verify({
     birthYear: parsed.data.birthYear,
+    birthMonth: parsed.data.birthMonth,
+    birthDay: parsed.data.birthDay,
     attestedAdult: parsed.data.attestedAdult === "on",
   });
   if (!result.eligible) {

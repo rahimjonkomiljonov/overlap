@@ -1,6 +1,7 @@
 "use server";
 
 import { MeetupStatus } from "@/generated/prisma/enums";
+import { isRestricted } from "@/server/auth/authz";
 import { getActor } from "@/server/auth/session";
 import { prisma } from "@/server/db";
 import { getMeetupOptions, loadMatchForActor } from "./queries";
@@ -30,6 +31,7 @@ export type MeetupActionState =
 export async function proposeMeetup(_prev: MeetupActionState, formData: FormData): Promise<MeetupActionState> {
   const actor = await getActor();
   if (!actor) return { status: "error", code: "UNAUTHENTICATED" };
+  if (isRestricted(actor)) return { status: "error", code: "ACCOUNT_RESTRICTED" };
 
   const parsed = proposeMeetupSchema.safeParse({
     matchId: formData.get("matchId"),
@@ -73,6 +75,7 @@ export async function proposeMeetup(_prev: MeetupActionState, formData: FormData
 export async function respondToMeetup(_prev: MeetupActionState, formData: FormData): Promise<MeetupActionState> {
   const actor = await getActor();
   if (!actor) return { status: "error", code: "UNAUTHENTICATED" };
+  if (isRestricted(actor)) return { status: "error", code: "ACCOUNT_RESTRICTED" };
 
   const parsed = respondToMeetupSchema.safeParse({
     proposalId: formData.get("proposalId"),
@@ -166,6 +169,7 @@ export type CreateShareLinkState =
 export async function createShareLink(_prev: CreateShareLinkState, formData: FormData): Promise<CreateShareLinkState> {
   const actor = await getActor();
   if (!actor) return { status: "error", code: "UNAUTHENTICATED" };
+  if (isRestricted(actor)) return { status: "error", code: "ACCOUNT_RESTRICTED" };
 
   const parsed = createShareLinkSchema.safeParse({ proposalId: formData.get("proposalId") });
   if (!parsed.success) return { status: "error", code: "INVALID_INPUT" };

@@ -7,6 +7,7 @@ import { can, Role } from "@/server/auth/authz";
 import { checkRateLimit } from "@/server/auth/rate-limit";
 import { getActor } from "@/server/auth/session";
 import { getConversationForActor, getMessages } from "@/server/chat/queries";
+import { enqueueNotification } from "@/server/notifications/queue";
 import { prisma } from "@/server/db";
 import { buildEvidenceSnapshot } from "./evidence";
 import { priorityForCategory } from "./priority";
@@ -123,7 +124,7 @@ export async function takeModerationAction(
   const decidedAt = new Date();
 
   await prisma.$transaction(async (tx) => {
-    await tx.moderationAction.create({
+    const moderationAction = await tx.moderationAction.create({
       data: { reportId: report.id, targetId: report.targetId, actorId: actor.userId, type, reason },
     });
     await tx.report.update({ where: { id: report.id }, data: { status: ReportStatus.RESOLVED, resolvedAt: decidedAt } });
@@ -140,6 +141,24 @@ export async function takeModerationAction(
       await tx.user.update({
         where: { id: report.targetId },
         data: { status: UserStatus.BANNED, suspendedUntil: null },
+      });
+    }
+
+    // Tell the person. Queued (not sent here), so the email follows the same quiet-hours
+    // rule as every other notification; the Safety page and banner show it immediately.
+    // The note never goes into the email (see renderModerationNotice).
+    if (type === "WARN" || type === "SUSPEND" || type === "BAN") {
+      await enqueueNotification(tx, {
+        userId: report.targetId,
+        type: "MODERATION_ACTION",
+        dedupeKey: `moderation:${moderationAction.id}`,
+        data: {
+          action: type,
+          until:
+            type === "SUSPEND"
+              ? new Date(decidedAt.getTime() + SUSPENSION_DAYS * 24 * 60 * 60 * 1000).toISOString()
+              : undefined,
+        },
       });
     }
 

@@ -30,8 +30,8 @@ export async function completeProfileWizard(
   // Basics
   await page.getByLabel("이름 (닉네임 가능)").fill(options.firstName ?? "테스트유저");
   await page.getByRole("radio", { name: "여성" }).check();
-  await page.getByLabel("학년").fill("2");
-  await page.getByLabel("전공").fill("컴퓨터공학");
+  await page.getByLabel("학년").selectOption("2");
+  await page.getByLabel("전공").selectOption("컴퓨터공학과");
   await page.getByRole("button", { name: "다음" }).click();
 
   // Intents

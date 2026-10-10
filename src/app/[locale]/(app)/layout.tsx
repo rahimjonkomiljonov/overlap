@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/app-shell/app-shell";
 import { redirect } from "@/i18n/navigation";
+import { RestrictionBanner } from "@/components/app-shell/restriction-banner";
+import { prisma } from "@/server/db";
 import { getActor, needsOnboarding } from "@/server/auth/session";
 import { hasCompletedProfile } from "@/server/profile/queries";
 
@@ -29,5 +31,21 @@ export default async function AppLayout({
     return;
   }
 
-  return <AppShell>{children}</AppShell>;
+  // G8: a suspended or banned account keeps access to read, to its Safety page and to
+  // appeal, but is told plainly what applies and for how long.
+  let restriction: { status: "SUSPENDED" | "BANNED"; suspendedUntil: Date | null } | null = null;
+  if (actor.status === "SUSPENDED" || actor.status === "BANNED") {
+    const row = await prisma.user.findUnique({
+      where: { id: actor.userId },
+      select: { suspendedUntil: true },
+    });
+    restriction = { status: actor.status, suspendedUntil: row?.suspendedUntil ?? null };
+  }
+
+  return (
+    <AppShell>
+      {restriction && <RestrictionBanner {...restriction} />}
+      {children}
+    </AppShell>
+  );
 }

@@ -45,7 +45,9 @@ export async function signInAndOnboard(
 ): Promise<string> {
   const email = uniqueTestEmail(options.emailPrefix ?? "e2e");
   await signIn(page, email);
-  await page.getByLabel("태어난 연도").fill("1995");
+  await page.getByLabel("태어난 연도").selectOption("1995");
+  await page.getByLabel("월", { exact: true }).selectOption("6");
+  await page.getByLabel("일", { exact: true }).selectOption("15");
   await page.getByRole("checkbox", { name: "저는 만 19세 이상이에요." }).check();
   await page.getByRole("checkbox", { name: /이용약관과 개인정보 처리방침에 동의해요/ }).check();
   if (options.grantSensitive) {

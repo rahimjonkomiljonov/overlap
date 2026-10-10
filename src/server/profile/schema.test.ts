@@ -22,10 +22,18 @@ describe("basicsSchema", () => {
       gender: "WOMAN",
       pronouns: "",
       year: "2",
-      major: "컴퓨터공학",
+      major: "컴퓨터공학과",
       interestedIn: [],
     });
     expect(result.success).toBe(true);
+  });
+
+  it("rejects a major that is not on the Gachon list, and a year above 5", () => {
+    const base = { firstName: "지민", gender: "WOMAN", year: "2", major: "컴퓨터공학과" };
+    expect(basicsSchema.safeParse({ ...base, major: "Computer Engineering" }).success).toBe(false);
+    expect(basicsSchema.safeParse({ ...base, major: "기타" }).success).toBe(true);
+    expect(basicsSchema.safeParse({ ...base, year: "6" }).success).toBe(false);
+    expect(basicsSchema.safeParse({ ...base, year: "5" }).success).toBe(true);
   });
 
   it("rejects an empty first name", () => {
@@ -33,7 +41,7 @@ describe("basicsSchema", () => {
       firstName: "",
       gender: "WOMAN",
       year: "2",
-      major: "컴퓨터공학",
+      major: "컴퓨터공학과",
     });
     expect(result.success).toBe(false);
   });
@@ -43,7 +51,7 @@ describe("basicsSchema", () => {
       firstName: "지민",
       gender: "SOMETHING_ELSE",
       year: "2",
-      major: "컴퓨터공학",
+      major: "컴퓨터공학과",
     });
     expect(result.success).toBe(false);
   });

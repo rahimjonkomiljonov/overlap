@@ -1311,6 +1311,8 @@ enum NotificationType {
   MATCH
   WAVE_RECEIVED
   UNREAD_MESSAGE
+  /// A moderator warned, suspended or banned this user (G8). `data` = { action, until? }.
+  MODERATION_ACTION
 }
 
 /// I1/§15.2's "service vs promotional" classes (Network Act Art. 50 — separate consent

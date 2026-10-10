@@ -31,6 +31,7 @@ const PUSH_PATHS: Record<NotificationType, string> = {
   MATCH: "/matches",
   WAVE_RECEIVED: "/waves",
   UNREAD_MESSAGE: "/matches",
+  MODERATION_ACTION: "/me/safety",
 };
 
 function pushUrl(type: NotificationType, locale: NotificationLocale): string {
@@ -88,7 +89,7 @@ export async function processQueuedNotifications(
     }
 
     const locale = notification.locale as NotificationLocale;
-    const { subject, text } = renderNotificationEmail(notification.type, locale);
+    const { subject, text } = renderNotificationEmail(notification.type, locale, notification.data);
     await send({ to: notification.user.email, subject, text });
 
     // Same quiet hours and the same generic text as the email; a push failure never

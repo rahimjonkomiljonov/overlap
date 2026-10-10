@@ -65,6 +65,16 @@ export function requireRole(actor: Actor, role: Role): asserts actor is NonNulla
   }
 }
 
+/**
+ * True for a suspended or banned account (a moderator action, G8). Those accounts can
+ * still sign in, read their own safety page and appeal, but must not start any contact
+ * with other people: waves, messages, meetups. Paused is the user's own choice and is not
+ * restricted. Call this at the top of every action that reaches another user.
+ */
+export function isRestricted(actor: Actor): boolean {
+  return actor !== null && (actor.status === UserStatus.SUSPENDED || actor.status === UserStatus.BANNED);
+}
+
 /** Non-throwing check, for conditional UI or logic rather than a hard guard. */
 export function can(actor: Actor, role: Role): boolean {
   try {
