@@ -1,6 +1,0 @@
-[   12896ms] [ERROR] Failed to load resource: net::ERR_SSL_PROTOCOL_ERROR @ https://localhost:3100/:0
-[   12897ms] [ERROR] Failed to fetch RSC payload for http://localhost:3100/ko. Falling back to browser navigation. TypeError: Failed to fetch
-    at n (http://localhost:3100/_next/static/chunks/1fhp_nrohuae3.js:2:34011)
-    at N (http://localhost:3100/_next/static/chunks/1fhp_nrohuae3.js:1:20576)
-    at async v (http://localhost:3100/_next/static/chunks/1fhp_nrohuae3.js:1:18535)
-    at async v (http://localhost:3100/_next/static/chunks/1fhp_nrohuae3.js:2:38780) @ http://localhost:3100/_next/static/chunks/1fhp_nrohuae3.js:0
