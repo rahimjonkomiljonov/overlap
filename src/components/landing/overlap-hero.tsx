@@ -10,6 +10,9 @@ import { cn } from "@/lib/utils";
  * the left circle (which clips it), so the shared area can be given its own clean colour
  * and the reasons stay readable in both themes.
  *
+ * The box clips sideways: the circles start offset and would otherwise poke past the screen edge
+ * for the first second, letting the page scroll sideways on a phone.
+ *
  * It is decorative: the same ideas are in the text next to it, so the whole graphic is hidden
  * from screen readers rather than read out as a jumble of loose words.
  *
@@ -28,7 +31,7 @@ export function OverlapHero({
   className?: string;
 }) {
   return (
-    <div aria-hidden="true" className={cn("relative mx-auto aspect-[10/7] w-full max-w-sm", className)}>
+    <div aria-hidden="true" className={cn("relative mx-auto aspect-[10/7] w-full max-w-sm overflow-x-clip", className)}>
       {/* Left circle: you. It clips the overlap shape below. */}
       <div className="overlap-circle-left absolute top-1/2 left-0 aspect-square w-[70%] -translate-y-1/2 overflow-hidden rounded-full bg-primary text-primary-foreground">
         <span className="absolute top-1/2 left-[21%] w-[34%] -translate-x-1/2 -translate-y-1/2 text-center text-sm leading-tight font-medium">

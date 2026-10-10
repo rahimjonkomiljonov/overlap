@@ -166,7 +166,7 @@ export function ChatThread({
   const timeFormatter = new Intl.DateTimeFormat(locale === "en" ? "en-US" : "ko-KR", { timeStyle: "short" });
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] flex-col md:h-[calc(100vh-2rem)]">
+    <div className="flex h-[calc(100dvh-10rem-env(safe-area-inset-bottom))] min-h-80 flex-col md:h-[calc(100dvh-4rem)]">
       <div className="flex items-center gap-3 border-b border-border pb-4">
         <Link href="/matches" aria-label={t("backToMatches")} className="text-muted-foreground hover:text-foreground">
           &larr;

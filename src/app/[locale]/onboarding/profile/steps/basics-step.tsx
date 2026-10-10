@@ -84,7 +84,7 @@ export function BasicsStep({
         <Input id="pronouns" name="pronouns" defaultValue={initial.pronouns} maxLength={30} />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-[6rem_1fr] gap-3">
         <div className="space-y-2">
           <Label htmlFor="year">{t("basics.yearLabel")}</Label>
           <select id="year" name="year" required defaultValue={initial.year ?? ""} className={selectClass}>

@@ -102,7 +102,7 @@ export function SearchPicker({
               type="button"
               onClick={() => remove(item.id)}
               aria-label={item.label}
-              className="ml-1 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="relative ml-1 rounded-full outline-none after:absolute after:-inset-3 after:content-[''] focus-visible:ring-2 focus-visible:ring-ring"
             >
               ×
             </button>

@@ -103,7 +103,13 @@ export function PhotosStep({
             <Image src={photo.url} alt="" fill sizes="200px" className="object-cover" unoptimized />
             <form action={removeAction} className="absolute top-1 right-1">
               <input type="hidden" name="photoId" value={photo.id} />
-              <Button type="submit" size="icon-xs" variant="destructive" aria-label={t("photos.remove")}>
+              <Button
+                type="submit"
+                size="icon-xs"
+                variant="destructive"
+                aria-label={t("photos.remove")}
+                className="relative after:absolute after:-inset-1.5 after:content-['']"
+              >
                 ×
               </Button>
             </form>

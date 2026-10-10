@@ -72,7 +72,7 @@ export function PickCard({
                 disabled={disabled}
                 aria-label={t("reactPhoto")}
                 className={cn(
-                  "absolute right-2 bottom-2 flex size-9 items-center justify-center rounded-full bg-background/90 text-foreground shadow-sm transition-transform hover:scale-105 disabled:pointer-events-none disabled:opacity-50",
+                  "absolute right-2 bottom-2 flex size-9 items-center justify-center rounded-full bg-background/90 text-foreground shadow-sm transition-transform after:absolute after:-inset-1 after:content-[''] hover:scale-105 disabled:pointer-events-none disabled:opacity-50",
                 )}
               >
                 <Heart className="size-4" aria-hidden="true" />
@@ -121,7 +121,7 @@ export function PickCard({
                 onClick={() => onReact({ type: "promptAnswer", promptAnswerId: prompt.id })}
                 disabled={disabled}
                 aria-label={t("reactPrompt")}
-                className="flex size-8 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
+                className="relative flex size-8 shrink-0 items-center justify-center rounded-full text-muted-foreground after:absolute after:-inset-1.5 after:content-[''] hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
               >
                 <Heart className="size-4" aria-hidden="true" />
               </button>

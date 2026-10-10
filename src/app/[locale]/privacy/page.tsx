@@ -11,7 +11,12 @@ type ProcessorRow = { name: string; sees: string; location: string };
 
 function SimpleTable({ caption, headers, rows }: { caption: string; headers: string[]; rows: string[][] }) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-border">
+    <div
+      role="region"
+      aria-label={caption}
+      tabIndex={0}
+      className="overflow-x-auto rounded-lg border border-border outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
       <table className="w-full text-left text-sm">
         <caption className="sr-only">{caption}</caption>
         <thead>

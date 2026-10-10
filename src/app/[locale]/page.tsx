@@ -70,20 +70,20 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
       </section>
 
       <footer className="border-t border-border pt-6 text-sm text-muted-foreground">
-        <nav aria-label={t("footerLabel")} className="flex flex-wrap gap-x-5 gap-y-2">
-          <Link href="/how-matching-works" className="underline-offset-4 hover:text-foreground hover:underline">
+        <nav aria-label={t("footerLabel")} className="flex flex-wrap gap-x-5">
+          <Link href="/how-matching-works" className="inline-flex min-h-11 items-center underline-offset-4 hover:text-foreground hover:underline">
             {t("footerHow")}
           </Link>
-          <Link href="/safety" className="underline-offset-4 hover:text-foreground hover:underline">
+          <Link href="/safety" className="inline-flex min-h-11 items-center underline-offset-4 hover:text-foreground hover:underline">
             {t("footerSafety")}
           </Link>
-          <Link href="/community-guidelines" className="underline-offset-4 hover:text-foreground hover:underline">
+          <Link href="/community-guidelines" className="inline-flex min-h-11 items-center underline-offset-4 hover:text-foreground hover:underline">
             {t("footerGuidelines")}
           </Link>
-          <Link href="/terms" className="underline-offset-4 hover:text-foreground hover:underline">
+          <Link href="/terms" className="inline-flex min-h-11 items-center underline-offset-4 hover:text-foreground hover:underline">
             {t("footerTerms")}
           </Link>
-          <Link href="/privacy" className="underline-offset-4 hover:text-foreground hover:underline">
+          <Link href="/privacy" className="inline-flex min-h-11 items-center underline-offset-4 hover:text-foreground hover:underline">
             {t("footerPrivacy")}
           </Link>
         </nav>

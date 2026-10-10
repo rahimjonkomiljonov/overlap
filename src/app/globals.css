@@ -137,6 +137,18 @@
   }
 }
 
+/* Mobile Safari zooms the whole page in when a field with text under 16px gets focus.
+   Inputs are already 16px; this covers every native dropdown and text area whatever size
+   class they carry. It sits outside any @layer on purpose: an unlayered rule beats Tailwind's
+   utility classes (text-sm), a layered one would lose to them. Wide screens keep their own
+   smaller type. */
+@media (pointer: coarse) {
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
 /* The meetup status dot blinks on and off while it is new to the viewer. Steady once seen,
    and steady for anyone who asked for reduced motion (the dot's text label still says "new"). */
 @keyframes meetup-dot-blink {
@@ -179,14 +191,14 @@
     opacity: 1;
   }
 }
+/* The reasons are drawn in with a wipe, not a fade: a fade leaves the text half transparent
+   for a moment, which accessibility checkers (rightly) report as low contrast. */
 @keyframes overlap-chip-in {
   from {
-    opacity: 0;
-    transform: translateY(6px);
+    clip-path: inset(0 100% 0 0 round 999px);
   }
   to {
-    opacity: 1;
-    transform: none;
+    clip-path: inset(0 round 999px);
   }
 }
 .overlap-circle-left {
