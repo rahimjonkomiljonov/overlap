@@ -1,0 +1,57 @@
+- generic [active] [ref=f2e1]:
+  - link "Skip to content" [ref=f2e2] [cursor=pointer]:
+    - /url: "#main"
+  - main [ref=f2e3]:
+    - generic [ref=f2e4]:
+      - generic [ref=f2e5]: Overlap
+      - link "한국어" [ref=f2e10] [cursor=pointer]:
+        - /url: /ko
+    - generic [ref=f2e11]:
+      - generic [ref=f2e12]:
+        - heading "Overlap" [level=1] [ref=f2e13]
+        - paragraph [ref=f2e14]: Meet the people your campus life already overlaps with.
+        - generic [ref=f2e15]:
+          - link "Join the waitlist" [ref=f2e16] [cursor=pointer]:
+            - /url: /en/waitlist
+          - paragraph [ref=f2e17]: We're still building this. Join the waitlist and we'll email you the moment we open.
+      - generic [ref=f2e18]:
+        - generic [ref=f2e19]: You
+        - generic [ref=f2e22]: Someone new
+        - list [ref=f2e24]:
+          - listitem [ref=f2e25]: Same class
+          - listitem [ref=f2e26]: Same club
+          - listitem [ref=f2e27]: Free at the same time
+    - region [ref=f2e28]:
+      - heading "How it works" [level=2] [ref=f2e29]
+      - list [ref=f2e30]:
+        - listitem [ref=f2e31]:
+          - generic [aria-hidden] [ref=f2e32]: "1"
+          - generic [ref=f2e33]:
+            - heading "Six introductions, every day at noon" [level=3] [ref=f2e34]
+            - paragraph [ref=f2e35]: "Each one comes with the reasons you overlap: the same class, the same club, free at the same time."
+        - listitem [ref=f2e36]:
+          - generic [aria-hidden] [ref=f2e37]: "2"
+          - generic [ref=f2e38]:
+            - heading "Wave if you want to say hi" [level=3] [ref=f2e39]
+            - paragraph [ref=f2e40]: If they wave back, it's a match and you can start chatting. No endless swiping.
+        - listitem [ref=f2e41]:
+          - generic [aria-hidden] [ref=f2e42]: "3"
+          - generic [ref=f2e43]:
+            - heading "Meet on campus" [level=3] [ref=f2e44]
+            - paragraph [ref=f2e45]: We suggest public spots on campus, and you can plan a time from the hours you're both free.
+    - generic [ref=f2e50]:
+      - heading "Safety comes first" [level=2] [ref=f2e51]
+      - paragraph [ref=f2e52]: Only verified students can be matched with, and you can block or report anyone at any time. When it's time to meet, we suggest public spots on campus.
+    - navigation "About Overlap" [ref=f2e54]:
+      - link "How matching works" [ref=f2e55] [cursor=pointer]:
+        - /url: /en/how-matching-works
+      - link "Safety" [ref=f2e56] [cursor=pointer]:
+        - /url: /en/safety
+      - link "Community guidelines" [ref=f2e57] [cursor=pointer]:
+        - /url: /en/community-guidelines
+      - link "Terms" [ref=f2e58] [cursor=pointer]:
+        - /url: /en/terms
+      - link "Privacy" [ref=f2e59] [cursor=pointer]:
+        - /url: /en/privacy
+  - region "Notifications alt+T"
+  - alert [ref=f2e60]
