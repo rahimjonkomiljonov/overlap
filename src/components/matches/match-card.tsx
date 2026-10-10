@@ -3,8 +3,10 @@
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { MEETUP_GLOW_CLASS } from "@/components/meetup/meetup-banner";
 import { BlockButton } from "@/components/safety/block-button";
 import { ReportButton } from "@/components/safety/report-button";
 import { Link } from "@/i18n/navigation";
@@ -35,11 +37,22 @@ export function MatchCard({
   return (
     <Card>
       <CardContent className="flex items-center gap-4">
-        <Avatar size="lg">
-          {match.photoUrl && <AvatarImage src={match.photoUrl} alt="" />}
-          <AvatarFallback>{match.firstName?.[0] ?? "?"}</AvatarFallback>
-        </Avatar>
-        <p className="font-medium">{match.firstName}</p>
+        <Link
+          href={`/profile/${match.otherUserId}`}
+          aria-label={t("openProfile", { name: match.firstName ?? "" })}
+          className="flex min-w-0 items-center gap-4 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <Avatar size="lg">
+            {match.photoUrl && <AvatarImage src={match.photoUrl} alt="" />}
+            <AvatarFallback>{match.firstName?.[0] ?? "?"}</AvatarFallback>
+          </Avatar>
+          <p className="truncate font-medium">{match.firstName}</p>
+        </Link>
+        {match.meetup && (
+          <Badge variant={match.meetup.status === "ACCEPTED" ? "default" : "secondary"} className="ml-auto">
+            {match.meetup.status === "ACCEPTED" ? t("meetupConfirmed") : t("meetupPending")}
+          </Badge>
+        )}
       </CardContent>
 
       <CardFooter className="flex-col items-stretch gap-3">
@@ -68,8 +81,11 @@ export function MatchCard({
               {t("unmatch")}
             </Button>
             <div className="flex gap-2">
-              <Link href={`/meetup/${match.matchId}`} className={buttonVariants({ variant: "outline" })}>
-                {t("planMeetup")}
+              <Link
+                href={`/meetup/${match.matchId}`}
+                className={`${buttonVariants({ variant: "outline" })}${match.meetup ? ` ${MEETUP_GLOW_CLASS}` : ""}`}
+              >
+                {match.meetup ? t("viewMeetup") : t("planMeetup")}
               </Link>
               {match.conversationId && (
                 <Link href={`/matches/${match.conversationId}`} className={buttonVariants()}>

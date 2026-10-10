@@ -104,7 +104,11 @@
       "UNKNOWN": "문제가 발생했어요. 잠시 후 다시 시도해 주세요."
     },
     "chatButton": "채팅하기",
-    "planMeetup": "약속 잡기"
+    "planMeetup": "약속 잡기",
+    "openProfile": "{name}님의 프로필 보기",
+    "viewMeetup": "약속 보기",
+    "meetupConfirmed": "약속 확정",
+    "meetupPending": "약속 제안됨"
   },
   "Me": {
     "title": "내 정보",
@@ -793,7 +797,9 @@
       "RATE_LIMITED": "요청이 너무 많아요. 잠시 후 다시 시도해 주세요.",
       "ACCOUNT_RESTRICTED": "계정이 제한된 상태라 지금은 할 수 없어요. 자세한 내용은 안전 페이지에서 확인해 주세요."
     },
-    "planMeetup": "약속 잡기"
+    "planMeetup": "약속 잡기",
+    "openProfile": "{name}님의 프로필 보기",
+    "viewMeetup": "약속 보기"
   },
   "Report": {
     "reportButton": "신고",
@@ -1019,7 +1025,10 @@
     "customSpot": "안전 장소",
     "customSelect": "선택",
     "customSubmit": "이 시간으로 제안",
-    "noSpotsBody": "이 캠퍼스에는 아직 등록된 안전 장소가 없어서 장소를 추천할 수 없어요."
+    "noSpotsBody": "이 캠퍼스에는 아직 등록된 안전 장소가 없어서 장소를 추천할 수 없어요.",
+    "bannerConfirmed": "약속이 확정됐어요",
+    "bannerWaitingForThem": "약속을 제안했어요. 상대의 답을 기다리는 중",
+    "bannerNeedsYourAnswer": "약속이 제안됐어요. 답이 필요해요"
   },
   "Emergency": {
     "cardButton": "긴급 연락처",
@@ -1351,5 +1360,11 @@
       "NOT_SUSPENDED": "이미 정지가 해제된 계정이에요.",
       "OWN_ACCOUNT": "내 정지는 직접 풀 수 없어요."
     }
+  },
+  "PersonProfile": {
+    "unnamed": "이름 없음",
+    "interests": "관심사",
+    "chat": "채팅 열기",
+    "back": "매치로 돌아가기"
   }
 }

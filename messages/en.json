@@ -104,7 +104,11 @@
       "UNKNOWN": "Something went wrong. Please try again in a moment."
     },
     "chatButton": "Chat",
-    "planMeetup": "Plan a meetup"
+    "planMeetup": "Plan a meetup",
+    "openProfile": "See {name}'s profile",
+    "viewMeetup": "View meetup",
+    "meetupConfirmed": "Meetup confirmed",
+    "meetupPending": "Meetup suggested"
   },
   "Me": {
     "title": "Me",
@@ -793,7 +797,9 @@
       "RATE_LIMITED": "Too many requests. Please try again in a bit.",
       "ACCOUNT_RESTRICTED": "Your account is restricted right now, so you can't do this. See Safety for details."
     },
-    "planMeetup": "Plan a meetup"
+    "planMeetup": "Plan a meetup",
+    "openProfile": "See {name}'s profile",
+    "viewMeetup": "View meetup"
   },
   "Report": {
     "reportButton": "Report",
@@ -1019,7 +1025,10 @@
     "customSpot": "Safe Spot",
     "customSelect": "Select…",
     "customSubmit": "Suggest this time",
-    "noSpotsBody": "This campus has no registered Safe Spots yet, so we can't suggest a place."
+    "noSpotsBody": "This campus has no registered Safe Spots yet, so we can't suggest a place.",
+    "bannerConfirmed": "Meetup confirmed",
+    "bannerWaitingForThem": "Meetup suggested. Waiting for their answer",
+    "bannerNeedsYourAnswer": "Meetup suggested. Needs your answer"
   },
   "Emergency": {
     "cardButton": "Emergency contacts",
@@ -1351,5 +1360,11 @@
       "NOT_SUSPENDED": "This account is no longer suspended.",
       "OWN_ACCOUNT": "You can't lift your own suspension."
     }
+  },
+  "PersonProfile": {
+    "unnamed": "No name",
+    "interests": "Interests",
+    "chat": "Open chat",
+    "back": "Back to matches"
   }
 }

@@ -7,6 +7,7 @@ import { getConversationForActor, getMessages } from "@/server/chat/queries";
 import { chatChannelName, isChatRealtimeConfigured } from "@/server/chat/realtime";
 import { getIcebreakerReasons } from "@/server/chat/icebreakers";
 import { buildLabelMaps, resolveReasons, type ResolvedReason } from "@/server/picks/reasons";
+import { getActiveMeetups } from "@/server/meetup/summary";
 import { getEmergencyContacts } from "@/server/safety/emergency";
 
 export default async function ChatPage({
@@ -26,6 +27,7 @@ export default async function ChatPage({
   }
 
   const messages = await getMessages(prisma, conversationId);
+  const meetup = (await getActiveMeetups(prisma, [conversation.matchId])).get(conversation.matchId) ?? null;
   const emergencyContacts = actor.campusId ? await getEmergencyContacts(prisma, actor.campusId) : [];
 
   let icebreakers: string[] = [];
@@ -60,6 +62,7 @@ export default async function ChatPage({
       revivedAt={conversation.revivedAt?.toISOString() ?? null}
       icebreakers={icebreakers}
       emergencyContacts={emergencyContacts}
+      meetup={meetup}
     />
   );
 }

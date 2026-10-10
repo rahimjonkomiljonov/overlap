@@ -7,11 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BlockButton } from "@/components/safety/block-button";
+import { MeetupBanner, MEETUP_GLOW_CLASS } from "@/components/meetup/meetup-banner";
 import { EmergencyCard } from "@/components/safety/emergency-card";
 import { ReportButton } from "@/components/safety/report-button";
 import { Link, useRouter } from "@/i18n/navigation";
 import { sendMessage, reviveConversation, type ReviveConversationState } from "@/server/chat/actions";
 import { MAX_MESSAGE_LENGTH } from "@/server/chat/schema";
+import type { ActiveMeetupSummary } from "@/server/meetup/summary";
 import type { EmergencyContact } from "@/server/safety/emergency";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -51,6 +53,7 @@ export function ChatThread({
   revivedAt,
   icebreakers,
   emergencyContacts,
+  meetup,
 }: {
   conversationId: string;
   matchId: string;
@@ -66,6 +69,8 @@ export function ChatThread({
   revivedAt: string | null;
   icebreakers: string[];
   emergencyContacts: EmergencyContact[];
+  /** A confirmed or waiting meetup with this person, shown at the top. */
+  meetup: ActiveMeetupSummary | null;
 }) {
   const t = useTranslations("Chat");
   const locale = useLocale();
@@ -166,18 +171,33 @@ export function ChatThread({
         <Link href="/matches" aria-label={t("backToMatches")} className="text-muted-foreground hover:text-foreground">
           &larr;
         </Link>
-        <Avatar size="default">
-          {otherPhotoUrl && <AvatarImage src={otherPhotoUrl} alt="" />}
-          <AvatarFallback>{otherFirstName?.[0] ?? "?"}</AvatarFallback>
-        </Avatar>
-        <p className="mr-auto font-medium">{otherFirstName}</p>
+        <Link
+          href={`/profile/${otherUserId}`}
+          aria-label={t("openProfile", { name: otherFirstName ?? "" })}
+          className="mr-auto flex min-w-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <Avatar size="default">
+            {otherPhotoUrl && <AvatarImage src={otherPhotoUrl} alt="" />}
+            <AvatarFallback>{otherFirstName?.[0] ?? "?"}</AvatarFallback>
+          </Avatar>
+          <p className="truncate font-medium">{otherFirstName}</p>
+        </Link>
         <ReportButton targetUserId={otherUserId} conversationId={conversationId} />
         <BlockButton targetUserId={otherUserId} onBlocked={() => router.push("/matches")} />
       </div>
 
+      {meetup && <MeetupBanner meetup={meetup} matchId={matchId} actorUserId={actorUserId} />}
+
       <div className="flex items-center gap-2 border-b border-border py-2">
-        <Link href={`/meetup/${matchId}`} className="text-sm font-medium text-primary underline">
-          {t("planMeetup")}
+        <Link
+          href={`/meetup/${matchId}`}
+          className={
+            meetup
+              ? `rounded-full px-3 py-1 text-sm font-medium text-primary underline ${MEETUP_GLOW_CLASS}`
+              : "text-sm font-medium text-primary underline"
+          }
+        >
+          {meetup ? t("viewMeetup") : t("planMeetup")}
         </Link>
         <div className="ml-auto">
           <EmergencyCard contacts={emergencyContacts} />

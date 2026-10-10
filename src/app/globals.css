@@ -137,7 +137,26 @@
   }
 }
 
+/* A soft pulsing ring on controls that point at a live meetup. The state is also written
+   out in words wherever this is used, so the glow is a hint, never the only signal. */
+@keyframes meetup-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 60%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 7px color-mix(in oklab, var(--primary) 0%, transparent);
+  }
+}
+.meetup-glow {
+  animation: meetup-glow 2.2s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .meetup-glow {
+    animation: none;
+    box-shadow: 0 0 0 2px var(--primary);
+  }
   *,
   *::before,
   *::after {

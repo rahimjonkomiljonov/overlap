@@ -1,9 +1,10 @@
 import type { PrismaClient } from "@/generated/prisma/client";
 import { resolvePhotoUrl } from "@/server/storage/photos";
 import type { TargetElement } from "@/server/picks/schema";
+import { getActiveMeetups, type ActiveMeetupSummary } from "@/server/meetup/summary";
 import { getBlockedUserIdSet } from "./blocks";
 
-export type WavesDb = Pick<PrismaClient, "wave" | "match" | "block">;
+export type WavesDb = Pick<PrismaClient, "wave" | "match" | "block" | "meetProposal">;
 
 export interface IncomingWave {
   waveId: string;
@@ -65,6 +66,8 @@ export interface MatchSummary {
   firstName: string | null;
   photoUrl: string | null;
   matchedAt: Date;
+  /** A meetup waiting for an answer or confirmed and not yet over; null otherwise. */
+  meetup: ActiveMeetupSummary | null;
 }
 
 /**
@@ -106,6 +109,8 @@ export async function getMatches(db: WavesDb, userId: string): Promise<MatchSumm
     },
   });
 
+  const meetups = await getActiveMeetups(db, matches.map((m) => m.id));
+
   return Promise.all(
     matches.map(async (match) => {
       const isUserA = match.userAId === userId;
@@ -119,6 +124,7 @@ export async function getMatches(db: WavesDb, userId: string): Promise<MatchSumm
         firstName: other.profile?.firstName ?? null,
         photoUrl: photo ? await resolvePhotoUrl(photo.storageKey) : null,
         matchedAt: match.createdAt,
+        meetup: meetups.get(match.id) ?? null,
       };
     }),
   );
