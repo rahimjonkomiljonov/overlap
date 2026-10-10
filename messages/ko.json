@@ -740,7 +740,8 @@
     "navVerification": "인증 대기열",
     "navReports": "신고 대기열",
     "navOps": "운영 지표",
-    "navTrust": "신뢰 이의신청"
+    "navTrust": "신뢰 이의신청",
+    "navSuspensions": "정지 관리"
   },
   "HowMatchingWorks": {
     "title": "매칭은 어떻게 이루어지나요",
@@ -1329,5 +1330,26 @@
     "section_prompts": "프롬프트",
     "section_values": "가치관 퀴즈",
     "section_photos": "사진"
+  },
+  "AdminSuspensions": {
+    "title": "정지된 계정",
+    "description": "한 번에 한 명씩 정지를 일찍 풀 수 있어요. 짧은 사유를 적으면 감사 로그에 남아요. 원래 신고와 조치 기록은 그대로 유지돼요.",
+    "empty": "정지된 사람이 없어요",
+    "unnamed": "이름 없음",
+    "until": "{date}까지 정지 (서울 시간)",
+    "noEndDate": "종료일 없음",
+    "since": "{date}부터",
+    "lift": "정지 해제",
+    "confirmQuestion": "{name}님의 정지를 풀까요? 바로 웨이브, 메시지, 약속을 다시 쓸 수 있어요.",
+    "noteLabel": "해제하는 이유 (감사 로그에 저장돼요)",
+    "confirm": "확인: 정지 해제",
+    "cancel": "취소",
+    "errors": {
+      "FORBIDDEN": "권한이 없어요.",
+      "INVALID_INPUT": "짧은 사유를 적어 주세요.",
+      "NOT_FOUND": "계정을 찾을 수 없어요.",
+      "NOT_SUSPENDED": "이미 정지가 해제된 계정이에요.",
+      "OWN_ACCOUNT": "내 정지는 직접 풀 수 없어요."
+    }
   }
 }

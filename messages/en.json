@@ -740,7 +740,8 @@
     "navVerification": "Verification",
     "navReports": "Reports",
     "navOps": "Ops",
-    "navTrust": "Trust appeals"
+    "navTrust": "Trust appeals",
+    "navSuspensions": "Suspensions"
   },
   "HowMatchingWorks": {
     "title": "How matching works",
@@ -1329,5 +1330,26 @@
     "section_prompts": "Prompts",
     "section_values": "Values quiz",
     "section_photos": "Photos"
+  },
+  "AdminSuspensions": {
+    "title": "Suspended accounts",
+    "description": "Lift a suspension early for one person at a time. You'll be asked for a short note, which goes to the audit log. The original report and action stay on record.",
+    "empty": "Nobody is suspended",
+    "unnamed": "No name",
+    "until": "Suspended until {date} (Seoul time)",
+    "noEndDate": "No end date set",
+    "since": "since {date}",
+    "lift": "Lift suspension",
+    "confirmQuestion": "Lift the suspension for {name}? They can wave, message and plan meetups again right away.",
+    "noteLabel": "Why are you lifting it? (saved in the audit log)",
+    "confirm": "Confirm: lift suspension",
+    "cancel": "Cancel",
+    "errors": {
+      "FORBIDDEN": "You don't have permission.",
+      "INVALID_INPUT": "Please write a short note.",
+      "NOT_FOUND": "That account couldn't be found.",
+      "NOT_SUSPENDED": "This account is no longer suspended.",
+      "OWN_ACCOUNT": "You can't lift your own suspension."
+    }
   }
 }
