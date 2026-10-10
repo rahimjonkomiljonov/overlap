@@ -36,6 +36,13 @@ describe("basicsSchema", () => {
     expect(basicsSchema.safeParse({ ...base, year: "5" }).success).toBe(true);
   });
 
+  it("accepts the two English-track majors and nothing typed in their place", () => {
+    const base = { firstName: "지민", gender: "WOMAN", year: "2" };
+    expect(basicsSchema.safeParse({ ...base, major: "컴퓨터공학과 (영어 트랙)" }).success).toBe(true);
+    expect(basicsSchema.safeParse({ ...base, major: "경영학과 (영어 트랙)" }).success).toBe(true);
+    expect(basicsSchema.safeParse({ ...base, major: "Business Administration" }).success).toBe(false);
+  });
+
   it("offers woman or man only", () => {
     const base = { firstName: "지민", year: "2", major: "컴퓨터공학과" };
     expect(basicsSchema.safeParse({ ...base, gender: "WOMAN" }).success).toBe(true);

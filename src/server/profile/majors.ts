@@ -18,6 +18,17 @@ export type MajorOption = { ko: string; en: string };
 export type MajorGroup = { college: MajorOption; majors: readonly MajorOption[] };
 
 export const MAJOR_GROUPS: readonly MajorGroup[] = [
+  // The English-language programmes, listed first so English-track students find theirs
+  // straight away. They get their own stored names (not the regular 컴퓨터공학과 / 경영학과)
+  // so the two tracks are never mixed up; the English label is the plain subject name.
+  // Per the owner (2026-10-10) these are the only two English-track majors.
+  {
+    college: { ko: "영어 트랙", en: "English track" },
+    majors: [
+      { ko: "컴퓨터공학과 (영어 트랙)", en: "Computer Engineering" },
+      { ko: "경영학과 (영어 트랙)", en: "Business Administration" },
+    ],
+  },
   {
     college: { ko: "가천리버럴아츠칼리지", en: "Gachon Liberal Arts College" },
     majors: [{ ko: "자유전공", en: "Free Major" }],
