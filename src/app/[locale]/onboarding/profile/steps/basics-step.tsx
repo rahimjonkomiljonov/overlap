@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -39,6 +39,7 @@ export function BasicsStep({
   };
 }) {
   const t = useTranslations("ProfileOnboarding");
+  const locale = useLocale();
   const [state, formAction] = useActionState(saveBasics, initialState);
   const [interestedIn, setInterestedIn] = useState<string[]>(initial.interestedIn);
 
@@ -104,10 +105,10 @@ export function BasicsStep({
               {t("basics.selectPlaceholder")}
             </option>
             {MAJOR_GROUPS.map((group) => (
-              <optgroup key={group.college} label={group.college}>
+              <optgroup key={group.college.ko} label={locale === "en" ? group.college.en : group.college.ko}>
                 {group.majors.map((m) => (
-                  <option key={m} value={m}>
-                    {m}
+                  <option key={m.ko} value={m.ko}>
+                    {locale === "en" ? m.en : m.ko}
                   </option>
                 ))}
               </optgroup>

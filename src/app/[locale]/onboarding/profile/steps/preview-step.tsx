@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useActionState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { EmptyState } from "@/components/states/empty-state";
 import { Link } from "@/i18n/navigation";
 import { finishProfile, type FinishState } from "@/server/profile/actions";
+import { majorLabel } from "@/server/profile/majors";
 import type { WizardState } from "@/server/profile/queries";
 
 const initialState: FinishState = { status: "idle" };
@@ -28,6 +29,7 @@ export function PreviewStep({
   missing: string[];
 }) {
   const t = useTranslations("ProfileOnboarding");
+  const locale = useLocale();
   const [state, formAction] = useActionState(finishProfile, initialState);
 
   const effectiveMissing = state.status === "incomplete" ? state.missing : missing;
@@ -94,7 +96,7 @@ export function PreviewStep({
           {profile.pronouns ? ` · ${profile.pronouns}` : ""}
         </p>
         <p className="text-sm text-muted-foreground">
-          {profile.major} · {profile.year}
+          {majorLabel(profile.major, locale)} · {profile.year}
         </p>
         <div className="flex flex-wrap gap-1 pt-1">
           {profile.intents.map((intent) => (

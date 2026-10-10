@@ -322,7 +322,9 @@
         "6–8pm",
         "8–10pm",
         "10pm–12am"
-      ]
+      ],
+      "anyTime": "I'm free any time",
+      "allDay": "All day"
     },
     "interests": {
       "title": "Interests",
@@ -1007,7 +1009,16 @@
       "NOT_ACCEPTED": "This is only available for a confirmed meetup.",
       "UNKNOWN": "Something went wrong. Please try again.",
       "ACCOUNT_RESTRICTED": "Your account is restricted right now, so you can't do this. See Safety for details."
-    }
+    },
+    "customTitle": "Suggest your own time",
+    "customBodyNoOverlap": "You two don't share any free time, so there's nothing to suggest automatically. Pick a day, a time and a Safe Spot and send it as a suggestion. They can accept it or suggest another.",
+    "customBodyOverlap": "None of these work? Suggest a different day and time.",
+    "customDay": "Day",
+    "customTime": "Time",
+    "customSpot": "Safe Spot",
+    "customSelect": "Select…",
+    "customSubmit": "Suggest this time",
+    "noSpotsBody": "This campus has no registered Safe Spots yet, so we can't suggest a place."
   },
   "Emergency": {
     "cardButton": "Emergency contacts",

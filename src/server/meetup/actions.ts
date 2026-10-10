@@ -4,10 +4,12 @@ import { MeetupStatus } from "@/generated/prisma/enums";
 import { isRestricted } from "@/server/auth/authz";
 import { getActor } from "@/server/auth/session";
 import { prisma } from "@/server/db";
+import { customSlot } from "./custom";
 import { getMeetupOptions, loadMatchForActor } from "./queries";
 import {
   cancelMeetupSchema,
   createShareLinkSchema,
+  proposeCustomMeetupSchema,
   proposeMeetupSchema,
   respondToMeetupSchema,
   revokeShareLinkSchema,
@@ -65,6 +67,60 @@ export async function proposeMeetup(_prev: MeetupActionState, formData: FormData
       block: parsed.data.block,
       scheduledStart: chosen.start,
       scheduledEnd: chosen.end,
+    },
+  });
+
+  return { status: "success" };
+}
+
+/**
+ * E1 fallback: "suggest your own time". For two people with no shared free time (or none
+ * of the suggested times work). The person picks a day, a daytime block and a Safe Spot;
+ * everything is re-checked here, not trusted from the form: the spot has to be an active
+ * Safe Spot on the actor's campus and the time has to be allowed (see custom.ts). The other
+ * person still accepts or declines, exactly as with a suggested time.
+ */
+export async function proposeCustomMeetup(_prev: MeetupActionState, formData: FormData): Promise<MeetupActionState> {
+  const actor = await getActor();
+  if (!actor) return { status: "error", code: "UNAUTHENTICATED" };
+  if (isRestricted(actor)) return { status: "error", code: "ACCOUNT_RESTRICTED" };
+
+  const parsed = proposeCustomMeetupSchema.safeParse({
+    matchId: formData.get("matchId"),
+    spotId: formData.get("spotId"),
+    dayOffset: formData.get("dayOffset"),
+    block: formData.get("block"),
+  });
+  if (!parsed.success) return { status: "error", code: "INVALID_INPUT" };
+
+  const match = await loadMatchForActor(prisma, parsed.data.matchId, actor.userId);
+  if (!match) return { status: "error", code: "NOT_FOUND" };
+  if (match.status !== "ACTIVE") return { status: "error", code: "UNMATCHED" };
+
+  const existing = await prisma.meetProposal.findFirst({
+    where: { matchId: match.matchId, status: { in: [MeetupStatus.PROPOSED, MeetupStatus.ACCEPTED] } },
+    select: { id: true },
+  });
+  if (existing) return { status: "error", code: "ALREADY_PLANNED" };
+
+  const spot = await prisma.spot.findFirst({
+    where: { id: parsed.data.spotId, campusId: actor.campusId, isSafeSpot: true, active: true },
+    select: { id: true },
+  });
+  if (!spot) return { status: "error", code: "INVALID_OPTION" };
+
+  const slot = customSlot(parsed.data.dayOffset, parsed.data.block, new Date());
+  if (!slot) return { status: "error", code: "INVALID_OPTION" };
+
+  await prisma.meetProposal.create({
+    data: {
+      matchId: match.matchId,
+      proposedByUserId: actor.userId,
+      spotId: spot.id,
+      day: slot.day,
+      block: slot.block,
+      scheduledStart: slot.start,
+      scheduledEnd: slot.end,
     },
   });
 

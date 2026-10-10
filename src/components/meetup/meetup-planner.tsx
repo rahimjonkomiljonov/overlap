@@ -12,6 +12,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import {
   cancelMeetup,
   createShareLink,
+  proposeCustomMeetup,
   proposeMeetup,
   respondToMeetup,
   submitMeetupFeedback,
@@ -57,9 +58,13 @@ export function MeetupPlanner({
   otherUserId,
   proposal,
   options,
+  safeSpots,
+  customDays,
   emergencyContacts,
   now,
 }: {
+  safeSpots: SpotView[];
+  customDays: string[];
   matchId: string;
   actorUserId: string;
   otherUserId: string;
@@ -83,7 +88,7 @@ export function MeetupPlanner({
             now={now}
           />
         ) : (
-          <OptionsPicker matchId={matchId} options={options} />
+          <OptionsPicker matchId={matchId} options={options} safeSpots={safeSpots} customDays={customDays} />
         )}
       </div>
     </>
@@ -106,17 +111,35 @@ function SafetyCard() {
   );
 }
 
-function OptionsPicker({ matchId, options }: { matchId: string; options: OptionView[] }) {
+export interface SpotView {
+  id: string;
+  name: string;
+  nameEn: string | null;
+}
+
+function OptionsPicker({
+  matchId,
+  options,
+  safeSpots,
+  customDays,
+}: {
+  matchId: string;
+  options: OptionView[];
+  safeSpots: SpotView[];
+  customDays: string[];
+}) {
   const t = useTranslations("Meetup");
   const locale = useLocale();
   const [state, action] = useActionState(proposeMeetup, idleAction);
 
   useRefreshOnSuccess(state);
 
+  // No shared free time (or no Safe Spot to suggest): the person can still make a time.
   if (options.length === 0) {
-    return (
-      <EmptyState icon={CalendarX} title={t("noOptionsTitle")} description={t("noOptionsBody")} />
-    );
+    if (safeSpots.length === 0) {
+      return <EmptyState icon={CalendarX} title={t("noOptionsTitle")} description={t("noSpotsBody")} />;
+    }
+    return <CustomTimeCard matchId={matchId} safeSpots={safeSpots} customDays={customDays} noOverlap />;
   }
 
   // hourCycle fixed explicitly: the day-period marker ("오전"/"AM") otherwise depends on
@@ -133,6 +156,7 @@ function OptionsPicker({ matchId, options }: { matchId: string; options: OptionV
   });
 
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle>{t("pickTitle")}</CardTitle>
@@ -162,6 +186,109 @@ function OptionsPicker({ matchId, options }: { matchId: string; options: OptionV
             {t(`errors.${state.code}` as never)}
           </p>
         )}
+      </CardContent>
+    </Card>
+    {safeSpots.length > 0 && (
+      <CustomTimeCard matchId={matchId} safeSpots={safeSpots} customDays={customDays} noOverlap={false} />
+    )}
+    </>
+  );
+}
+
+/**
+ * "Suggest your own time": a day, a daytime block and a Safe Spot. Shown instead of the
+ * suggestions when the two people share no free time, and under them otherwise.
+ */
+function CustomTimeCard({
+  matchId,
+  safeSpots,
+  customDays,
+  noOverlap,
+}: {
+  matchId: string;
+  safeSpots: SpotView[];
+  customDays: string[];
+  noOverlap: boolean;
+}) {
+  const t = useTranslations("Meetup");
+  const tBlocks = useTranslations("ProfileOnboarding.freeTime");
+  const locale = useLocale();
+  const [state, action] = useActionState(proposeCustomMeetup, idleAction);
+  useRefreshOnSuccess(state);
+
+  const blocks = tBlocks.raw("blocks") as string[];
+  const dayFormatter = new Intl.DateTimeFormat(locale === "en" ? "en-US" : "ko-KR", {
+    timeZone: "Asia/Seoul",
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+  const selectClass =
+    "h-11 w-full rounded-lg border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
+
+  return (
+    <Card className={noOverlap ? undefined : "mt-4"}>
+      <CardHeader>
+        <CardTitle>{t("customTitle")}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-sm text-muted-foreground">{noOverlap ? t("customBodyNoOverlap") : t("customBodyOverlap")}</p>
+        <form action={action} className="space-y-3">
+          <input type="hidden" name="matchId" value={matchId} />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <label htmlFor="custom-day" className="text-sm font-medium">
+                {t("customDay")}
+              </label>
+              <select id="custom-day" name="dayOffset" required defaultValue="" className={selectClass}>
+                <option value="" disabled>
+                  {t("customSelect")}
+                </option>
+                {customDays.map((iso, offset) => (
+                  <option key={iso} value={offset}>
+                    {dayFormatter.format(new Date(iso))}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="custom-block" className="text-sm font-medium">
+                {t("customTime")}
+              </label>
+              <select id="custom-block" name="block" required defaultValue="" className={selectClass}>
+                <option value="" disabled>
+                  {t("customSelect")}
+                </option>
+                {[4, 5, 6, 7, 8, 9, 10].map((block) => (
+                  <option key={block} value={block}>
+                    {blocks[block]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="custom-spot" className="text-sm font-medium">
+              {t("customSpot")}
+            </label>
+            <select id="custom-spot" name="spotId" required defaultValue="" className={selectClass}>
+              <option value="" disabled>
+                {t("customSelect")}
+              </option>
+              {safeSpots.map((spot) => (
+                <option key={spot.id} value={spot.id}>
+                  {locale === "en" ? (spot.nameEn ?? spot.name) : spot.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <Button type="submit">{t("customSubmit")}</Button>
+          {state.status === "error" && (
+            <p role="alert" className="text-sm text-destructive">
+              {t(`errors.${state.code}` as never)}
+            </p>
+          )}
+        </form>
       </CardContent>
     </Card>
   );

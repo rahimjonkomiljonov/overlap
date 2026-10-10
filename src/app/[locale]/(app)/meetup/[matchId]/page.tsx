@@ -10,6 +10,7 @@ import {
   otherUserId,
   type MeetupProposalView,
 } from "@/server/meetup/queries";
+import { customDayStarts } from "@/server/meetup/custom";
 import { getEmergencyContacts } from "@/server/safety/emergency";
 
 function isActiveProposal(
@@ -37,6 +38,14 @@ export default async function MeetupPage({ params }: PageProps<"/[locale]/meetup
   const latest = await getMeetupForMatch(prisma, match, actor.userId);
   const activeProposal = latest && isActiveProposal(latest) ? latest : null;
   const options = activeProposal ? [] : await getMeetupOptions(prisma, match);
+  const safeSpots =
+    activeProposal || !actor.campusId
+      ? []
+      : await prisma.spot.findMany({
+          where: { campusId: actor.campusId, isSafeSpot: true, active: true },
+          orderBy: { name: "asc" },
+          select: { id: true, name: true, nameEn: true },
+        });
   const emergencyContacts = actor.campusId ? await getEmergencyContacts(prisma, actor.campusId) : [];
 
   return (
@@ -59,6 +68,8 @@ export default async function MeetupPage({ params }: PageProps<"/[locale]/meetup
           : null
       }
       options={options.map((o) => ({ ...o, start: o.start.toISOString(), end: o.end.toISOString() }))}
+      safeSpots={safeSpots}
+      customDays={customDayStarts().map((d) => d.toISOString())}
       emergencyContacts={emergencyContacts}
       now={new Date().toISOString()}
     />

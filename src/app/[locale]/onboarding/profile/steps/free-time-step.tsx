@@ -38,6 +38,27 @@ export function FreeTimeStep({
     if (state.status === "success") onNext();
   }, [state, onNext]);
 
+  const totalSlots = DAY_COUNT * BLOCK_COUNT;
+  const anyTime = slots.size === totalSlots;
+  const dayIndices = (day: number) => Array.from({ length: BLOCK_COUNT }, (_, block) => slotIndex(day, block));
+  const dayFull = (day: number) => dayIndices(day).every((i) => slots.has(i));
+
+  // One tap for "free all day" (a whole column) or "free any time" (everything), instead of
+  // 12 or 84 separate taps. They only set or clear the same slots the grid already holds.
+  function setDay(day: number, on: boolean) {
+    setSlots((prev) => {
+      const next = new Set(prev);
+      for (const i of dayIndices(day)) {
+        if (on) next.add(i);
+        else next.delete(i);
+      }
+      return next;
+    });
+  }
+  function setAll(on: boolean) {
+    setSlots(on ? new Set(Array.from({ length: totalSlots }, (_, i) => i)) : new Set());
+  }
+
   function toggle(index: number) {
     setSlots((prev) => {
       const next = new Set(prev);
@@ -63,6 +84,10 @@ export function FreeTimeStep({
       nextLabel={t("next")}
       savingLabel={t("saving")}
     >
+      <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-border px-3">
+        <Checkbox checked={anyTime} onCheckedChange={(checked) => setAll(checked === true)} />
+        <span className="text-sm font-medium">{t("freeTime.anyTime")}</span>
+      </label>
       <div className="overflow-x-auto">
         <table className="w-full border-separate border-spacing-1 text-center text-xs">
           <thead>
@@ -76,6 +101,21 @@ export function FreeTimeStep({
             </tr>
           </thead>
           <tbody>
+            <tr>
+              <th scope="row" className="pr-1 text-right font-normal whitespace-nowrap text-muted-foreground">
+                {t("freeTime.allDay")}
+              </th>
+              {Array.from({ length: DAY_COUNT }, (_, day) => (
+                <td key={day} className="p-0">
+                  <label className="flex size-9 cursor-pointer items-center justify-center rounded-md hover:bg-muted">
+                    <span className="sr-only">
+                      {days[day]} {t("freeTime.allDay")}
+                    </span>
+                    <Checkbox checked={dayFull(day)} onCheckedChange={(checked) => setDay(day, checked === true)} />
+                  </label>
+                </td>
+              ))}
+            </tr>
             {blocks.map((blockLabel, block) => (
               <tr key={blockLabel}>
                 <th scope="row" className="pr-1 text-right font-normal whitespace-nowrap text-muted-foreground">

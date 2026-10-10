@@ -322,7 +322,9 @@
         "18–20시",
         "20–22시",
         "22–24시"
-      ]
+      ],
+      "anyTime": "언제든 괜찮아요",
+      "allDay": "하루 종일"
     },
     "interests": {
       "title": "관심사",
@@ -1007,7 +1009,16 @@
       "NOT_ACCEPTED": "확정된 약속에서만 할 수 있어요.",
       "UNKNOWN": "문제가 생겼어요. 잠시 후 다시 시도해 주세요.",
       "ACCOUNT_RESTRICTED": "계정이 제한된 상태라 지금은 할 수 없어요. 자세한 내용은 안전 페이지에서 확인해 주세요."
-    }
+    },
+    "customTitle": "직접 시간 제안하기",
+    "customBodyNoOverlap": "두 사람의 비는 시간이 겹치지 않아서 자동으로 추천할 수 있는 시간이 없어요. 날짜, 시간, 안전 장소를 골라 제안해 보세요. 상대가 수락하거나 다른 시간을 제안할 수 있어요.",
+    "customBodyOverlap": "마땅한 시간이 없나요? 다른 날짜와 시간을 제안해 보세요.",
+    "customDay": "날짜",
+    "customTime": "시간",
+    "customSpot": "안전 장소",
+    "customSelect": "선택",
+    "customSubmit": "이 시간으로 제안",
+    "noSpotsBody": "이 캠퍼스에는 아직 등록된 안전 장소가 없어서 장소를 추천할 수 없어요."
   },
   "Emergency": {
     "cardButton": "긴급 연락처",

@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { majorLabel } from "@/server/profile/majors";
 import type { PickCardData } from "@/server/picks/queries";
 import type { ResolvedReason } from "@/server/picks/reasons";
 
@@ -87,7 +88,7 @@ export function PickCard({
           {pick.secondChance && <Badge variant="secondary">{t("secondChance")}</Badge>}
         </div>
         <p className="text-sm text-muted-foreground">
-          {[pick.major, pick.year ? `${pick.year}` : null].filter(Boolean).join(" · ")}
+          {[pick.major ? majorLabel(pick.major, locale) : null, pick.year ? `${pick.year}` : null].filter(Boolean).join(" · ")}
         </p>
       </div>
 

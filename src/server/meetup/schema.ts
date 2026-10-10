@@ -8,6 +8,13 @@ export const proposeMeetupSchema = z.object({
   block: z.coerce.number().int().min(0).max(11),
 });
 
+export const proposeCustomMeetupSchema = z.object({
+  matchId: z.string().min(1),
+  spotId: z.string().min(1),
+  dayOffset: z.coerce.number().int().min(0),
+  block: z.coerce.number().int().min(0).max(11),
+});
+
 export const respondToMeetupSchema = z.object({
   proposalId: z.string().min(1),
   decision: z.enum(["ACCEPT", "DECLINE"]),

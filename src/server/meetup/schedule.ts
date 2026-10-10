@@ -5,7 +5,7 @@ export const BLOCK_HOURS = 2;
 
 const WEEKDAY_ORDER = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-function seoulWeekdayIndex(now: Date): number {
+export function seoulWeekdayIndex(now: Date): number {
   const weekday = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Seoul", weekday: "short" }).format(now);
   const index = WEEKDAY_ORDER.indexOf(weekday);
   if (index === -1) throw new Error(`seoulWeekdayIndex: unexpected weekday "${weekday}"`);
