@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "@/i18n/navigation";
 import type { DatingStatus } from "@/server/cohorts/release";
 import type { WizardState } from "@/server/profile/queries";
 import type { ValuesQuizItem } from "@/server/profile/values-quiz";
@@ -48,12 +48,20 @@ export function ProfileWizard({
   const router = useRouter();
 
   // Step position is local state, but `initial` and `missing` come from the server render.
-  // Refresh after each saved step so the final preview shows what was actually saved
-  // instead of the (empty) state from when the page first loaded.
-  const next = () => {
-    setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1));
+  // Refresh when the step changes so the final preview shows what was actually saved
+  // instead of the (empty) state from when the page first loaded. This must be an effect:
+  // the steps call `onNext` while rendering, and a Router update during another
+  // component's render is silently dropped (see use-refresh-on-success.ts).
+  const firstRender = useRef(true);
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
     router.refresh();
-  };
+  }, [step, router]);
+
+  const next = () => setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1));
   const back = () => setStep((s) => Math.max(s - 1, 0));
 
   switch (step) {
