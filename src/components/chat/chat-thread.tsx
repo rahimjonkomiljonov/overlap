@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BlockButton } from "@/components/safety/block-button";
-import { MeetupBanner, MEETUP_GLOW_CLASS } from "@/components/meetup/meetup-banner";
+import { MeetupBanner, MeetupStatusDot } from "@/components/meetup/meetup-banner";
 import { EmergencyCard } from "@/components/safety/emergency-card";
 import { ReportButton } from "@/components/safety/report-button";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -191,13 +191,10 @@ export function ChatThread({
       <div className="flex items-center gap-2 border-b border-border py-2">
         <Link
           href={`/meetup/${matchId}`}
-          className={
-            meetup
-              ? `rounded-full px-3 py-1 text-sm font-medium text-primary underline ${MEETUP_GLOW_CLASS}`
-              : "text-sm font-medium text-primary underline"
-          }
+          className="relative text-sm font-medium text-primary underline"
         >
           {meetup ? t("viewMeetup") : t("planMeetup")}
+          {meetup && <MeetupStatusDot status={meetup.status} unseen={meetup.unseen} className="-right-3" />}
         </Link>
         <div className="ml-auto">
           <EmergencyCard contacts={emergencyContacts} />

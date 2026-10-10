@@ -109,7 +109,11 @@ export async function getMatches(db: WavesDb, userId: string): Promise<MatchSumm
     },
   });
 
-  const meetups = await getActiveMeetups(db, matches.map((m) => m.id));
+  const meetups = await getActiveMeetups(
+    db,
+    matches.map((m) => m.id),
+    userId,
+  );
 
   return Promise.all(
     matches.map(async (match) => {

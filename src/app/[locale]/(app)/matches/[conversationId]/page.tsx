@@ -27,7 +27,7 @@ export default async function ChatPage({
   }
 
   const messages = await getMessages(prisma, conversationId);
-  const meetup = (await getActiveMeetups(prisma, [conversation.matchId])).get(conversation.matchId) ?? null;
+  const meetup = (await getActiveMeetups(prisma, [conversation.matchId], actor.userId)).get(conversation.matchId) ?? null;
   const emergencyContacts = actor.campusId ? await getEmergencyContacts(prisma, actor.campusId) : [];
 
   let icebreakers: string[] = [];

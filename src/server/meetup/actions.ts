@@ -67,6 +67,7 @@ export async function proposeMeetup(_prev: MeetupActionState, formData: FormData
       block: parsed.data.block,
       scheduledStart: chosen.start,
       scheduledEnd: chosen.end,
+      proposerSeenStatus: MeetupStatus.PROPOSED,
     },
   });
 
@@ -121,10 +122,36 @@ export async function proposeCustomMeetup(_prev: MeetupActionState, formData: Fo
       block: slot.block,
       scheduledStart: slot.start,
       scheduledEnd: slot.end,
+      proposerSeenStatus: MeetupStatus.PROPOSED,
     },
   });
 
   return { status: "success" };
+}
+
+/**
+ * Called when someone opens a match's meetup page: records the status they are now looking
+ * at, which is what stops the status dot blinking for them (and only them). Touches only
+ * the most recent proposal for that match, and only the caller's own side.
+ */
+export async function markMeetupSeen(matchId: string): Promise<void> {
+  const actor = await getActor();
+  if (!actor || typeof matchId !== "string" || matchId.length === 0) return;
+
+  const match = await loadMatchForActor(prisma, matchId, actor.userId);
+  if (!match) return;
+
+  const latest = await prisma.meetProposal.findFirst({
+    where: { matchId: match.matchId },
+    orderBy: { createdAt: "desc" },
+    select: { id: true, status: true, proposedByUserId: true },
+  });
+  if (!latest) return;
+
+  await prisma.meetProposal.update({
+    where: { id: latest.id },
+    data: latest.proposedByUserId === actor.userId ? { proposerSeenStatus: latest.status } : { responderSeenStatus: latest.status },
+  });
 }
 
 /** E1: "other user accepts or counters" — a counter is simply a decline followed by a fresh `proposeMeetup`. */
@@ -151,12 +178,14 @@ export async function respondToMeetup(_prev: MeetupActionState, formData: FormDa
     return { status: "error", code: "CANNOT_ACCEPT_OWN" };
   }
 
+  const newStatus = parsed.data.decision === "ACCEPT" ? MeetupStatus.ACCEPTED : MeetupStatus.DECLINED;
   await prisma.meetProposal.update({
     where: { id: proposal.id },
     data: {
-      status: parsed.data.decision === "ACCEPT" ? MeetupStatus.ACCEPTED : MeetupStatus.DECLINED,
+      status: newStatus,
       respondedByUserId: actor.userId,
       respondedAt: new Date(),
+      ...(proposal.proposedByUserId === actor.userId ? { proposerSeenStatus: newStatus } : { responderSeenStatus: newStatus }),
     },
   });
 

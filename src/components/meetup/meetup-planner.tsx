@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { CalendarX } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { MeetupSeenMarker } from "@/components/meetup/meetup-seen-marker";
 import { EmptyState } from "@/components/states/empty-state";
 import { PageHeader } from "@/components/states/page-header";
 import { EmergencyCard } from "@/components/safety/emergency-card";
@@ -76,6 +77,7 @@ export function MeetupPlanner({
   const t = useTranslations("Meetup");
   return (
     <>
+      <MeetupSeenMarker matchId={matchId} />
       <PageHeader title={t("title")} />
       <div className="space-y-4">
         <SafetyCard />

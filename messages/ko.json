@@ -108,7 +108,8 @@
     "openProfile": "{name}님의 프로필 보기",
     "viewMeetup": "약속 보기",
     "meetupConfirmed": "약속 확정",
-    "meetupPending": "약속 제안됨"
+    "meetupPending": "약속 제안됨",
+    "meetupDeclined": "약속 거절됨"
   },
   "Me": {
     "title": "내 정보",
@@ -1028,7 +1029,12 @@
     "noSpotsBody": "이 캠퍼스에는 아직 등록된 안전 장소가 없어서 장소를 추천할 수 없어요.",
     "bannerConfirmed": "약속이 확정됐어요",
     "bannerWaitingForThem": "약속을 제안했어요. 상대의 답을 기다리는 중",
-    "bannerNeedsYourAnswer": "약속이 제안됐어요. 답이 필요해요"
+    "bannerNeedsYourAnswer": "약속이 제안됐어요. 답이 필요해요",
+    "dotWaiting": "약속이 제안됨, 답을 기다리는 중",
+    "dotConfirmed": "약속이 확정됨",
+    "dotDeclined": "약속 제안이 거절됨",
+    "dotNew": "새 소식",
+    "bannerDeclined": "상대가 제안을 거절했어요"
   },
   "Emergency": {
     "cardButton": "긴급 연락처",

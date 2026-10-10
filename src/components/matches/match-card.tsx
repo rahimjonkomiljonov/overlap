@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { MEETUP_GLOW_CLASS } from "@/components/meetup/meetup-banner";
+import { MeetupStatusDot } from "@/components/meetup/meetup-banner";
 import { BlockButton } from "@/components/safety/block-button";
 import { ReportButton } from "@/components/safety/report-button";
 import { Link } from "@/i18n/navigation";
@@ -49,8 +49,15 @@ export function MatchCard({
           <p className="truncate font-medium">{match.firstName}</p>
         </Link>
         {match.meetup && (
-          <Badge variant={match.meetup.status === "ACCEPTED" ? "default" : "secondary"} className="ml-auto">
-            {match.meetup.status === "ACCEPTED" ? t("meetupConfirmed") : t("meetupPending")}
+          <Badge
+            variant={match.meetup.status === "ACCEPTED" ? "default" : match.meetup.status === "DECLINED" ? "destructive" : "secondary"}
+            className="ml-auto"
+          >
+            {match.meetup.status === "ACCEPTED"
+              ? t("meetupConfirmed")
+              : match.meetup.status === "DECLINED"
+                ? t("meetupDeclined")
+                : t("meetupPending")}
           </Badge>
         )}
       </CardContent>
@@ -83,9 +90,10 @@ export function MatchCard({
             <div className="flex gap-2">
               <Link
                 href={`/meetup/${match.matchId}`}
-                className={`${buttonVariants({ variant: "outline" })}${match.meetup ? ` ${MEETUP_GLOW_CLASS}` : ""}`}
+                className={`${buttonVariants({ variant: "outline" })} relative`}
               >
                 {match.meetup ? t("viewMeetup") : t("planMeetup")}
+                {match.meetup && <MeetupStatusDot status={match.meetup.status} unseen={match.meetup.unseen} />}
               </Link>
               {match.conversationId && (
                 <Link href={`/matches/${match.conversationId}`} className={buttonVariants()}>

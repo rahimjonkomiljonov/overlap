@@ -1257,6 +1257,12 @@ model MeetProposal {
   respondedByUserId String?
   respondedAt       DateTime?
 
+  /// The status each side last looked at on the meetup page. The status dot on the chat and
+  /// the matches list blinks while this differs from `status` for the viewer, and goes
+  /// steady once they have opened the meetup. Null = never looked.
+  proposerSeenStatus  MeetupStatus?
+  responderSeenStatus MeetupStatus?
+
   createdAt DateTime @default(now())
 
   feedback   MeetupFeedbackEntry[]

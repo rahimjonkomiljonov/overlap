@@ -108,7 +108,8 @@
     "openProfile": "See {name}'s profile",
     "viewMeetup": "View meetup",
     "meetupConfirmed": "Meetup confirmed",
-    "meetupPending": "Meetup suggested"
+    "meetupPending": "Meetup suggested",
+    "meetupDeclined": "Meetup declined"
   },
   "Me": {
     "title": "Me",
@@ -1028,7 +1029,12 @@
     "noSpotsBody": "This campus has no registered Safe Spots yet, so we can't suggest a place.",
     "bannerConfirmed": "Meetup confirmed",
     "bannerWaitingForThem": "Meetup suggested. Waiting for their answer",
-    "bannerNeedsYourAnswer": "Meetup suggested. Needs your answer"
+    "bannerNeedsYourAnswer": "Meetup suggested. Needs your answer",
+    "dotWaiting": "Meetup suggested, waiting for an answer",
+    "dotConfirmed": "Meetup confirmed",
+    "dotDeclined": "Meetup suggestion declined",
+    "dotNew": "new",
+    "bannerDeclined": "They declined your suggestion"
   },
   "Emergency": {
     "cardButton": "Emergency contacts",

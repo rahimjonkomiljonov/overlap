@@ -137,25 +137,25 @@
   }
 }
 
-/* A soft pulsing ring on controls that point at a live meetup. The state is also written
-   out in words wherever this is used, so the glow is a hint, never the only signal. */
-@keyframes meetup-glow {
+/* The meetup status dot blinks on and off while it is new to the viewer. Steady once seen,
+   and steady for anyone who asked for reduced motion (the dot's text label still says "new"). */
+@keyframes meetup-dot-blink {
   0%,
-  100% {
-    box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 60%, transparent);
+  49% {
+    opacity: 1;
   }
-  50% {
-    box-shadow: 0 0 0 7px color-mix(in oklab, var(--primary) 0%, transparent);
+  50%,
+  100% {
+    opacity: 0.15;
   }
 }
-.meetup-glow {
-  animation: meetup-glow 2.2s ease-in-out infinite;
+.meetup-dot-blink {
+  animation: meetup-dot-blink 1.2s steps(1, end) infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .meetup-glow {
+  .meetup-dot-blink {
     animation: none;
-    box-shadow: 0 0 0 2px var(--primary);
   }
   *,
   *::before,
