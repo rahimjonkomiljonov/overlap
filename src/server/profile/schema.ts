@@ -10,6 +10,13 @@ import { MAX_STUDY_YEAR, isKnownMajor } from "./majors";
  * single-value fields (src/server/auth/schema.ts).
  */
 
+/**
+ * What the app offers to pick. The database enum still has NONBINARY and OTHER (removing a
+ * Postgres enum value is a risky migration, and nothing needs it), but nobody can choose
+ * them any more; the matching code keeps handling a legacy value if one ever exists.
+ */
+export const PICKABLE_GENDERS = [Gender.WOMAN, Gender.MAN] as const;
+
 export const MAX_COURSES = 10;
 export const MAX_CLUBS = 10;
 export const MAX_SPOTS = 10;
@@ -25,7 +32,7 @@ export const MAX_FREE_TIME_SLOT = 7 * 12 - 1;
 
 export const basicsSchema = z.object({
   firstName: z.string().trim().min(1, "Required").max(50),
-  gender: z.enum(Gender),
+  gender: z.enum(PICKABLE_GENDERS),
   pronouns: z
     .string()
     .trim()
@@ -37,7 +44,7 @@ export const basicsSchema = z.object({
   major: z.string().trim().refine(isKnownMajor, "Pick a department from the list"),
   // Only meaningful (and only ever submitted) when the sensitive consent was granted;
   // src/server/profile/actions.ts drops it otherwise regardless of what's posted.
-  interestedIn: z.array(z.enum(Gender)).max(4).default([]),
+  interestedIn: z.array(z.enum(PICKABLE_GENDERS)).max(2).default([]),
 });
 
 export const intentsSchema = z.object({

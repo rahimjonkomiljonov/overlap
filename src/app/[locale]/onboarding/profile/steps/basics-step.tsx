@@ -2,16 +2,16 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Gender } from "@/generated/prisma/enums";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MAJOR_GROUPS, OTHER_MAJOR, STUDY_YEARS, MAX_STUDY_YEAR } from "@/server/profile/majors";
 import { saveBasics, type StepState } from "@/server/profile/actions";
+import { PICKABLE_GENDERS } from "@/server/profile/schema";
 import { StepShell } from "./step-shell";
 
-const GENDERS = [Gender.WOMAN, Gender.MAN, Gender.NONBINARY, Gender.OTHER] as const;
+const GENDERS = PICKABLE_GENDERS;
 
 const initialState: StepState = { status: "idle" };
 

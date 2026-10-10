@@ -3,6 +3,7 @@
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { useEditMode } from "./edit-mode";
 
 function SubmitButton({ label, pendingLabel }: { label: string; pendingLabel: string }) {
   const { pending } = useFormStatus();
@@ -45,12 +46,15 @@ export function StepShell({
   savingLabel: string;
   children: React.ReactNode;
 }) {
+  const editMode = useEditMode();
   return (
     <form action={formAction} className="space-y-6">
-      <div className="space-y-2">
-        <Progress value={progressCurrent} max={progressTotal} aria-label={progressLabel} />
-        <p className="text-sm text-muted-foreground">{progressLabel}</p>
-      </div>
+      {!editMode && (
+        <div className="space-y-2">
+          <Progress value={progressCurrent} max={progressTotal} aria-label={progressLabel} />
+          <p className="text-sm text-muted-foreground">{progressLabel}</p>
+        </div>
+      )}
 
       <div className="space-y-1">
         <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
@@ -78,7 +82,7 @@ export function StepShell({
             </Button>
           )}
         </div>
-        <SubmitButton label={nextLabel} pendingLabel={savingLabel} />
+        <SubmitButton label={editMode ? editMode.saveLabel : nextLabel} pendingLabel={savingLabel} />
       </div>
     </form>
   );

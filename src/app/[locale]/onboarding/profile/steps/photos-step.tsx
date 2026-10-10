@@ -5,6 +5,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { useEditMode } from "./edit-mode";
 import {
   addPhoto,
   removePhoto,
@@ -32,6 +33,7 @@ export function PhotosStep({
   initialPhotos: PhotoItem[];
 }) {
   const t = useTranslations("ProfileOnboarding");
+  const editMode = useEditMode();
   const [photos, setPhotos] = useState<PhotoItem[]>(initialPhotos);
   const [addState, addAction] = useActionState(addPhoto, addInitialState);
   const [removeState, removeAction] = useActionState(removePhoto, removeInitialState);
@@ -77,16 +79,18 @@ export function PhotosStep({
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <Progress
-          value={stepIndex + 1}
-          max={totalSteps}
-          aria-label={t("progress", { current: stepIndex + 1, total: totalSteps })}
-        />
-        <p className="text-sm text-muted-foreground">
-          {t("progress", { current: stepIndex + 1, total: totalSteps })}
-        </p>
-      </div>
+      {!editMode && (
+        <div className="space-y-2">
+          <Progress
+            value={stepIndex + 1}
+            max={totalSteps}
+            aria-label={t("progress", { current: stepIndex + 1, total: totalSteps })}
+          />
+          <p className="text-sm text-muted-foreground">
+            {t("progress", { current: stepIndex + 1, total: totalSteps })}
+          </p>
+        </div>
+      )}
 
       <div className="space-y-1">
         <h2 className="text-xl font-semibold tracking-tight">{t("photos.title")}</h2>
@@ -136,7 +140,7 @@ export function PhotosStep({
           {t("back")}
         </Button>
         <Button type="button" disabled={!canProceed} onClick={onNext}>
-          {t("next")}
+          {editMode ? editMode.saveLabel : t("next")}
         </Button>
       </div>
     </div>

@@ -55,6 +55,20 @@ function baseUser(overrides: Partial<FakeUserRow> & { id: string }): FakeUserRow
   };
 }
 
+type PoolFilter = {
+  intents?: { has: string };
+  interestedIn?: { not: null };
+  OR?: PoolFilter[];
+};
+
+/** Evaluates the subset of Prisma's `profile` filter that the pool query uses. */
+function matchesPoolFilter(profile: { intents: string[]; interestedIn: string | null }, filter: PoolFilter): boolean {
+  if (filter.OR) return filter.OR.some((f) => matchesPoolFilter(profile, f));
+  if (filter.intents && !profile.intents.includes(filter.intents.has)) return false;
+  if (filter.interestedIn && profile.interestedIn === null) return false;
+  return true;
+}
+
 function fakeDb(
   users: FakeUserRow[],
   blocks: { blockerId: string; blockedId: string }[] = [],
@@ -71,7 +85,7 @@ function fakeDb(
           status: UserStatus;
           verifiedAt: unknown;
           lastActiveAt: { gte: Date };
-          profile: { completedAt: unknown; intents: { has: string }; incognito: boolean };
+          profile: { completedAt: unknown; incognito: boolean } & PoolFilter;
         };
       }) =>
         users
@@ -80,7 +94,7 @@ function fakeDb(
           .filter((u) => u.verifiedAt !== null)
           .filter((u) => u.lastActiveAt.getTime() >= where.lastActiveAt.gte.getTime())
           .filter((u) => u.profile !== null && u.profile.completedAt !== null)
-          .filter((u) => u.profile!.intents.includes(where.profile.intents.has))
+          .filter((u) => matchesPoolFilter(u.profile!, where.profile))
           .filter((u) => u.profile!.incognito === where.profile.incognito)
           .map((u) => ({ id: u.id, createdAt: u.createdAt, profile: u.profile })),
     },
@@ -134,6 +148,20 @@ describe("loadCampusMatchPool", () => {
     ];
     const result = await loadCampusMatchPool(fakeDb(users), "campus-a", IntentMode.FRIENDS, { now: NOW });
     expect(result.profiles.map((p) => p.userId)).toEqual(["ok"]);
+  });
+
+  it("puts an Open profile in the Friends and Study pools, and in Dating only with a stored preference", async () => {
+    const open = { ...baseUser({ id: "x" }).profile!, intents: [IntentMode.OPEN] };
+    const users = [
+      baseUser({ id: "open-no-pref", profile: open }),
+      baseUser({ id: "open-with-pref", profile: { ...open, interestedIn: encryptField(JSON.stringify([Gender.MAN])) } }),
+      baseUser({ id: "friends-only" }),
+    ];
+    const ids = async (intent: IntentMode) =>
+      (await loadCampusMatchPool(fakeDb(users), "campus-a", intent, { now: NOW })).profiles.map((p) => p.userId).sort();
+    expect(await ids(IntentMode.FRIENDS)).toEqual(["friends-only", "open-no-pref", "open-with-pref"]);
+    expect(await ids(IntentMode.STUDY)).toEqual(["open-no-pref", "open-with-pref"]);
+    expect(await ids(IntentMode.DATING)).toEqual(["open-with-pref"]);
   });
 
   it("excludes paused, suspended and banned users, and incognito profiles (G3)", async () => {

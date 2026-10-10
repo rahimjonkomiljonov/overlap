@@ -133,7 +133,9 @@
     "ambassadorTitle": "Ambassador",
     "ambassadorCta": "Open the ambassador dashboard",
     "shareTitle": "Share cards",
-    "shareCta": "Make a card for my classes and clubs"
+    "shareCta": "Make a card for my classes and clubs",
+    "editProfileTitle": "Your profile",
+    "editProfileCta": "Edit profile"
   },
   "States": {
     "loading": "Loading",
@@ -383,7 +385,8 @@
       "TOO_MANY_PHOTOS": "You can upload up to 6 photos.",
       "NOT_FOUND": "We couldn't find that.",
       "UNKNOWN": "Something went wrong. Please try again in a moment.",
-      "RATE_LIMITED": "Too many requests. Please try again in a bit."
+      "RATE_LIMITED": "Too many requests. Please try again in a bit.",
+      "MIN_PHOTOS": "You need at least 3 photos. Add another first, then remove this one."
     }
   },
   "Legal": {
@@ -1296,5 +1299,24 @@
     "remainingDaysHours": "{days} d {hours} h",
     "remainingHoursMinutes": "{hours} h {minutes} min",
     "remainingMinutes": "{minutes} min"
+  },
+  "ProfileEdit": {
+    "title": "Edit profile",
+    "description": "Change anything you like. Each part saves on its own.",
+    "save": "Save",
+    "cancel": "Cancel",
+    "saved": "Saved.",
+    "backToMe": "Back to Me",
+    "matchingNote": "New matches use your changes from the next daily drop. Today's picks stay as they are.",
+    "section_basics": "Basics: name, gender, year, major",
+    "section_intents": "What you're here for",
+    "section_courses": "Courses",
+    "section_clubs": "Clubs",
+    "section_spots": "Campus spots",
+    "section_freeTime": "Free time",
+    "section_interests": "Interests",
+    "section_prompts": "Prompts",
+    "section_values": "Values quiz",
+    "section_photos": "Photos"
   }
 }

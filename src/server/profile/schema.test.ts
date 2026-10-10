@@ -36,6 +36,15 @@ describe("basicsSchema", () => {
     expect(basicsSchema.safeParse({ ...base, year: "5" }).success).toBe(true);
   });
 
+  it("offers woman or man only", () => {
+    const base = { firstName: "지민", year: "2", major: "컴퓨터공학과" };
+    expect(basicsSchema.safeParse({ ...base, gender: "WOMAN" }).success).toBe(true);
+    expect(basicsSchema.safeParse({ ...base, gender: "MAN" }).success).toBe(true);
+    expect(basicsSchema.safeParse({ ...base, gender: "NONBINARY" }).success).toBe(false);
+    expect(basicsSchema.safeParse({ ...base, gender: "OTHER" }).success).toBe(false);
+    expect(basicsSchema.safeParse({ ...base, gender: "MAN", interestedIn: ["OTHER"] }).success).toBe(false);
+  });
+
   it("rejects an empty first name", () => {
     const result = basicsSchema.safeParse({
       firstName: "",

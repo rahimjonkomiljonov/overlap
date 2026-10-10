@@ -1,6 +1,7 @@
 import type { Gender, IntentMode } from "@/generated/prisma/enums";
 import type { PrismaClient } from "@/generated/prisma/client";
 import { ensureTodaysBatchForUser, type RunDailyBatchDb } from "@/server/matching/run-daily-batch";
+import { effectiveIntents } from "@/server/matching/intents";
 import { seoulCalendarDate } from "@/server/matching/seoul-date";
 import type { Explanation } from "@/server/matching/explain";
 import { resolvePhotoUrl } from "@/server/storage/photos";
@@ -42,16 +43,22 @@ export async function getPicksForActor(
   locale: string,
   now: Date = new Date(),
 ): Promise<IntentPicks[]> {
-  const profile = await db.profile.findUnique({ where: { userId: actor.userId }, select: { intents: true } });
+  const profile = await db.profile.findUnique({
+    where: { userId: actor.userId },
+    select: { intents: true, interestedIn: true },
+  });
   if (!profile || profile.intents.length === 0) return [];
 
-  for (const intent of profile.intents) {
+  // "Open to anything" shows up as Friends and Study (and Dating, with the consent).
+  const intents = effectiveIntents(profile.intents, { hasDatingPreference: profile.interestedIn !== null });
+
+  for (const intent of intents) {
     await ensureTodaysBatchForUser(db, actor.userId, actor.campusId, intent, { now });
   }
 
   const batchDate = seoulCalendarDate(now);
   const batches = await db.dailyBatch.findMany({
-    where: { userId: actor.userId, intent: { in: profile.intents }, batchDate },
+    where: { userId: actor.userId, intent: { in: intents }, batchDate },
     select: {
       intent: true,
       items: {
@@ -105,7 +112,7 @@ export async function getPicksForActor(
       : await db.dailyBatch.findMany({
           where: {
             userId: actor.userId,
-            intent: { in: profile.intents },
+            intent: { in: intents },
             batchDate: { lt: batchDate },
             items: { some: { decision: "PASSED", candidateUserId: { in: shownIds } } },
           },

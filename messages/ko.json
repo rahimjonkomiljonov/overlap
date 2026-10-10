@@ -133,7 +133,9 @@
     "ambassadorTitle": "앰배서더",
     "ambassadorCta": "앰배서더 대시보드 열기",
     "shareTitle": "공유 카드",
-    "shareCta": "내 수업·동아리 카드 만들기"
+    "shareCta": "내 수업·동아리 카드 만들기",
+    "editProfileTitle": "내 프로필",
+    "editProfileCta": "프로필 수정"
   },
   "States": {
     "loading": "불러오는 중",
@@ -383,7 +385,8 @@
       "TOO_MANY_PHOTOS": "사진은 최대 6장까지 올릴 수 있어요.",
       "NOT_FOUND": "찾을 수 없어요.",
       "UNKNOWN": "문제가 생겼어요. 잠시 후 다시 시도해 주세요.",
-      "RATE_LIMITED": "요청이 너무 많아요. 잠시 후 다시 시도해 주세요."
+      "RATE_LIMITED": "요청이 너무 많아요. 잠시 후 다시 시도해 주세요.",
+      "MIN_PHOTOS": "사진은 최소 3장이 필요해요. 먼저 새 사진을 추가한 다음 이 사진을 지워 주세요."
     }
   },
   "Legal": {
@@ -1296,5 +1299,24 @@
     "remainingDaysHours": "{days}일 {hours}시간",
     "remainingHoursMinutes": "{hours}시간 {minutes}분",
     "remainingMinutes": "{minutes}분"
+  },
+  "ProfileEdit": {
+    "title": "프로필 수정",
+    "description": "원하는 부분을 바꿔 보세요. 항목마다 따로 저장돼요.",
+    "save": "저장",
+    "cancel": "취소",
+    "saved": "저장했어요.",
+    "backToMe": "내 정보로 돌아가기",
+    "matchingNote": "바뀐 내용은 다음 번 추천부터 반영돼요. 오늘의 추천은 그대로예요.",
+    "section_basics": "기본 정보: 이름, 성별, 학년, 전공",
+    "section_intents": "여기서 원하는 것",
+    "section_courses": "수업",
+    "section_clubs": "동아리",
+    "section_spots": "캠퍼스 장소",
+    "section_freeTime": "공강 시간",
+    "section_interests": "관심사",
+    "section_prompts": "프롬프트",
+    "section_values": "가치관 퀴즈",
+    "section_photos": "사진"
   }
 }

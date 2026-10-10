@@ -64,6 +64,16 @@ export default async function MePage({ params }: PageProps<"/[locale]/me">) {
       </Card>
       <Card className="mt-4">
         <CardHeader>
+          <CardTitle>{t("editProfileTitle")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Link href="/me/profile" className={buttonVariants({ variant: "outline" })}>
+            {t("editProfileCta")}
+          </Link>
+        </CardContent>
+      </Card>
+      <Card className="mt-4">
+        <CardHeader>
           <CardTitle>{t("account")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">

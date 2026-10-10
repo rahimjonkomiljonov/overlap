@@ -19,6 +19,7 @@ import { ensureProfile, getMissingRequiredSteps } from "./queries";
 import {
   MAX_INTERESTS,
   MAX_PHOTOS,
+  MIN_PHOTOS,
   REQUIRED_PROMPT_COUNT,
   VALUES_QUIZ_LENGTH,
   basicsSchema,
@@ -401,6 +402,13 @@ export async function removePhoto(_prev: RemovePhotoState, formData: FormData): 
   const photo = await prisma.photo.findUnique({ where: { id: photoId } });
   if (!photo || photo.profileId !== profile.id) {
     return { status: "error", code: "NOT_FOUND" };
+  }
+
+  // A finished profile has to stay finished: once it is complete (the app is open to this
+  // person), photos can be swapped but not removed below the required minimum.
+  if (profile.completedAt) {
+    const photoCount = await prisma.photo.count({ where: { profileId: profile.id } });
+    if (photoCount <= MIN_PHOTOS) return { status: "error", code: "MIN_PHOTOS" };
   }
 
   await deletePhoto(photo.storageKey);

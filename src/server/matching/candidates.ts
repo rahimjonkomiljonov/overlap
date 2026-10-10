@@ -4,6 +4,7 @@ import { isCohortReleaseEnabled } from "@/server/cohorts/release";
 import { decryptField } from "@/server/privacy/encryption";
 import { computeTrustScore, isReachLimited, NO_SIGNALS } from "@/server/trust/score";
 import { loadTrustSignals, type TrustSignalsDb } from "@/server/trust/signals";
+import { intentPoolFilter } from "./intents";
 import type { WeightSliders } from "./personalize";
 import type { MatchableProfile } from "./terms";
 
@@ -74,7 +75,9 @@ export async function loadCampusMatchPool(
       status: UserStatus.ACTIVE,
       verifiedAt: { not: null },
       lastActiveAt: { gte: activeSince },
-      profile: { completedAt: { not: null }, intents: { has: intent }, incognito: false },
+      // "Open to anything" counts as every mode (see ./intents.ts), so the pool filter is
+      // not a plain `intents: { has: intent }`.
+      profile: { completedAt: { not: null }, incognito: false, ...intentPoolFilter(intent) },
       // J2: with cohort release on, Dating only matches people whose cohort passed the
       // density gate. Profile intents alone aren't enough: a cohort can close again.
       ...(intent === IntentMode.DATING && isCohortReleaseEnabled()

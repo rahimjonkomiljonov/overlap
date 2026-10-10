@@ -4,6 +4,7 @@ import { computeCampusMatches } from "./batch";
 import { loadCampusMatchPool } from "./candidates";
 import { composeBatch, type ComposeBatchResult } from "./compose";
 import { computeIdfStats } from "./idf";
+import { MATCHING_INTENTS } from "./intents";
 import { seoulCalendarDate } from "./seoul-date";
 import { buildIdfLookup } from "./terms";
 import { refreshTrustSnapshots } from "@/server/trust/snapshot";
@@ -81,7 +82,8 @@ export async function runDailyBatchForCampus(
   const exposureCounts = await loadTodayExposureCounts(db, campusId, batchDate);
 
   const intentSummaries: IntentRunSummary[] = [];
-  for (const intent of Object.values(IntentMode)) {
+  // Open is not a pool of its own: Open profiles are loaded into these three (./intents.ts).
+  for (const intent of MATCHING_INTENTS) {
     const pool = await loadCampusMatchPool(db, campusId, intent, { now });
     const results = computeCampusMatches(pool, intent, idf);
     const joinedAtByUserId = new Map(pool.profiles.map((p) => [p.userId, p.joinedAt]));
