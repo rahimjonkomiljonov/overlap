@@ -10,10 +10,10 @@ The owner paused the public launch on 2026-10-11 (legal and user-data review not
 ## Recreate the demo
 1. Start a local Postgres (any, port of your choice) and set `DATABASE_URL`/`DIRECT_URL` to it, plus the usual dummy secrets (`BETTER_AUTH_SECRET`, `FIELD_ENCRYPTION_KEY_V1`, ...) and `BETTER_AUTH_URL=http://localhost:3300`.
 2. `npx prisma migrate deploy`
-3. `npx tsx scripts/create-campus.ts` for `demo.ac.kr`, then `npm run db:import-reference -- --dir reference-data/shared --domain demo.ac.kr` and again with `--dir reference-data/demo`.
-4. `npx tsx scripts/seed-demo.ts` (10 people: Mina, Jun, Soyeon, Daniel, Yuna, Haru, Minseok, Eunji, Taeyang and an ADMIN operator, all `@demo.ac.kr`).
-5. `npx tsx scripts/run-daily-batch.ts --domain demo.ac.kr`
-6. `next dev -p 3300`, sign in with any `@demo.ac.kr` address and read the code from `.dev-outbox.jsonl`.
-7. `npx tsx scripts/demo-math.ts` prints Mina's C/K/T/I/V terms and rank against everyone (local DB only).
+3. `npx tsx scripts/create-campus.ts` for `hartwell.edu`, then `npm run db:import-reference -- --dir reference-data/shared --domain hartwell.edu` and again with `--dir reference-data/demo`.
+4. `npx tsx scripts/seed-demo.ts` (10 people: Emma, Liam, Sophia, Daniel, Olivia, Noah, Ethan, Grace, Jack and an ADMIN operator, all `@hartwell.edu`).
+5. `npx tsx scripts/run-daily-batch.ts --domain hartwell.edu`
+6. `next dev -p 3300`, sign in with any `@hartwell.edu` address and read the code from `.dev-outbox.jsonl`.
+7. `npx tsx scripts/demo-math.ts` prints Emma's C/K/T/I/V terms and rank against everyone (local DB only).
 
 The screenshot robots and the deck builder (Playwright + pptxgenjs) live outside the repo in `C:\Users\User\overlap-demo`; the finished deck is `Overlap-demo.pptx`.

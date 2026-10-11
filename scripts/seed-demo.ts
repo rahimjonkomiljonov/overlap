@@ -7,11 +7,11 @@ import { newPhotoStorageKey, processPhoto, uploadPhoto } from "../src/server/sto
 
 /**
  * Builds the demonstration campus: nine fictional students plus one operator account on
- * "Demo University" (demo.ac.kr), with hand-designed overlaps so the matching algorithm has
+ * "Hartwell University" (hartwell.edu), with hand-designed overlaps so the matching algorithm has
  * something clear to show. Everything is invented: names, majors, interests, free time,
  * and the generated avatars (abstract shapes with a small "DEMO" tag, never a face).
  *
- * Run after `db:create-campus --name "Demo University" --domain demo.ac.kr` and the
+ * Run after `db:create-campus --name "Hartwell University" --domain hartwell.edu` and the
  * reference imports (see docs/demo-runbook.md).
  *
  * Usage: tsx scripts/seed-demo.ts
@@ -21,7 +21,7 @@ import { newPhotoStorageKey, processPhoto, uploadPhoto } from "../src/server/sto
  * `db:check-readiness` fails if any are found there).
  */
 
-const DOMAIN = "demo.ac.kr";
+const DOMAIN = "hartwell.edu";
 
 type Persona = {
   key: string;
@@ -48,7 +48,7 @@ const MON = 0, TUE = 1, WED = 2, THU = 3, FRI = 4, SAT = 5;
 
 const PERSONAS: Persona[] = [
   {
-    key: "mina", firstName: "Mina", gender: Gender.WOMAN, birthYear: 2005, year: 3, major: "컴퓨터공학과",
+    key: "emma", firstName: "Emma", gender: Gender.WOMAN, birthYear: 2005, year: 3, major: "컴퓨터공학과",
     intents: [IntentMode.FRIENDS, IntentMode.STUDY],
     courses: [["DCS2010", "001"], ["DEC1001", "001"], ["DPS1010", "001"]],
     clubs: ["Lens & Light Photography", "Board Game Cafe Club"],
@@ -63,7 +63,7 @@ const PERSONAS: Persona[] = [
     colors: ["#0d9488", "#0ea5e9"],
   },
   {
-    key: "jun", firstName: "Jun", gender: Gender.MAN, birthYear: 2005, year: 3, major: "컴퓨터공학과",
+    key: "liam", firstName: "Liam", gender: Gender.MAN, birthYear: 2005, year: 3, major: "컴퓨터공학과",
     intents: [IntentMode.FRIENDS, IntentMode.STUDY],
     courses: [["DCS2010", "001"], ["DCS3010", "001"], ["DEC1001", "001"]],
     clubs: ["Board Game Cafe Club", "Startup Study Group"],
@@ -78,7 +78,7 @@ const PERSONAS: Persona[] = [
     colors: ["#6366f1", "#8b5cf6"],
   },
   {
-    key: "soyeon", firstName: "Soyeon", gender: Gender.WOMAN, birthYear: 2004, year: 4, major: "시각디자인전공",
+    key: "sophia", firstName: "Sophia", gender: Gender.WOMAN, birthYear: 2004, year: 4, major: "시각디자인전공",
     intents: [IntentMode.FRIENDS],
     courses: [["DDS2020", "001"], ["DPS1010", "001"]],
     clubs: ["Lens & Light Photography", "Film Society Reel"],
@@ -108,7 +108,7 @@ const PERSONAS: Persona[] = [
     colors: ["#f59e0b", "#ef4444"],
   },
   {
-    key: "yuna", firstName: "Yuna", gender: Gender.WOMAN, birthYear: 2005, year: 3, major: "심리학과",
+    key: "olivia", firstName: "Olivia", gender: Gender.WOMAN, birthYear: 2005, year: 3, major: "심리학과",
     intents: [IntentMode.FRIENDS, IntentMode.STUDY],
     courses: [["DPS1010", "001"], ["DEN1001", "001"]],
     clubs: ["Board Game Cafe Club", "Volunteer Corps"],
@@ -123,7 +123,7 @@ const PERSONAS: Persona[] = [
     colors: ["#14b8a6", "#22c55e"],
   },
   {
-    key: "haru", firstName: "Haru", gender: Gender.MAN, birthYear: 2004, year: 3, major: "컴퓨터공학과 (영어 트랙)",
+    key: "noah", firstName: "Noah", gender: Gender.MAN, birthYear: 2004, year: 3, major: "컴퓨터공학과 (영어 트랙)",
     intents: [IntentMode.OPEN],
     courses: [["DCS2010", "002"], ["DCS3010", "001"], ["DEN1001", "001"]],
     clubs: ["Trail Hikers", "Startup Study Group"],
@@ -138,7 +138,7 @@ const PERSONAS: Persona[] = [
     colors: ["#0ea5e9", "#6366f1"],
   },
   {
-    key: "minseok", firstName: "Minseok", gender: Gender.MAN, birthYear: 2005, year: 2, major: "경제학과",
+    key: "ethan", firstName: "Ethan", gender: Gender.MAN, birthYear: 2005, year: 2, major: "경제학과",
     intents: [IntentMode.STUDY],
     courses: [["DEC1001", "001"], ["DBA1001", "001"]],
     clubs: ["Hoop Dreams Basketball"],
@@ -153,7 +153,7 @@ const PERSONAS: Persona[] = [
     colors: ["#f97316", "#facc15"],
   },
   {
-    key: "eunji", firstName: "Eunji", gender: Gender.WOMAN, birthYear: 2004, year: 3, major: "산업디자인전공",
+    key: "grace", firstName: "Grace", gender: Gender.WOMAN, birthYear: 2004, year: 3, major: "산업디자인전공",
     intents: [IntentMode.FRIENDS],
     courses: [["DDS2020", "001"], ["DEN1001", "001"]],
     clubs: ["Lens & Light Photography", "Acoustic Band Echo"],
@@ -168,7 +168,7 @@ const PERSONAS: Persona[] = [
     colors: ["#ec4899", "#a855f7"],
   },
   {
-    key: "taeyang", firstName: "Taeyang", gender: Gender.MAN, birthYear: 2003, year: 4, major: "법학과",
+    key: "jack", firstName: "Jack", gender: Gender.MAN, birthYear: 2003, year: 4, major: "법학과",
     intents: [IntentMode.FRIENDS],
     courses: [["DBA1001", "001"]],
     clubs: ["Volunteer Corps"],
