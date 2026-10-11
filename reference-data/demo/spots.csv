@@ -1,0 +1,9 @@
+name,name_en,kind,is_safe_spot,description
+중앙도서관 카페,Central Library Cafe,CAFE,true,Ground floor of the library; always busy and staffed
+학생회관 식당,Student Union Dining Hall,DINING,true,The main student canteen at lunch and dinner
+중앙광장 잔디밭,Central Square Lawn,OUTDOOR,true,The open lawn where students gather in good weather
+북쪽 라운지,North Hall Lounge,LOUNGE,true,Bright shared lounge beside the north entrance
+체육관 로비,Sports Hall Lobby,SPORTS,true,Staffed lobby of the sports hall
+캠퍼스 서점 카페,Campus Bookstore Cafe,CAFE,false,Small cafe inside the bookstore
+기숙사 앞 벤치,Dorm Courtyard Benches,OUTDOOR,false,Quiet benches outside the dormitories
+공대 휴게실,Engineering Lounge,LOUNGE,false,Study lounge for engineering students
