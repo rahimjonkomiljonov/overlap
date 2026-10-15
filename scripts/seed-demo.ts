@@ -218,7 +218,10 @@ const PERSONAS: Persona[] = [
 /** Small seeded generator so the generated people are the same on every run. */
 function rng(seed: string): () => number {
   let h = 1779033703 ^ seed.length;
-  for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 3432918353), (h = (h << 13) | (h >>> 19));
+  for (let i = 0; i < seed.length; i++) {
+    h = Math.imul(h ^ seed.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
   return () => {
     h = Math.imul(h ^ (h >>> 16), 2246822507);
     h = Math.imul(h ^ (h >>> 13), 3266489909);

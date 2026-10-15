@@ -16,9 +16,10 @@ async function main() {
   const campus = (await prisma.emailDomain.findUnique({ where: { domain: "hartwell.edu" } }))!.campusId;
   const idf = buildIdfLookup(await prisma.idfStat.findMany({ where: { campusId: campus } }));
   const names = new Map((await prisma.user.findMany({ select: { id: true, name: true } })).map((u) => [u.id, u.name ?? ""]));
-  const out: any[] = [];
+  type Row = { intent: string; name: string | undefined; C: number; K: number; T: number; I: number; V: number; a: number; b: number; rank: number; w: unknown };
+  const out: Row[] = [];
   for (const intent of [IntentMode.FRIENDS, IntentMode.STUDY]) {
-    const pool = await loadCampusMatchPool(prisma as any, campus, intent);
+    const pool = await loadCampusMatchPool(prisma, campus, intent);
     const emma = pool.profiles.find((p) => names.get(p.userId) === "Emma");
     if (!emma) continue;
     for (const o of pool.profiles) {
@@ -31,7 +32,7 @@ async function main() {
     }
   }
   writeFileSync("C:/Users/User/overlap-demo/math.json", JSON.stringify(out, null, 1));
-  for (const r of out) console.log(r.intent, r.name.padEnd(9), [r.C, r.K, r.T, r.I, r.V].map((x: number) => x.toFixed(2)).join(" "), r.rank.toFixed(1));
+  for (const r of out) console.log(r.intent, (r.name ?? "").padEnd(9), [r.C, r.K, r.T, r.I, r.V].map((x) => x.toFixed(2)).join(" "), r.rank.toFixed(1));
   await prisma.$disconnect();
 }
 main().catch((e) => { console.error(e); process.exit(1); });
