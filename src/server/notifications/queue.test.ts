@@ -13,6 +13,7 @@ interface FakeNotificationRow {
   createdAt: Date;
   data: unknown;
   email: string;
+  isSynthetic?: boolean;
   pushSubscriptions?: { endpoint: string; p256dh: string; auth: string }[];
 }
 
@@ -33,7 +34,7 @@ function fakeDb(notifications: FakeNotificationRow[], messages: FakeMessageRow[]
       findMany: async ({ where }: { where: { status: string } }) =>
         notifications
           .filter((n) => n.status === where.status)
-          .map((n) => ({ ...n, user: { email: n.email, pushSubscriptions: n.pushSubscriptions ?? [] } })),
+          .map((n) => ({ ...n, user: { email: n.email, isSynthetic: n.isSynthetic ?? false, pushSubscriptions: n.pushSubscriptions ?? [] } })),
       update: async ({ where, data }: { where: { id: string }; data: Record<string, unknown> }) => {
         updates.push({ id: where.id, data });
         const row = notifications.find((n) => n.id === where.id);
@@ -156,6 +157,15 @@ describe("processQueuedNotifications", () => {
     expect(sent[0].to).toBe("a@test.ac.kr");
     expect(notifications[0].status).toBe("SENT");
     expect(notifications[0].sentAt).toEqual(DAYTIME);
+  });
+
+  it("never emails a synthetic (demo) account: marks it SKIPPED instead", async () => {
+    const { db, notifications } = fakeDb([row({ id: "n1", type: "MATCH", email: "fake@hartwell.edu", isSynthetic: true })]);
+    const sent: string[] = [];
+    const result = await processQueuedNotifications(db, { now: DAYTIME, sendEmail: async ({ to }) => void sent.push(to) });
+    expect(result).toEqual({ sent: 0, skipped: 1, deferred: false, pushed: 0 });
+    expect(sent).toEqual([]);
+    expect(notifications[0].status).toBe("SKIPPED");
   });
 
   it("only ever processes QUEUED rows, never ones already SENT/SKIPPED", async () => {

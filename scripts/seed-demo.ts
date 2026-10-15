@@ -6,9 +6,9 @@ import { PrismaClient } from "../src/generated/prisma/client";
 import { newPhotoStorageKey, processPhoto, uploadPhoto } from "../src/server/storage/photos";
 
 /**
- * Builds the demonstration campus: nine fictional students plus one operator account on
- * "Hartwell University" (hartwell.edu), with hand-designed overlaps so the matching algorithm has
- * something clear to show. Everything is invented: names, majors, interests, free time,
+ * Builds the demonstration campus: nine hand-designed fictional students, fourteen generated
+ * ones and one operator account on "Hartwell University" (hartwell.edu), with overlaps designed
+ * so the matching algorithm has something clear to show. Everything is invented: names, majors, interests, free time,
  * and the generated avatars (abstract shapes with a small "DEMO" tag, never a face).
  *
  * Run after `db:create-campus --name "Hartwell University" --domain hartwell.edu` and the
@@ -16,12 +16,26 @@ import { newPhotoStorageKey, processPhoto, uploadPhoto } from "../src/server/sto
  *
  * Usage: tsx scripts/seed-demo.ts
  *
- * Refuses to run against any database that is not on this computer: demo accounts must never
- * reach production (CLAUDE.md: synthetic users exist only in dev and staging, and
- * `db:check-readiness` fails if any are found there).
+ * Refuses to run against a database that is not on this computer unless both `--production-demo`
+ * and DEMO_PRODUCTION_OK=hartwell.edu are given (owner decision 2026-10-11, see CLAUDE.md): the
+ * fictional people then live only in the separate Hartwell campus and are flagged `isSynthetic`
+ * so notifications skip them. `db:check-readiness` still fails while any exist, so remove them
+ * (`scripts/demo-campus.ts remove`) before any real launch.
+ *
+ * Demo logins: with DEMO_OWNER_EMAIL=you@gmail.com everyone gets the plus-address you+<key>@gmail.com,
+ * so any sign-in code reaches your own inbox and no fake address ever bounces. Without it they use
+ * <key>@hartwell.edu (local database only, where codes are written to a file instead of sent).
  */
 
 const DOMAIN = "hartwell.edu";
+function emailFor(key: string): string {
+  const owner = process.env.DEMO_OWNER_EMAIL?.trim().toLowerCase();
+  if (owner) {
+    const [local, domain] = owner.split("@");
+    return `${local}+${key}@${domain}`;
+  }
+  return `${key}@${DOMAIN}`;
+}
 
 type Persona = {
   key: string;
@@ -201,6 +215,104 @@ const PERSONAS: Persona[] = [
   },
 ];
 
+/** Small seeded generator so the generated people are the same on every run. */
+function rng(seed: string): () => number {
+  let h = 1779033703 ^ seed.length;
+  for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 3432918353), (h = (h << 13) | (h >>> 19));
+  return () => {
+    h = Math.imul(h ^ (h >>> 16), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    return ((h ^= h >>> 16) >>> 0) / 4294967296;
+  };
+}
+const pick = <T,>(r: () => number, list: readonly T[], n: number): T[] => {
+  const pool = [...list];
+  const out: T[] = [];
+  while (out.length < n && pool.length) out.push(pool.splice(Math.floor(r() * pool.length), 1)[0]);
+  return out;
+};
+
+type Archetype = { majors: string[]; courses: [string, string][]; clubs: string[]; interests: string[]; colors: [string, string][]; prompts: [string, string][] };
+const ARCHETYPES: Record<string, Archetype> = {
+  cs: {
+    majors: ["컴퓨터공학과", "인공지능학과", "클라우드공학과"],
+    courses: [["DCS2010", "001"], ["DCS2010", "002"], ["DCS3010", "001"], ["DCS2020", "001"], ["DMA1010", "001"]],
+    clubs: ["Startup Study Group", "Robotics Lab", "Board Game Cafe Club"],
+    interests: ["coding-projects", "video-games", "board-games", "coffee", "sci-fi-novels", "anime"],
+    colors: [["#6366f1", "#8b5cf6"], ["#0ea5e9", "#6366f1"], ["#06b6d4", "#3b82f6"]],
+    prompts: [["learning-now", "Rust, slowly, and a lot of coffee."], ["ideal-day", "Hack on a side project, then game night."], ["favorite-spot", "The engineering lounge after 8 pm."], ["random-fact", "I once debugged a bug in my sleep."]],
+  },
+  design: {
+    majors: ["시각디자인전공", "산업디자인전공", "패션산업학과"],
+    courses: [["DDS2020", "001"], ["DPS1010", "001"], ["DEN1001", "001"], ["DSO1010", "001"]],
+    clubs: ["Lens & Light Photography", "Film Society Reel", "Acoustic Band Echo", "Dance Crew"],
+    interests: ["photography", "painting", "cafe-hopping", "indie-music", "journaling", "plants"],
+    colors: [["#f43f5e", "#f59e0b"], ["#ec4899", "#8b5cf6"], ["#f97316", "#ef4444"]],
+    prompts: [["currently-into", "Risograph prints and thrifted frames."], ["weekend-plan", "Sketchbook, a new cafe, golden hour."], ["go-to-order", "Oat latte, extra foam."], ["favorite-spot", "The studio window seat."]],
+  },
+  biz: {
+    majors: ["경영학과", "경제학과", "회계세무학과"],
+    courses: [["DBA1001", "001"], ["DEC1001", "001"], ["DMK2010", "001"], ["DEN1001", "001"], ["DMA1010", "001"]],
+    clubs: ["Hoop Dreams Basketball", "Debate Society", "Startup Study Group", "Cooking Club"],
+    interests: ["basketball", "travel-planning", "coffee", "running", "cooking", "backpacking"],
+    colors: [["#f59e0b", "#ef4444"], ["#10b981", "#0ea5e9"], ["#84cc16", "#22c55e"]],
+    prompts: [["weekend-plan", "Pickup basketball, then brunch."], ["go-to-order", "Cold brew, black."], ["ideal-day", "A morning run and a long lunch with friends."], ["overshare", "I plan trips I never take."]],
+  },
+  psych: {
+    majors: ["심리학과", "사회복지학과", "미디어커뮤니케이션학과"],
+    courses: [["DPS1010", "001"], ["DSO1010", "001"], ["DEN1001", "001"], ["DBA1001", "001"]],
+    clubs: ["Volunteer Corps", "Debate Society", "Trail Hikers", "Film Society Reel"],
+    interests: ["volunteering", "journaling", "plants", "korean-drama", "hiking", "language-exchange"],
+    colors: [["#10b981", "#14b8a6"], ["#22c55e", "#0d9488"], ["#14b8a6", "#6366f1"]],
+    prompts: [["favorite-spot", "A bench by the pond when it is quiet."], ["currently-into", "Podcasts about how people change."], ["weekend-plan", "Volunteer shift, then a long walk."], ["learning-now", "How to listen better."]],
+  },
+  sport: {
+    majors: ["기계공학과", "생명과학과", "식품영양학과"],
+    courses: [["DPH1010", "001"], ["DMA1010", "001"], ["DEN1001", "001"], ["DCS2010", "002"]],
+    clubs: ["Hoop Dreams Basketball", "Trail Hikers", "Dance Crew", "Cooking Club"],
+    interests: ["hiking", "running", "basketball", "cooking", "board-sports", "baking"],
+    colors: [["#0ea5e9", "#22c55e"], ["#3b82f6", "#06b6d4"], ["#f97316", "#facc15"]],
+    prompts: [["weekend-plan", "A trail I have not hiked yet."], ["ideal-day", "Sunrise run, then pancakes."], ["go-to-order", "Matcha latte."], ["random-fact", "I have finished two half marathons."]],
+  },
+};
+/** [key, name, gender, birthYear, year, archetype, intents]; the rest is generated from the archetype with a seeded RNG. */
+const FILLER_SPEC: [string, string, Gender, number, number, keyof typeof ARCHETYPES, IntentMode[]][] = [
+  ["mia", "Mia", Gender.WOMAN, 2004, 3, "design", [IntentMode.FRIENDS]],
+  ["lucas", "Lucas", Gender.MAN, 2005, 2, "cs", [IntentMode.FRIENDS, IntentMode.STUDY]],
+  ["chloe", "Chloe", Gender.WOMAN, 2005, 2, "psych", [IntentMode.FRIENDS]],
+  ["henry", "Henry", Gender.MAN, 2003, 4, "biz", [IntentMode.STUDY]],
+  ["ava", "Ava", Gender.WOMAN, 2005, 3, "cs", [IntentMode.FRIENDS, IntentMode.STUDY]],
+  ["oliver", "Oliver", Gender.MAN, 2004, 3, "sport", [IntentMode.FRIENDS]],
+  ["lily", "Lily", Gender.WOMAN, 2006, 1, "design", [IntentMode.FRIENDS]],
+  ["mason", "Mason", Gender.MAN, 2005, 2, "cs", [IntentMode.STUDY]],
+  ["zoe", "Zoe", Gender.WOMAN, 2004, 3, "biz", [IntentMode.FRIENDS, IntentMode.STUDY]],
+  ["ryan", "Ryan", Gender.MAN, 2006, 1, "psych", [IntentMode.FRIENDS]],
+  ["nora", "Nora", Gender.WOMAN, 2003, 4, "cs", [IntentMode.STUDY]],
+  ["leo", "Leo", Gender.MAN, 2005, 2, "design", [IntentMode.FRIENDS]],
+  ["ella", "Ella", Gender.WOMAN, 2005, 3, "sport", [IntentMode.FRIENDS, IntentMode.STUDY]],
+  ["owen", "Owen", Gender.MAN, 2004, 3, "biz", [IntentMode.FRIENDS]],
+];
+const FILLERS: Persona[] = FILLER_SPEC.map(([key, firstName, gender, birthYear, year, arch, intents]) => {
+  const r = rng(key);
+  const a = ARCHETYPES[arch];
+  const freeBlocks: number[] = [];
+  for (const day of pick(r, [0, 1, 2, 3, 4], 3 + Math.floor(r() * 3))) for (const block of pick(r, [5, 6, 7, 8, 9], 1 + Math.floor(r() * 2))) freeBlocks.push(slot(day, block));
+  return {
+    key, firstName, gender, birthYear, year,
+    major: pick(r, a.majors, 1)[0],
+    intents,
+    // one section per course (a person can't be in two sections of the same course)
+    courses: pick(r, a.courses, 3 + Math.floor(r() * 2)).filter((c, i, all) => all.findIndex((x) => x[0] === c[0]) === i).slice(0, 3),
+    clubs: pick(r, a.clubs, 1 + Math.floor(r() * 2)),
+    interests: pick(r, a.interests, 3 + Math.floor(r() * 3)),
+    freeTime: freeBlocks.sort((x, y) => x - y),
+    values: Array.from({ length: 8 }, () => 1 + Math.floor(r() * 5)),
+    prompts: pick(r, a.prompts, 3),
+    colors: pick(r, a.colors, 1)[0],
+  };
+});
+const ALL_PERSONAS: Persona[] = [...PERSONAS, ...FILLERS];
+
 /** Three abstract avatars per person: a monogram, the overlap motif, and a landscape. Never a face. */
 function avatarSvg(variant: number, initial: string, [a, b]: [string, string]): string {
   const defs = `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs>`;
@@ -215,7 +327,8 @@ function avatarSvg(variant: number, initial: string, [a, b]: [string, string]): 
 }
 
 async function main() {
-  loadEnv({ path: ".env.local" });
+  const envFile = process.env.DEMO_ENV_FILE;
+  loadEnv({ path: envFile ?? ".env.local", override: Boolean(envFile) });
   const url = process.env.DATABASE_URL ?? "";
   const host = (() => {
     try {
@@ -224,14 +337,16 @@ async function main() {
       return "";
     }
   })();
-  if (host !== "localhost" && host !== "127.0.0.1") {
-    console.error(`Refusing to seed demo accounts: DATABASE_URL points at "${host || "(unset)"}", not this computer.`);
+  const isLocal = host === "localhost" || host === "127.0.0.1";
+  if (!isLocal && !(process.argv.includes("--production-demo") && process.env.DEMO_PRODUCTION_OK === DOMAIN)) {
+    console.error(`Refusing to seed demo accounts: DATABASE_URL points at "${host || "(unset)"}", not this computer. Pass --production-demo and set DEMO_PRODUCTION_OK=${DOMAIN} only for the separate demo campus.`);
     process.exit(1);
   }
 
   const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: url }) });
   try {
-    const domain = await prisma.emailDomain.findUnique({ where: { domain: DOMAIN } });
+    const domain = await prisma.emailDomain.findUnique({ where: { domain: DOMAIN }, include: { campus: true } });
+    if (domain && domain.campus.name !== "Hartwell University") throw new Error(`${DOMAIN} is not the Hartwell demo campus.`);
     if (!domain) throw new Error(`No campus for ${DOMAIN}. Run db:create-campus and the reference imports first.`);
     const campusId = domain.campusId;
 
@@ -241,8 +356,10 @@ async function main() {
     const prompts = await prisma.prompt.findMany();
     const now = new Date();
 
-    for (const [personaIndex, p] of PERSONAS.entries()) {
-      const email = `${p.key}@${DOMAIN}`;
+    // DEMO_SKIP_OPERATOR=1: no fake ADMIN account (production demo: admin pages are not campus-scoped, so a demo admin would see real testers' reports).
+    const people = ALL_PERSONAS.filter((p) => !(process.env.DEMO_SKIP_OPERATOR === "1" && p.role === Role.ADMIN));
+    for (const [personaIndex, p] of people.entries()) {
+      const email = emailFor(p.key);
       if (await prisma.user.findUnique({ where: { email } })) {
         console.log(`  ${p.firstName}: already exists, skipped`);
         continue;

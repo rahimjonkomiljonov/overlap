@@ -66,7 +66,7 @@ export async function processQueuedNotifications(
     where: { status: "QUEUED" },
     orderBy: { createdAt: "asc" },
     include: {
-      user: { select: { email: true, pushSubscriptions: { select: { endpoint: true, p256dh: true, auth: true } } } },
+      user: { select: { email: true, isSynthetic: true, pushSubscriptions: { select: { endpoint: true, p256dh: true, auth: true } } } },
     },
   });
 
@@ -75,6 +75,12 @@ export async function processQueuedNotifications(
   let pushed = 0;
 
   for (const notification of queued) {
+    // Demo accounts are fictional: never email or push them (their addresses either bounce or are the owner's own inbox).
+    if (notification.user.isSynthetic) {
+      await db.notification.update({ where: { id: notification.id }, data: { status: "SKIPPED" } });
+      skipped++;
+      continue;
+    }
     if (notification.type === "UNREAD_MESSAGE") {
       const stillUnread = await isMessageStillUnread(
         db,
