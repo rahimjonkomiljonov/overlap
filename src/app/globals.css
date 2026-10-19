@@ -14,6 +14,8 @@
     "Noto Sans KR", "Noto Sans CJK KR", system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --font-heading: var(--font-sans);
+  /* The landing headline. Georgia ships with Windows and macOS; other systems get their own serif. */
+  --font-display: Georgia, "Times New Roman", "Noto Serif", serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -176,6 +178,13 @@
   }
 }
 
+/* Georgia has no Hangul, so Korean headlines use the regular UI font. Unlayered on purpose, like the
+   rule below: it has to beat Tailwind's `font-display` utility. */
+html:lang(ko) .font-display {
+  font-family: var(--font-sans);
+  letter-spacing: -0.045em;
+}
+
 /* Mobile Safari zooms the whole page in when a field with text under 16px gets focus.
    Inputs are already 16px; this covers every native dropdown and text area whatever size
    class they carry. It sits outside any @layer on purpose: an unlayered rule beats Tailwind's
@@ -204,8 +213,7 @@
   animation: meetup-dot-blink 1.2s steps(1, end) infinite;
 }
 
-/* The landing page's one animation: the two circles slide together, then the reasons they
-   overlap on fade in. Plays once. */
+/* The landing page's one animation: the two circles slide together. Plays once. */
 @keyframes overlap-slide-left {
   from {
     transform: translateX(-18%);
@@ -222,42 +230,16 @@
     transform: translateX(0);
   }
 }
-@keyframes overlap-lens-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-/* The reasons are drawn in with a wipe, not a fade: a fade leaves the text half transparent
-   for a moment, which accessibility checkers (rightly) report as low contrast. */
-@keyframes overlap-chip-in {
-  from {
-    clip-path: inset(0 100% 0 0 round 999px);
-  }
-  to {
-    clip-path: inset(0 round 999px);
-  }
-}
 .overlap-circle-left {
   animation: overlap-slide-left 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .overlap-circle-right {
   animation: overlap-slide-right 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-.overlap-lens {
-  animation: overlap-lens-in 0.45s ease-out 0.7s both;
-}
-.overlap-chip {
-  animation: overlap-chip-in 0.5s ease-out both;
-}
 
 @media (prefers-reduced-motion: reduce) {
   .overlap-circle-left,
-  .overlap-circle-right,
-  .overlap-lens,
-  .overlap-chip {
+  .overlap-circle-right {
     animation: none;
   }
   .meetup-dot-blink {

@@ -11,7 +11,7 @@ export interface PushTarget {
 export interface PushPayload {
   title: string;
   body: string;
-  /** Same-origin path the notification opens, e.g. "/matches" or "/en/waves". */
+  /** Same-origin path the notification opens, e.g. "/matches" or "/ko/waves". */
   url: string;
 }
 

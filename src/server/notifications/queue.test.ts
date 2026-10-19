@@ -239,11 +239,11 @@ describe("processQueuedNotifications web push (Month-2 #7)", () => {
     expect(pushes[0]).toMatchObject({
       title: "You received a wave on Overlap",
       body: "Someone sent you a wave. Open Overlap to see who it is.",
-      url: "/en/waves",
+      url: "/waves",
     });
   });
 
-  it("uses the unprefixed path for Korean", async () => {
+  it("puts Korean under /ko", async () => {
     const { db } = fakeDb([row({ id: "n1", type: "MATCH", locale: "ko", pushSubscriptions: [subA] })]);
     const urls: string[] = [];
     await processQueuedNotifications(db, {
@@ -254,7 +254,7 @@ describe("processQueuedNotifications web push (Month-2 #7)", () => {
         return "logged";
       },
     });
-    expect(urls).toEqual(["/matches"]);
+    expect(urls).toEqual(["/ko/matches"]);
   });
 
   it("deletes a subscription the push service reports gone, and keeps going after a failure", async () => {

@@ -10,7 +10,7 @@ A campus web app that matches students on shared campus life (courses, clubs, pl
 ```bash
 cp .env.example .env.local   # then fill in the values you need
 npm install
-npm run dev                  # http://localhost:3000 (Korean), /en for English
+npm run dev                  # http://localhost:3000 (English), /ko for Korean
 npm run check                # lint, typecheck, unit tests
 npm run e2e                  # Playwright (starts the dev server itself)
 ```

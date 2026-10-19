@@ -26,7 +26,7 @@ export async function enqueueNotification(
 
 export type ProcessQueueDb = Pick<PrismaClient, "notification" | "message" | "pushSubscription">;
 
-/** Where tapping a push notification lands, per type; English lives under /en. */
+/** Where tapping a push notification lands, per type; Korean lives under /ko. */
 const PUSH_PATHS: Record<NotificationType, string> = {
   MATCH: "/matches",
   WAVE_RECEIVED: "/waves",
@@ -35,7 +35,7 @@ const PUSH_PATHS: Record<NotificationType, string> = {
 };
 
 function pushUrl(type: NotificationType, locale: NotificationLocale): string {
-  return locale === "en" ? `/en${PUSH_PATHS[type]}` : PUSH_PATHS[type];
+  return locale === "ko" ? `/ko${PUSH_PATHS[type]}` : PUSH_PATHS[type];
 }
 
 interface UnreadMessageData {

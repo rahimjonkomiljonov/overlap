@@ -4,8 +4,8 @@ You are two of the first real people to use Overlap. The goal is to find anythin
 breaks, confuses you or looks wrong, **before** other students see it. Nothing you do is
 graded. Breaking things is the point.
 
-**Time:** about 45 minutes. **Where:** on your phone, at https://overlaps.tech/en/login
-(Korean is https://overlaps.tech/login).
+**Time:** about 45 minutes. **Where:** on your phone, at https://overlaps.tech/login
+(Korean is https://overlaps.tech/ko/login).
 
 ## Before you start
 
@@ -43,7 +43,7 @@ you go.
 
 ### 1. Sign up
 
-1. Open https://overlaps.tech/en/login.
+1. Open https://overlaps.tech/login.
 2. Enter your campus email and request a code.
 3. Check: **does the code email arrive within a minute or two?** (Look in Spam too.)
 4. Enter the code.

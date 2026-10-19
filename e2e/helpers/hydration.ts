@@ -15,13 +15,25 @@ export async function waitForHydration(page: Page, selector: string): Promise<vo
 }
 
 /**
+ * Where a path lives in the app's language setup: English is served unprefixed ("/") and
+ * Korean under "/ko". Nearly every spec asserts Korean text, so a path with no language
+ * prefix is sent to "/ko" here; "/ko/..." stays Korean and "/en/..." (which the app redirects
+ * to the unprefixed English page) selects English. A test that needs the unprefixed English
+ * page itself uses `page.goto` directly.
+ */
+export function localizedPath(url: string): string {
+  if (/^\/(ko|en)(?=[/?#]|$)/.test(url)) return url;
+  return url === "/" ? "/ko" : `/ko${url}`;
+}
+
+/**
  * `page.goto` followed by waiting for the page's `<main>` landmark to be hydrated. Almost
  * every app route renders `<main>` (the app shell or the page itself), so this is the
  * shared "page is interactive now" signal. Tests that click or type right after a
  * navigation should use this instead of a bare `goto`.
  */
 export async function gotoHydrated(page: Page, url: string): Promise<void> {
-  await page.goto(url);
+  await page.goto(localizedPath(url));
   await waitForHydration(page, "main");
 }
 
