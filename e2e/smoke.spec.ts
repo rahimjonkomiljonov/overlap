@@ -57,6 +57,22 @@ test.describe("landing page", () => {
     await expect(page.getByRole("link", { name: "Log in" })).toHaveAttribute("href", "/login");
   });
 
+  test("sends the hero button to its own How it works page", async ({ page }) => {
+    await page.goto("/");
+    await waitForHydration(page, "main");
+    await expect(page.getByRole("link", { name: "How it works" }).first()).toHaveAttribute("href", "/how-it-works");
+    await page.getByRole("link", { name: "How it works" }).first().click();
+    await expect(page).toHaveURL(/\/how-it-works$/);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("How it works");
+    await expect(page.getByRole("main").getByRole("listitem")).toHaveCount(3);
+  });
+
+  test("has the How it works page in Korean", async ({ page }) => {
+    await gotoHydrated(page, "/ko/how-it-works");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("이렇게 만나요");
+    await expect(page.getByRole("main").getByRole("listitem")).toHaveCount(3);
+  });
+
   test("has the main menu on wide screens", async ({ page, isMobile }) => {
     test.skip(isMobile, "the centre menu is hidden on phones; the footer has the same links");
     await page.goto("/");

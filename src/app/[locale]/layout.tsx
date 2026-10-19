@@ -37,7 +37,12 @@ export const viewport: Viewport = {
 export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Meta" });
-  return { title: t("title"), description: t("description") };
+  return {
+    title: t("title"),
+    description: t("description"),
+    // iOS: open from the home screen as a full-screen app with the right name.
+    appleWebApp: { capable: true, title: "Overlap", statusBarStyle: "default" },
+  };
 }
 
 export default async function LocaleLayout({ children, params }: LayoutProps<"/[locale]">) {

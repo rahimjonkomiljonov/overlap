@@ -21,19 +21,25 @@
     "safetyTitle": "안전이 먼저예요",
     "safetyBody": "재학생 인증을 마친 사람만 만날 수 있고, 언제든 차단·신고할 수 있어요. 실제로 만날 때는 캠퍼스 안 공개된 장소를 추천해 드려요.",
     "statusNote": "지금은 개발 중이에요. 대기자로 등록하면 오픈 소식을 가장 먼저 알려드려요.",
-    "howTitle": "이렇게 만나요",
+    "footerLabel": "Overlap 안내",
+    "footerHowItWorks": "이렇게 만나요",
+    "footerHow": "매칭 방식",
+    "footerSafety": "안전",
+    "footerGuidelines": "커뮤니티 가이드라인",
+    "footerTerms": "이용약관",
+    "footerPrivacy": "개인정보 처리방침"
+  },
+  "HowItWorks": {
+    "title": "이렇게 만나요",
+    "intro": "Overlap은 같은 캠퍼스에서 이미 겹치는 사람을 소개해 드려요. 어떻게 이어지는지 단계별로 알려드릴게요.",
     "step1Title": "매일 낮 12시, 6명을 소개해요",
     "step1Body": "같은 수업, 같은 동아리, 비슷한 공강 시간처럼 왜 겹치는지를 함께 보여드려요.",
     "step2Title": "인사하고 싶으면 웨이브하세요",
     "step2Body": "상대도 웨이브하면 매치가 되고 대화를 시작할 수 있어요. 끝없이 넘기지 않아도 돼요.",
     "step3Title": "캠퍼스에서 만나요",
     "step3Body": "캠퍼스 안 공개된 장소를 추천하고, 둘 다 비는 시간 중에서 약속을 잡을 수 있어요.",
-    "footerLabel": "Overlap 안내",
-    "footerHow": "매칭 방식",
-    "footerSafety": "안전",
-    "footerGuidelines": "커뮤니티 가이드라인",
-    "footerTerms": "이용약관",
-    "footerPrivacy": "개인정보 처리방침"
+    "ctaWaitlist": "대기자 명단 등록하기",
+    "ctaDetails": "매칭 방식 보기"
   },
   "Nav": {
     "label": "주요 메뉴",

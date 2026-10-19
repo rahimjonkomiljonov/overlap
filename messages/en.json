@@ -21,19 +21,25 @@
     "safetyTitle": "Safety comes first",
     "safetyBody": "Only verified students can be matched with, and you can block or report anyone at any time. When it's time to meet, we suggest public spots on campus.",
     "statusNote": "We're still building this. Join the waitlist and we'll email you the moment we open.",
-    "howTitle": "How it works",
+    "footerLabel": "About Overlap",
+    "footerHowItWorks": "How it works",
+    "footerHow": "How matching works",
+    "footerSafety": "Safety",
+    "footerGuidelines": "Community guidelines",
+    "footerTerms": "Terms",
+    "footerPrivacy": "Privacy"
+  },
+  "HowItWorks": {
+    "title": "How it works",
+    "intro": "Overlap introduces you to people you already share a campus with. This is what it looks like, step by step.",
     "step1Title": "Six introductions, every day at noon",
     "step1Body": "Each one comes with the reasons you overlap: the same class, the same club, free at the same time.",
     "step2Title": "Wave if you want to say hi",
     "step2Body": "If they wave back, it's a match and you can start chatting. No endless swiping.",
     "step3Title": "Meet on campus",
     "step3Body": "We suggest public spots on campus, and you can plan a time from the hours you're both free.",
-    "footerLabel": "About Overlap",
-    "footerHow": "How matching works",
-    "footerSafety": "Safety",
-    "footerGuidelines": "Community guidelines",
-    "footerTerms": "Terms",
-    "footerPrivacy": "Privacy"
+    "ctaWaitlist": "Join the waitlist",
+    "ctaDetails": "How matching works"
   },
   "Nav": {
     "label": "Main menu",

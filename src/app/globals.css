@@ -192,9 +192,22 @@ html:lang(ko) .font-display {
    smaller type. */
 @media (pointer: coarse) {
   select,
-  textarea {
+  textarea,
+  input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="hidden"]) {
     font-size: 16px;
   }
+}
+
+/* Taps register at once instead of waiting to see if it is a double-tap zoom. */
+a,
+button,
+[role="button"],
+input,
+select,
+textarea,
+label,
+summary {
+  touch-action: manipulation;
 }
 
 /* The meetup status dot blinks on and off while it is new to the viewer. Steady once seen,

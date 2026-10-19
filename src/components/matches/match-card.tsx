@@ -40,7 +40,7 @@ export function MatchCard({
         <Link
           href={`/profile/${match.otherUserId}`}
           aria-label={t("openProfile", { name: match.firstName ?? "" })}
-          className="flex min-w-0 items-center gap-4 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex min-h-11 min-w-0 items-center gap-4 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <Avatar size="lg">
             {match.photoUrl && <AvatarImage src={match.photoUrl} alt="" />}

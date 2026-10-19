@@ -40,7 +40,9 @@ const publicRoutes = [
   "/community-guidelines",
   "/safety",
   "/how-matching-works",
+  "/how-it-works",
   "/en/waitlist",
+  "/en/how-it-works",
   "/does-not-exist",
 ];
 const protectedRoutes = ["/picks", "/waves", "/matches", "/me", "/verify", "/en/picks", "/en/me"];

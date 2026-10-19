@@ -5,8 +5,6 @@ import { buttonVariants } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
-const STEPS = ["step1", "step2", "step3"] as const;
-
 /**
  * Each language is named in its own language, so these are the same in every locale. The links are
  * plain anchors with the final addresses ("/" for English, "/ko" for Korean): a locale-aware Link to
@@ -23,20 +21,20 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const t = await getTranslations("Home");
 
   const navLink =
-    "inline-flex min-h-11 items-center text-lg font-semibold underline-offset-4 hover:text-primary hover:underline";
+    "inline-flex min-h-11 items-center text-lg font-semibold whitespace-nowrap underline-offset-4 hover:text-primary hover:underline";
 
   return (
     <>
       <header className="mx-auto flex w-full max-w-[120rem] items-center justify-between gap-2 px-4 py-4 sm:gap-4 sm:px-8 sm:py-6">
-        <Link href="/" className="inline-flex shrink-0 items-center gap-2 text-2xl font-extrabold tracking-tight text-primary sm:gap-3 sm:text-3xl">
+        <Link href="/" className="inline-flex min-h-11 shrink-0 items-center gap-2 text-2xl font-extrabold tracking-tight text-primary sm:gap-3 sm:text-3xl">
           <LogoMark className="h-6 w-10 sm:h-7 sm:w-12" blend />
           <span>overlap</span>
         </Link>
 
-        <nav aria-label={t("navLabel")} className="hidden items-center gap-10 md:flex">
-          <a href="#how-it-works" className={navLink}>
+        <nav aria-label={t("navLabel")} className="hidden items-center gap-10 lg:flex">
+          <Link href="/how-it-works" className={navLink}>
             {t("navHow")}
-          </a>
+          </Link>
           <Link href="/safety" className={navLink}>
             {t("navSafety")}
           </Link>
@@ -51,9 +49,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
         <div className="flex shrink-0 items-center gap-2 sm:gap-6">
           <nav aria-label={t("languageLabel")} className="flex items-center gap-1 text-sm font-bold whitespace-nowrap sm:text-base">
             {LANGUAGES.map(({ code, name, href }, index) => (
-              <span key={code} className="inline-flex items-center gap-1">
+              <span key={code} className={cn("items-center gap-1", code === locale ? "hidden sm:inline-flex" : "inline-flex")}>
                 {index > 0 && (
-                  <span aria-hidden="true" className="text-muted-foreground">
+                  <span aria-hidden="true" className="hidden text-muted-foreground sm:inline">
                     /
                   </span>
                 )}
@@ -64,7 +62,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                     href={href}
                     lang={code}
                     hrefLang={code}
-                    className="inline-flex min-h-11 items-center text-muted-foreground hover:text-foreground"
+                    className="inline-flex min-h-11 min-w-11 items-center justify-center px-2 text-muted-foreground hover:text-foreground"
                   >
                     {name}
                   </a>
@@ -86,18 +84,18 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           <p className="mt-6 max-w-[56rem] text-lg text-pretty text-muted-foreground sm:mt-8 sm:text-2xl/relaxed">
             {t("heroSubtitle")}
           </p>
-          <div className="relative z-10 mt-8 flex flex-wrap items-center justify-center gap-2.5 sm:mt-10">
-            <a
-              href="#how-it-works"
-              className={cn(buttonVariants({ variant: "secondary", size: "lg" }), "h-14 rounded-full px-7 text-lg font-bold")}
+          <div className="relative z-10 mt-8 flex w-full max-w-xs flex-col-reverse items-stretch gap-3 sm:mt-10 sm:w-auto sm:max-w-none sm:flex-row sm:items-center sm:justify-center sm:gap-2.5">
+            <Link
+              href="/how-it-works"
+              className={cn(buttonVariants({ variant: "secondary", size: "lg" }), "h-14 w-full rounded-full px-7 text-lg font-bold sm:w-auto")}
             >
               {t("ctaHow")}
-            </a>
+            </Link>
             <Link
               href="/waitlist"
               className={cn(
                 buttonVariants({ size: "lg" }),
-                "h-14 rounded-full bg-foreground px-7 text-lg font-bold text-background hover:bg-foreground/85",
+                "h-14 w-full rounded-full bg-foreground px-7 text-lg font-bold text-background hover:bg-foreground/85 sm:w-auto",
               )}
             >
               {t("cta")}
@@ -115,26 +113,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           </div>
         </section>
 
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-16 px-4 py-12 sm:py-16">
-          <section id="how-it-works" aria-labelledby="how-it-works-title" className="scroll-mt-6 space-y-6">
-            <h2 id="how-it-works-title" className="text-2xl font-semibold tracking-tight">
-              {t("howTitle")}
-            </h2>
-            <ol className="space-y-6">
-              {STEPS.map((step, index) => (
-                <li key={step} className="grid grid-cols-[2.5rem_1fr] gap-x-3">
-                  <span aria-hidden="true" className="text-3xl leading-none font-semibold text-primary tabular-nums">
-                    {index + 1}
-                  </span>
-                  <div className="space-y-1">
-                    <h3 className="font-semibold">{t(`${step}Title`)}</h3>
-                    <p className="max-w-prose text-muted-foreground">{t(`${step}Body`)}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </section>
-
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-16 px-4 pt-12 pb-[calc(3rem+env(safe-area-inset-bottom))] sm:py-16">
           <section className="flex items-start gap-3 rounded-2xl bg-accent px-5 py-4 text-accent-foreground">
             <ShieldCheck className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
             <div className="space-y-1">
@@ -145,19 +124,22 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
           <footer className="border-t border-border pt-6 text-sm text-muted-foreground">
             <nav aria-label={t("footerLabel")} className="flex flex-wrap gap-x-5">
-              <Link href="/how-matching-works" className="inline-flex min-h-11 items-center underline-offset-4 hover:text-foreground hover:underline">
+              <Link href="/how-it-works" className="inline-flex min-h-11 min-w-11 items-center justify-center px-1 underline-offset-4 hover:text-foreground hover:underline">
+                {t("footerHowItWorks")}
+              </Link>
+              <Link href="/how-matching-works" className="inline-flex min-h-11 min-w-11 items-center justify-center px-1 underline-offset-4 hover:text-foreground hover:underline">
                 {t("footerHow")}
               </Link>
-              <Link href="/safety" className="inline-flex min-h-11 items-center underline-offset-4 hover:text-foreground hover:underline">
+              <Link href="/safety" className="inline-flex min-h-11 min-w-11 items-center justify-center px-1 underline-offset-4 hover:text-foreground hover:underline">
                 {t("footerSafety")}
               </Link>
-              <Link href="/community-guidelines" className="inline-flex min-h-11 items-center underline-offset-4 hover:text-foreground hover:underline">
+              <Link href="/community-guidelines" className="inline-flex min-h-11 min-w-11 items-center justify-center px-1 underline-offset-4 hover:text-foreground hover:underline">
                 {t("footerGuidelines")}
               </Link>
-              <Link href="/terms" className="inline-flex min-h-11 items-center underline-offset-4 hover:text-foreground hover:underline">
+              <Link href="/terms" className="inline-flex min-h-11 min-w-11 items-center justify-center px-1 underline-offset-4 hover:text-foreground hover:underline">
                 {t("footerTerms")}
               </Link>
-              <Link href="/privacy" className="inline-flex min-h-11 items-center underline-offset-4 hover:text-foreground hover:underline">
+              <Link href="/privacy" className="inline-flex min-h-11 min-w-11 items-center justify-center px-1 underline-offset-4 hover:text-foreground hover:underline">
                 {t("footerPrivacy")}
               </Link>
             </nav>
