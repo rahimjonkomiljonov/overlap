@@ -106,8 +106,11 @@ async function main() {
       const users = await prisma.user.deleteMany({ where: { campusId, ...isDemo } });
       await prisma.inviteCode.deleteMany({ where: { cohort: { campusId } } });
       await prisma.cohort.deleteMany({ where: { campusId } });
+      // Waitlist rows reference the campus without ON DELETE CASCADE, so without this the campus delete below fails after the users
+      // are already gone (a half-removed demo). Anyone who joined the waitlist through the alias domain is cleared with it.
+      const waitlist = await prisma.waitlist.deleteMany({ where: { campusId } });
       await prisma.campus.delete({ where: { id: campusId } }); // email domains, courses, clubs, spots, IDF stats cascade
-      console.log(`Removed demo campus: ${users.count} users, ${photos.length} photos.`);
+      console.log(`Removed demo campus: ${users.count} users, ${photos.length} photos, ${waitlist.count} waitlist sign-ups.`);
       return;
     }
     console.error("Usage: demo-campus.ts create|status|remove");
