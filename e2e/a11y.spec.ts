@@ -41,6 +41,7 @@ const publicRoutes = [
   "/safety",
   "/how-matching-works",
   "/how-it-works",
+  "/contact",
   "/en/waitlist",
   "/en/how-it-works",
   "/does-not-exist",

@@ -50,7 +50,7 @@ export default async function HowMatchingWorksPage({
       <section className="space-y-3 rounded-lg border border-border p-4">
         <h2 className="text-xl font-semibold tracking-tight">{t("rightsTitle")}</h2>
         <p className="text-muted-foreground">{t("rightsBody")}</p>
-        <Link href="/privacy" className={buttonVariants({ variant: "outline", size: "sm" })}>
+        <Link href="/contact" className={buttonVariants({ variant: "outline", size: "sm" })}>
           {t("contactCta")}
         </Link>
       </section>

@@ -23,11 +23,11 @@
     "statusNote": "We're still building this. Join the waitlist and we'll email you the moment we open.",
     "footerLabel": "About Overlap",
     "footerHowItWorks": "How it works",
-    "footerHow": "How matching works",
     "footerSafety": "Safety",
     "footerGuidelines": "Community guidelines",
     "footerTerms": "Terms",
-    "footerPrivacy": "Privacy"
+    "footerPrivacy": "Privacy",
+    "footerContact": "Contact"
   },
   "HowItWorks": {
     "title": "How it works",
@@ -39,7 +39,7 @@
     "step3Title": "Meet on campus",
     "step3Body": "We suggest public spots on campus, and you can plan a time from the hours you're both free.",
     "ctaWaitlist": "Join the waitlist",
-    "ctaDetails": "How matching works"
+    "ctaDetails": "See how picks are chosen"
   },
   "Nav": {
     "label": "Main menu",
@@ -72,7 +72,7 @@
     "noteCount": "{count}/140",
     "send": "Send wave",
     "cancel": "Cancel",
-    "howMatchingWorksLink": "How matching works",
+    "howMatchingWorksLink": "How your picks are chosen",
     "errors": {
       "UNAUTHENTICATED": "Please sign in first.",
       "INVALID_INPUT": "Something about that wasn't valid. Please try again.",
@@ -443,7 +443,7 @@
         },
         "datingMode": {
           "heading": "5. Dating mode and sensitive information",
-          "body": "\"Who I'd like to meet\" reveals sexual orientation, which is sensitive information, and is only collected with separate, explicit consent. Declining it still leaves Friends and Study Buddy modes available; only Dating mode is unavailable. Recommendations are rule-based; see the How matching works page for details."
+          "body": "\"Who I'd like to meet\" reveals sexual orientation, which is sensitive information, and is only collected with separate, explicit consent. Declining it still leaves Friends and Study Buddy modes available; only Dating mode is unavailable. Recommendations are rule-based; see the How your picks are chosen page for details."
         },
         "content": {
           "heading": "6. Rights in content",
@@ -489,7 +489,7 @@
         },
         "automatedProcessing": {
           "heading": "3. Automated processing notice",
-          "body": "Daily picks are decided by a rule-based algorithm we run on our own servers, not by a person browsing profiles and not by generative AI. See How matching works for the signals used and why, and you have the right to ask for an explanation or a human review of a specific recommendation (PIPA Art. 37-2)."
+          "body": "Daily picks are decided by a rule-based algorithm we run on our own servers, not by a person browsing profiles and not by generative AI. See How your picks are chosen for the signals used and why, and you have the right to ask for an explanation or a human review of a specific recommendation (PIPA Art. 37-2)."
         },
         "chatAndReports": {
           "heading": "4. Chat and report handling",
@@ -772,7 +772,7 @@
     "navSuspensions": "Suspensions"
   },
   "HowMatchingWorks": {
-    "title": "How matching works",
+    "title": "How your picks are chosen",
     "intro": "Your daily picks are chosen by a set of rules we run on our own servers — not by a person browsing profiles, and not by machine learning or generative AI. Every match is based on things you and the other person both entered: your courses, clubs, free time, interests and a short values quiz.",
     "signalsTitle": "What we compare",
     "signalCourses": "Shared courses — sharing a small class counts for more than sharing something everyone takes.",
@@ -1225,7 +1225,7 @@
     "reset": "Reset to default",
     "saved": "Saved. Your picks use this from tomorrow.",
     "appliesFromTomorrow": "Today's picks stay as they are; this applies from your next picks. People who fit you both well still come first.",
-    "howItWorks": "How matching works",
+    "howItWorks": "How your picks are chosen",
     "errors": {
       "UNAUTHENTICATED": "Please sign in again.",
       "INVALID_INPUT": "Please check the values and try again.",
@@ -1395,5 +1395,22 @@
     "interests": "Interests",
     "chat": "Open chat",
     "back": "Back to matches"
+  },
+  "Contact": {
+    "title": "Contact us",
+    "intro": "Questions, feedback, or something not working? Write to us. We are a small student team and we read every message.",
+    "emailTitle": "Email us",
+    "emailBody": "Send your message to the address below. If it is about your account, write from the email you signed up with so we can find it.",
+    "includeTitle": "What to include",
+    "includeWhat": "What you were doing and what happened.",
+    "includeDevice": "Your phone or computer and browser, if something is not working.",
+    "includePasswords": "Never send a password or a verification code.",
+    "subjectsTitle": "Common requests",
+    "subjectPrivacy": "Privacy request: access, correct or delete your data, or withdraw a consent. Put \"Privacy request\" in the subject line.",
+    "subjectMatch": "Match review: an explanation of a pick, or a person to review how your picks are put together. Put \"Match review\" in the subject line.",
+    "privacyCta": "Read the Privacy Policy",
+    "urgentTitle": "Something unsafe? Don't wait for an email",
+    "urgentBody": "We don't read this inbox around the clock. If you are in danger, call 112 (police) or 119 (ambulance). To report another person, use the Report button in the app so a moderator sees it right away.",
+    "urgentCta": "See the Safety page"
   }
 }

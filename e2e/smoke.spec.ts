@@ -73,6 +73,32 @@ test.describe("landing page", () => {
     await expect(page.getByRole("main").getByRole("listitem")).toHaveCount(3);
   });
 
+  test("has one How it works link and a Contact page in the footer", async ({ page }) => {
+    await page.goto("/");
+    await waitForHydration(page, "main");
+    const footer = page.getByRole("navigation", { name: "About Overlap" });
+    await expect(footer.getByRole("link", { name: "How it works" })).toHaveCount(1);
+    await expect(footer.getByRole("link", { name: "How your picks are chosen" })).toHaveCount(0);
+    await expect(footer.getByRole("link", { name: "Contact" })).toHaveAttribute("href", "/contact");
+    await footer.getByRole("link", { name: "Contact" }).click();
+    await expect(page).toHaveURL(/\/contact$/);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Contact us");
+    await expect(page.getByRole("link", { name: "overlaps.app@gmail.com" })).toHaveAttribute("href", "mailto:overlaps.app@gmail.com");
+  });
+
+  test("names the picks page the same way in English and Korean", async ({ page }) => {
+    await gotoHydrated(page, "/en/how-matching-works");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("How your picks are chosen");
+    await gotoHydrated(page, "/ko/how-matching-works");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("추천은 어떻게 정해지나요");
+  });
+
+  test("has the Contact page in Korean", async ({ page }) => {
+    await gotoHydrated(page, "/ko/contact");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("문의하기");
+    await expect(page.getByRole("link", { name: "overlaps.app@gmail.com" })).toBeVisible();
+  });
+
   test("has the main menu on wide screens", async ({ page, isMobile }) => {
     test.skip(isMobile, "the centre menu is hidden on phones; the footer has the same links");
     await page.goto("/");

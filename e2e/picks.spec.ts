@@ -140,10 +140,10 @@ test.describe("picks (S12)", () => {
   }) => {
     await signInAndOnboard(page, { emailPrefix: "picks-hmw" });
     await gotoHydrated(page, "/picks");
-    await page.getByRole("link", { name: "매칭은 어떻게 이루어지나요" }).click();
+    await page.getByRole("link", { name: "추천은 어떻게 정해지나요" }).click();
     await expect(page).toHaveURL(/\/how-matching-works$/);
     await expect(
-      page.getByRole("heading", { name: "매칭은 어떻게 이루어지나요", level: 1 }),
+      page.getByRole("heading", { name: "추천은 어떻게 정해지나요", level: 1 }),
     ).toBeVisible();
   });
 });

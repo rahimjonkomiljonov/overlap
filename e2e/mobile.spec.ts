@@ -8,7 +8,7 @@ test.skip(({ isMobile }) => !isMobile, "phone-only checks");
 
 const WIDTHS = [320, 360, 390, 430];
 // English at "/", Korean under "/ko".
-const PAGES = ["/", "/how-it-works", "/how-matching-works", "/safety", "/privacy", "/terms", "/waitlist", "/login", "/ko", "/ko/how-it-works", "/ko/waitlist"];
+const PAGES = ["/", "/how-it-works", "/how-matching-works", "/contact", "/safety", "/privacy", "/terms", "/waitlist", "/login", "/ko", "/ko/how-it-works", "/ko/contact", "/ko/waitlist"];
 
 /** Runs in the page: what would make this page hard to use on a phone. */
 function findProblems() {

@@ -127,9 +127,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               <Link href="/how-it-works" className="inline-flex min-h-11 min-w-11 items-center justify-center px-1 underline-offset-4 hover:text-foreground hover:underline">
                 {t("footerHowItWorks")}
               </Link>
-              <Link href="/how-matching-works" className="inline-flex min-h-11 min-w-11 items-center justify-center px-1 underline-offset-4 hover:text-foreground hover:underline">
-                {t("footerHow")}
-              </Link>
               <Link href="/safety" className="inline-flex min-h-11 min-w-11 items-center justify-center px-1 underline-offset-4 hover:text-foreground hover:underline">
                 {t("footerSafety")}
               </Link>
@@ -141,6 +138,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               </Link>
               <Link href="/privacy" className="inline-flex min-h-11 min-w-11 items-center justify-center px-1 underline-offset-4 hover:text-foreground hover:underline">
                 {t("footerPrivacy")}
+              </Link>
+              <Link href="/contact" className="inline-flex min-h-11 min-w-11 items-center justify-center px-1 underline-offset-4 hover:text-foreground hover:underline">
+                {t("footerContact")}
               </Link>
             </nav>
           </footer>
