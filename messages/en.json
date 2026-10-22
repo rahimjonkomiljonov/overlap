@@ -206,7 +206,11 @@
     "error_TOO_MANY_ATTEMPTS": "Too many attempts. Please request a new code.",
     "error_INCORRECT_CODE": "That code isn't right.",
     "error_INCORRECT_CODE_attempts": "That code isn't right. {count} attempts left.",
-    "error_UNKNOWN": "Something went wrong. Please try again in a moment."
+    "error_UNKNOWN": "Something went wrong. Please try again in a moment.",
+    "successHint": "Every friend who joins brings Overlap closer to opening on your campus.",
+    "friendsJoined": "{count, plural, =0 {No friends have joined through your link yet.} one {# friend has joined through your link.} other {# friends have joined through your link.}}",
+    "share": "Share with friends",
+    "shareText": "I joined the Overlap waitlist. It helps you meet the people you already share a campus with. Join me:"
   },
   "Login": {
     "title": "Sign in",

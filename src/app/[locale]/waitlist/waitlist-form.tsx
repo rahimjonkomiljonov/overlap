@@ -1,7 +1,7 @@
 "use client";
 
-import { CheckCircle2, Copy, PartyPopper } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { CheckCircle2, Copy, PartyPopper, Share2 } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { useActionState, useEffect, useState, useSyncExternalStore } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  getReferralCount,
   requestWaitlistOtp,
   verifyWaitlistOtp,
   type RequestOtpState,
@@ -229,9 +230,11 @@ function VerifyStep({
 }
 
 const noopSubscribe = () => () => {};
+const canShareNatively = () => typeof navigator.share === "function";
 
 function VerifiedScreen({ waitlistId, count }: { waitlistId: string; count: number }) {
   const t = useTranslations("Waitlist");
+  const locale = useLocale();
   // window.location.origin doesn't exist during SSR; useSyncExternalStore renders the
   // server snapshot ("") on the first client render too, then the real value right
   // after hydration, without the effect+setState render-cascade the linter flags.
@@ -241,11 +244,45 @@ function VerifiedScreen({ waitlistId, count }: { waitlistId: string; count: numb
     () => "",
   );
 
-  const referralUrl = origin ? `${origin}/waitlist?ref=${waitlistId}` : "";
+  // Korean sharers send a Korean page; English is the unprefixed default.
+  const localePrefix = locale === "en" ? "" : `/${locale}`;
+  const referralUrl = origin ? `${origin}${localePrefix}/waitlist?ref=${waitlistId}` : "";
+  // Phones open their own share sheet (WhatsApp, KakaoTalk, Messages...); on desktop the
+  // Copy button is enough, so the Share button only exists where the browser can share.
+  const canShare = useSyncExternalStore(noopSubscribe, canShareNatively, () => false);
+
+  const [friendsJoined, setFriendsJoined] = useState(0);
+  useEffect(() => {
+    let active = true;
+    const refresh = () => {
+      getReferralCount(waitlistId)
+        .then((n) => {
+          if (active) setFriendsJoined(n);
+        })
+        .catch(() => {
+          // Transient network hiccup; the next poll will retry.
+        });
+    };
+    refresh();
+    const id = setInterval(refresh, COUNT_POLL_MS);
+    return () => {
+      active = false;
+      clearInterval(id);
+    };
+  }, [waitlistId]);
 
   async function copyLink() {
     await navigator.clipboard.writeText(referralUrl);
     toast.success(t("copied"));
+  }
+
+  async function shareLink() {
+    try {
+      await navigator.share({ text: t("shareText"), url: referralUrl });
+    } catch (error) {
+      // Closing the share sheet is not an error; any other failure falls back to copying.
+      if (!(error instanceof DOMException && error.name === "AbortError")) await copyLink();
+    }
   }
 
   return (
@@ -257,12 +294,24 @@ function VerifiedScreen({ waitlistId, count }: { waitlistId: string; count: numb
         description={t("successBody")}
         action={
           referralUrl ? (
-            <div className="flex w-full flex-col gap-2 sm:flex-row">
-              <Input readOnly value={referralUrl} aria-label={t("referralLabel")} />
-              <Button type="button" variant="outline" onClick={copyLink} className="shrink-0">
-                <Copy className="size-4" aria-hidden="true" />
-                {t("copyLink")}
-              </Button>
+            <div className="flex w-full flex-col gap-3">
+              {canShare ? (
+                <Button type="button" size="lg" onClick={shareLink} className="w-full">
+                  <Share2 className="size-4" aria-hidden="true" />
+                  {t("share")}
+                </Button>
+              ) : null}
+              <div className="flex w-full flex-col gap-2 sm:flex-row">
+                <Input readOnly value={referralUrl} aria-label={t("referralLabel")} />
+                <Button type="button" variant="outline" onClick={copyLink} className="shrink-0">
+                  <Copy className="size-4" aria-hidden="true" />
+                  {t("copyLink")}
+                </Button>
+              </div>
+              <p className="text-sm text-muted-foreground">{t("successHint")}</p>
+              <p className="text-sm font-medium" aria-live="polite" data-testid="friends-joined">
+                {t("friendsJoined", { count: friendsJoined })}
+              </p>
             </div>
           ) : undefined
         }

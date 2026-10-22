@@ -14,6 +14,7 @@ import {
 import { checkRateLimit } from "@/server/auth/rate-limit";
 import { prisma } from "@/server/db";
 import { sendEmail } from "@/server/email/send";
+import { countVerifiedReferrals } from "./referrals";
 import { requestOtpSchema, verifyOtpSchema } from "./schema";
 
 /**
@@ -173,4 +174,11 @@ export async function verifyWaitlistOtp(
 
 export async function getWaitlistCount(): Promise<number> {
   return prisma.waitlist.count({ where: { verifiedAt: { not: null } } });
+}
+
+/** Number of friends who joined through this entry's invite link; 0 for anything invalid. */
+export async function getReferralCount(waitlistId: string): Promise<number> {
+  const id = verifyOtpSchema.shape.waitlistId.safeParse(waitlistId);
+  if (!id.success) return 0;
+  return countVerifiedReferrals(prisma, id.data);
 }

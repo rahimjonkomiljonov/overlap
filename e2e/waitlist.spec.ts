@@ -55,6 +55,40 @@ test.describe("waitlist", () => {
     await expect(link).toHaveValue(/\/waitlist\?ref=[0-9a-f-]{36}$/);
   });
 
+  test("shows how many friends joined through your link", async ({ page, browser }) => {
+    test.setTimeout(90_000);
+
+    async function joinWaitlist(p: import("@playwright/test").Page, path: string, email: string) {
+      await gotoHydrated(p, path);
+      await p.getByLabel("학교 이메일").fill(email);
+      await p.getByRole("checkbox").check();
+      await p.getByRole("button", { name: "인증 코드 받기" }).click();
+      await expect(p.getByLabel("인증 코드")).toBeVisible();
+      await p.getByLabel("인증 코드").fill(await readLastOtpCode(email));
+      await p.getByRole("button", { name: "확인" }).click();
+      await expect(p.getByRole("heading", { name: "등록됐어요!" })).toBeVisible();
+    }
+
+    // The first person joins and starts with no friends through their link.
+    await joinWaitlist(page, "/waitlist", uniqueTestEmail("inviter"));
+    const friends = page.getByTestId("friends-joined");
+    await expect(friends).toHaveText("아직 내 링크로 들어온 친구가 없어요.");
+    const link = await page.getByLabel("친구에게 공유하기").inputValue();
+    const refPath = new URL(link).pathname + new URL(link).search;
+
+    // A friend opens that link in their own browser and joins.
+    const friendContext = await browser.newContext({ locale: "ko-KR" });
+    try {
+      const friendPage = await friendContext.newPage();
+      await joinWaitlist(friendPage, refPath, uniqueTestEmail("invited"));
+    } finally {
+      await friendContext.close();
+    }
+
+    // The first person's screen picks it up on its next refresh (every 20 s).
+    await expect(friends).toHaveText("내 링크로 친구 1명이 들어왔어요.", { timeout: 40_000 });
+  });
+
   test("resubmitting a verified email says it's already on the list", async ({ page }) => {
     const email = uniqueTestEmail("dup");
 
