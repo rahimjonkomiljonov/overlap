@@ -1,5 +1,7 @@
 # Overlap — 30-Day Build Plan (follow step by step)
 
+> **Mobile apps (App Store and Google Play): see §10**, a separate plan proposed on 2026-10-22: 14 weeks, Oct 26 to Jan 29, including Campus Pockets and Events. Test list: `docs/mobile-test-matrix.md`.
+
 > This is the single source of truth for the build. The full-product reference is `docs/REQUIREMENTS.md`.
 > **Day 1 = Mon 2026-09-21 → Day 30 = Tue 2026-10-20.**
 
@@ -227,6 +229,7 @@ Waitlist first (S04) so growth starts on Day 5 while the rest is built. Matching
 | 2026-10-10 | S24 mobile pass | Audited the shared pieces for phone problems (the base was already careful: full-screen viewport, safe-area insets, 16px inputs, 44px buttons and tab bar). Fixed: (1) **iPhone zoom on dropdowns**: native selects and text areas are forced to 16px on touch screens (an unlayered `@media (pointer: coarse)` rule; a rule inside `@layer base` loses to Tailwind's `text-sm`), measured 16px on a touch device and 14px on desktop; (2) **chat message box under the tab bar**: the chat's height used `100vh` minus too little, so on a phone the composer's lower edge sat behind the bottom tab bar; now `100dvh` minus the header, padding, tab bar and home-indicator inset, and `interactiveWidget: resizes-content` so Android's keyboard shrinks the page; (3) **tap targets**: the pick-card hearts, the photo remove button and the interest-chip remove button keep their look but have 44px hit areas; the landing footer links are 44px tall; (4) Year and Major share the row as 6rem plus the rest so department names fit; (5) the privacy policy's scrollable data tables are keyboard-focusable and named. A check I ran on the landing page caught two problems I had introduced, both fixed: the entrance animation let the page scroll sideways for the first second on a phone (now clipped to its box), and the fading chips tripped the contrast checker mid-fade (now a wipe, not a fade; 0 findings at 24 moments across light/dark and both languages). Public pages checked at 320 and 390px: no sideways scroll, 0 axe findings | Not verified visually: signed-in screens (need a database); the chat height and the tap-area changes are from measurement and reasoning, not from a phone. Please try the chat on a real phone |
 | 2026-10-10 | S24 visual refresh: swipe, colour, icons | (1) **Swipeable picks**: each pick card can be dragged, right to wave (the plain profile wave) and left to pass; it follows the finger with a slight tilt, a coloured Wave or Pass label grows toward the decision point and stays mid-screen on a tall card, a short drag or a vertical scroll decides nothing, a flick counts, and the card folds away smoothly once decided. A swipe submits the same forms the buttons do, and a refused wave (daily limit, blocked) springs the card back with the reason. Taps on hearts, buttons and the note box are never swipes; `touch-action: pan-y` leaves scrolling to the browser; reduced motion drops the tilt and the transition; the browser's own image drag is cancelled. Kept as a list (not a one-card deck) so the existing picks tests still describe the screen. (2) **Colour**: one hue per mode (friends blue, study violet, dating rose, open amber) with a soft tint and a text colour, all pairs 7.9 to 9.7:1 contrast in both themes; mode headings, a card accent bar, reason chips (a colour and icon per kind: course, club, interest, free time, values), tinted prompt answers, rose hearts, the bottom tabs (a colour and tinted pill each), the mode picker and the profile editor list. (3) **Icons** on all of those. (4) Lead photo shown wide. How it was checked: a dev-only preview (`/dev/picks`, behind ENABLE_DEV_UI like `/dev/ui`) with sample people and stand-in actions, driven in a real browser with mouse and real touch events, light and dark, reduced motion, axe 0 findings; found and fixed three of my own bugs on the way (browser image-drag cancelled mouse swipes, a returned card kept its drag offset, and `onDecided` was called during render). New e2e `e2e/swipe.spec.ts` (12 runs, desktop and mobile) passes locally | Not seen on screen: the signed-in tabs and mode picker (they need a database); the existing picks e2e were not run (need one) but their button names are unchanged |
 | 2026-10-11 | S24 | **Done.** Production is live at https://overlaps.tech (Vercel, Seoul `icn1`; Supabase Seoul; Resend verified; domain from the Student Pack). `db:check-readiness` prints Ready. The owner and two testers re-ran the manual smoke test (`docs/smoke-test-guide.md`, the runbook §5 flow) on the current version on 2026-10-11 and reported everything fine; the fixes found in the first round (wizard bugs, birth date, major and year pick lists, moderation notices and enforcement, lift suspension, meetup times and status dot, mobile) are all in. "Backups are on" is met as an **accepted risk**, not literally: Supabase Free has none, so the mitigation is the owner\'s weekly `pg_dump` to their own encrypted disk (never uploaded) | Take the first `pg_dump` before real users arrive; the database password was shown in a chat on 2026-10-09, so reset it and update Vercel and `.env.production.local`; the four English department names that are my own translations need checking |
+| 2026-10-22 | Mobile apps plan (owner request) | Owner decision: the end goal is native apps in the App Store and Google Play, every function tested, in three months. Researched current rules from official pages and wrote §10 (14 weeks, Oct 26 to Jan 29, steps M01 to M19, gates G1 to G9, checkpoints MC1 to MC4 (extended from 13 weeks the same day, when the owner added Campus Pockets and Events and accepted 7 more days)) and `docs/mobile-test-matrix.md` (58 functions, five proofs each). **Rejected the Capacitor live-site wrapper:** Capacitor's docs say `server.url` is not for production, and Apple 4.2 rejects repackaged websites; chose Expo (React Native) with a mobile API on the existing backend. Nothing built yet | **Owner approved the plan (G1) on 2026-10-22, including Campus Pockets and Events (the window grew from 13 to 14 weeks for them).** Still needs the owner: approve US$25 (Google) and US$99 per year (Apple) since the standing rule says free plans only (G2), create both developer accounts (G3). Known open risks: Apple 4.3(b) on dating apps, `emailOTP` through the Expo client untested, no schedule slack |
 
 ## 9. Risks specific to this plan
 
@@ -261,3 +264,128 @@ Waitlist first (S04) so growth starts on Day 5 while the rest is built. Matching
 | 2026-10-19 | How it works page + phone polish (owner request) | "How it works" is its own page (`/how-it-works`, like Safety), linked from the landing menu, hero button and footer; the steps section left the landing page. Phone pass after an automated audit of every page at six phone sizes plus landscape (no page scrolled sideways): primary button first and full width on phones, a logo link and language/footer links that are 44px, only the other language shown in the phone header, the centre menu from `lg` (it wrapped in landscape), 16px text fields on every touch screen, no double-tap delay, safe-area padding. Added a web app manifest and icons (home-screen install), `appleWebApp` metadata, and `e2e/mobile.spec.ts` (44 checks). Lighthouse on the landing page with phone throttling: performance 94 (99 with real throttling), accessibility, best practices and SEO 100 | Same three pre-existing e2e failures as before (events, meetup share-link expiry, onboarding keyboard); everything else passes on desktop and phone |
 | Moderator overload | Cohort cap; 2 moderators; urgent queue first |
 
+
+## 10. Mobile apps (App Store and Google Play): 3-month plan
+
+> **Status: APPROVED by the owner on 2026-10-22 (gate G1), not started.** M01 needs no money and can begin as soon as the owner says "start mobile". G2 (spending) and G3 (developer accounts) are still open: do them in Week 1, and both are required before the first store upload in Week 5.
+> **Window:** Mon 2026-10-26 to Fri 2027-01-29 (14 weeks): build and submission to both stores. Review fixes (M19) can run into the first week of February. It was 13 weeks until the owner added Campus Pockets and Events on 2026-10-22 and accepted 7 more days. Same protocol as §1: one step at a time, "Done when" must pass, tick the box, one Progress Log line, commit as `Mxx: title`.
+> Separate from the S-steps: S25 and S26 (launch gate) stay owner-side items and do not block M-steps.
+
+### 10.1 The decision: build a real app with Expo, not a wrapper
+
+Owner decision (2026-10-22): the end goal is apps in the **App Store and Google Play**, tested on every function, in three months.
+
+| Option | Verdict | Why |
+|---|---|---|
+| Wrap the live site in a native shell (Capacitor `server.url`) | **Rejected** | Capacitor's own docs say `server.url` "is not intended for use in production". Apple 4.2 asks for features that "elevate it beyond a repackaged website". This app is Next.js with server actions and server rendering, so it cannot be bundled as static files either. |
+| Capacitor with a rebuilt client bundled in the app | Rejected | Needs the same API layer as Expo, with a worse native feel. |
+| **Expo (React Native) app + a mobile API on the existing backend** | **Chosen** | One codebase for both stores, real native screens (Apple 4.2), builds in the cloud so no Mac is needed (EAS Build), Better Auth has an official Expo client (`@better-auth/expo`, session in SecureStore). Domain logic already lives in `src/server/*`, so most of the backend is reused. |
+| Fully native Swift and Kotlin | Rejected | Two codebases, cannot fit in three months. |
+
+Versions to re-check with Context7 at M01 (as of 2026-10-22): Expo SDK 58 (React Native 0.88). Google Play requires new apps and updates to target Android 16 (API 36) from 2026-08-31. Apple requires Xcode 26 or later (iOS 26 SDK) for uploads (since 2026-04-28). EAS Build's current images satisfy both.
+
+### 10.2 Scope of the store apps
+
+**In the apps** (the same loop as the first cohort, §0):
+sign-in with email code, consents, age declaration (Track B), invite code (when `COHORT_RELEASE=on`), profile wizard with photos and selfie verification, daily picks with reasons, pass, **Campus Pockets** (opt-in browsing by shared course or club, wave from a pocket), **Events, attendee side** (list, RSVP, opt-in guest list, 48-hour connect window), wave with note, waved-at-you inbox, matches, chat, meetup planner and emergency card, report, block, hide-from, safety settings, privacy centre (export, consent withdrawal, **in-app account deletion**), notification preferences, push notifications, pick preferences, Korean and English.
+
+**Stays on the web only:** waitlist, admin and moderation consoles, legal pages (linked from the app), ambassador page, **creating events** (ambassadors and up, on the web), share-plan pages for non-users.
+
+**Mobile API:** new route handlers under `src/app/api/mobile/v1/**`. The logic inside each server action moves into a plain function in `src/server/<module>/service.ts` that **both** the action and the route call, so web and mobile cannot drift apart. Every route checks authorization itself (hard rule). The Expo app lives in `mobile/` with its own `package.json`, excluded from the web app's `tsc`, ESLint and Vercel build.
+
+### 10.3 Owner gates
+
+| ID | Gate | Due | Blocks |
+|---|---|---|---|
+| G1 | Approve this plan and scope (§10.2), and that new scope goes to the backlog, not into the apps | **Done 2026-10-22** (owner approved, including Campus Pockets and Events) | Everything |
+| G2 | **Approve spending:** Google Play developer account **US$25** one-time, Apple Developer Program **US$99 per year** (about US$124 in year 1). The standing rule says free plans only, so this needs your explicit yes. EAS Build stays on its Free plan (15 Android and 15 iOS builds listed; budget at most 13 of each) | **Open.** Confirm in Week 1; required before the first store upload (Week 5) | G3 |
+| G3 | **Create the two developer accounts in Week 1.** Google: personal account, government ID and credit card in your legal name, age 18+, and verify an Android device through the Play Console mobile app. Apple: individual enrolment with an Apple ID using two-factor. Identity checks can take days, so start at once | **Open.** Week 1; required before the first store upload (Week 5) | M16, M18 |
+| G4 | **Recruit 12 or more Android testers** (Google rule for new personal accounts: closed test, 12 testers opted in for 14 continuous days before production access) | By Week 4 | Google production release |
+| G5 | Recruit 5 or more iPhone testers for TestFlight, plus at least 2 real Android phones and 2 real iPhones for the device matrix | By Week 6 | M16 |
+| G6 | **Reviewer demo account:** both stores want a working login for their reviewers, but sign-in is a code sent to a school email. Decide on one narrow, documented exception to the "no synthetic users in production" rule (fixed code, one account, one reviewer-only campus). I will design it; you approve it | Week 7 | M18, store submission |
+| G7 | A native Korean reader checks every Korean string, the store listings and the review notes | Weekly from Week 4 | M15, M18 |
+| G8 | Approve push through Expo's push service, APNs and FCM as new overseas processors (payloads carry **no chat text**, only generic wording). I update `docs/data-flow.md` and the privacy text; the lawyer review risk accepted in §8 still applies | Week 8 | M14 |
+| G9 | Pick the public release date against the spring semester (check the campus calendar, as in O10). Winter break means fewer students on campus in Dec to Feb | Week 10 | M19 |
+
+### 10.4 Steps
+
+Budgets are Claude Code working days. **Each feature step includes its own tests** (§10.6), so there is no "test everything at the end" phase.
+
+- [ ] **M01 · Setup and spikes** (3 d). Expo app in `mobile/` (TypeScript, Expo Router, next-intl equivalent for ko/en), EAS project, `/api/mobile/v1/health`, CI job for the mobile package. Spike: **email-code sign-in from Expo** against the real backend. *Done when:* the app runs on an emulator and on a real Android phone, calls the health route, and the spike shows Better Auth's `emailOTP` working through `@better-auth/expo` (its Expo guide does not mention emailOTP, so this must be proven first; fallback is two token endpoints of our own). Decision note written.
+- [ ] **M02 · Auth and session** (4 d). Sign in, sign out, session in SecureStore, `requireActor(request)` for mobile routes, rate limits, consent screens, force-upgrade gate (minimum app version). *Done when:* a `test.ac.kr` user signs in on a real phone, a personal-mail address is refused, and unit tests cover missing, expired and wrong-user sessions.
+- [ ] **M03 · Mobile API foundation** (3 d). `/api/mobile/v1` conventions: versioning header, error codes, zod validation, pagination, idempotency for sends, an OpenAPI-style list kept in `docs/mobile-api.md`. *Done when:* the contract test helper runs against a fake database and every route in the list rejects unauthenticated calls.
+- [ ] **M04 · Onboarding, age and invites** (4 d). Account setup, 19+ declaration, Terms and Privacy consent (sensitive consent optional, separate), invite code. *Done when:* declining the sensitive consent still creates the account with Dating off (mirrors the web e2e).
+- [ ] **M05 · Profile wizard, photos and selfie** (6 d). All wizard steps, course and club pickers, free time, values, prompts, photo upload (camera and library, resized before upload, to `src/server/storage`), selfie verification. *Done when:* a new user completes the wizard on a real phone, photos survive an app restart, and a sensitive field (`interestedIn`) never appears in any other route's response (tested on the query `select`, as in the Gotchas).
+- [ ] **M06 · Daily picks** (3 d). Six picks, reasons, detail, pass, caught-up state, "how your picks are chosen" link. *Done when:* the list matches the web for the same user and a passed person does not come back.
+- [ ] **M07 · Campus Pockets** (3 d). Visibility switch (`pocketsVisible`, off by default, needs a verified account and a compatible intent), pockets by course and club with member counts, a pocket's people filtered by the shared thing, wave from a pocket. *Done when:* a person who has not opted in never appears in anyone's pocket (tested on the query `select`), a mutual wave from a pocket makes a match, and the empty and "turn on to browse" states show.
+- [ ] **M08 · Waves** (3 d). Wave with a note, incoming inbox, wave back, decline, 8 per day cap messages. *Done when:* a mutual wave makes a match on both phones, and every cap and block case returns its error code.
+- [ ] **M09 · Matches and chat** (5 d). Matches list, chat (send, receive, poll, realtime where available), icebreakers, unmatch. *Done when:* two phones chat in both directions, a blocked user cannot send, and chat text is never logged (checked by a test on the logging chokepoint).
+- [ ] **M10 · Meetup planner** (4 d). Propose, accept, decline, public spots, both-free times, plan share link, emergency card. *Done when:* a full meetup is planned between two phones and the emergency numbers show correctly.
+- [ ] **M11 · Events, attendee side** (4 d). Event list, event detail, RSVP with the opt-in "show me in who's going", who's-going list ranked by overlap (opted-in guests only, verified viewers only), the 48-hour connect window and mutual connect that makes a match. **Creating events stays on the web** (ambassadors and up). *Done when:* a guest who did not opt in never appears, capacity and event phases are enforced by the API, and a mutual connect makes a match with a chat on both phones.
+- [ ] **M12 · Safety** (3 d). Report, block, hide-from, safety settings, restrictions and appeals states. *Done when:* the safety e2e flows pass on mobile and reporting hides the person immediately.
+- [ ] **M13 · Privacy and account** (3 d). Data export, consent withdrawal, notification preferences, pick preferences, **in-app account deletion with the 30-day grace**. *Done when:* each request completes from the phone, and deletion matches the two-phase rule in the Gotchas.
+- [ ] **M14 · Push notifications** (4 d). Device token registration, permission flow, delivery through the push provider, generic content only, quiet hours (queued, not dropped) reusing the S18 queue. *Done when:* match, wave and unread-message pushes arrive on a real Android phone and an iPhone, nothing sends 21:00 to 08:00 Seoul time, and `docs/data-flow.md` lists the new processors (its sync test passes).
+- [ ] **M15 · Native feel and Apple 4.2 readiness** (4 d). Tab navigation, pull to refresh, haptics, loading, empty and offline states, deep links, native share, dark mode, accessibility (TalkBack and VoiceOver labels, 44 pt targets, text scaling), ko and en parity. *Done when:* the accessibility checklist passes on both platforms and no screen is a bare web view.
+- [ ] **M16 · Full test run and CI** (3 d). Maestro flows for every function in `docs/mobile-test-matrix.md` on an Android emulator in CI, the device matrix run by hand, bug burn-down. *Done when:* every row of the matrix is green or has a written, owner-accepted exception.
+- [ ] **M17 · Security and privacy review** (3 d). `/security-review` on the mobile API and app, secret scan (no keys in the app bundle), TLS and token storage check, privacy policy and processor list updated, Google Data safety form and Apple privacy labels drafted. *Done when:* no high finding is open.
+- [ ] **M18 · Store assets and submission** (3 d). Icons, screenshots (from fictional demo data, real devices), ko and en listings, age rating, review notes, reviewer account (G6), privacy and support URLs (the Contact page exists), Google production access request, App Store submission. *Done when:* both submissions are in review.
+- [ ] **M19 · Review fixes and release plan** (buffer, 5 d). Handle rejections, release both apps at the date chosen in G9, rollback notes, monitoring through the existing ops dashboard. *Done when:* both apps are approved and the release plan is written.
+
+### 10.5 Calendar
+
+| Week | Dates | Work | Gate or checkpoint |
+|---|---|---|---|
+| 1 | Oct 26 to 30 | M01, start M02 | G1 to G3 |
+| 2 | Nov 2 to 6 | M02, M03 | |
+| 3 | Nov 9 to 13 | M04 | |
+| 4 | Nov 16 to 20 | M05 | G4 (12 Android testers) |
+| 5 | Nov 23 to 27 | M05, M06 | **MC1 (Nov 27):** sign in, onboard and see picks on a real Android phone. First closed-test build uploaded; the 14-day tester clock starts |
+| 6 | Nov 30 to Dec 4 | M07 Campus Pockets, start M08 | G5 |
+| 7 | Dec 7 to 11 | M08, M09 | |
+| 8 | Dec 14 to 18 | M09, M10 | **MC2 (Dec 18):** waves, matches, chat and meetups work between two real phones; first iPhone build on TestFlight. Closed test passes 14 days: request Google production access. G8 |
+| 9 | Dec 21 to 25 | M11 Events | Dec 25 is a Korean holiday |
+| 10 | Dec 28 to Jan 1 | M12, start M13 | Jan 1 is a holiday. G9 |
+| 11 | Jan 4 to 8 | M13, M14 | |
+| 12 | Jan 11 to 15 | M14, M15 | |
+| 13 | Jan 18 to 22 | M16, start M17 | **MC3 (Jan 22):** feature complete, test matrix green |
+| 14 | Jan 25 to 29 | M17, M18 submit both stores | **MC4 (Jan 29):** both apps submitted, every function signed off |
+| 15 | from Feb 1 | M19 review fixes and release plan | Public release timed to the semester start (G9) |
+
+Build work adds up to about 65 working days (M01 to M18) against 63 working days in Weeks 1 to 13, so there is **no slack** and the last two days spill into Week 14. If a step runs over, cut in this order: (0) if Weeks 1 to 8 run late, Events and Campus Pockets move to the first update after approval, (1) haptics and polish beyond Apple's minimum, (2) realtime chat (keep polling), (3) pick preference sliders, (4) meetup share link, (5) iOS slips behind Android. Never cut safety, consent, account deletion or tests.
+
+### 10.6 What "every function tested" means
+
+The function list is `docs/mobile-test-matrix.md`. A function is **tested** only when all of these are done:
+1. **API contract tests** (Vitest, fake database): authorization, validation, every error code, and the "sensitive field never reaches role X" select-shape check.
+2. **Component tests** (Jest and React Native Testing Library) for screens with logic.
+3. **A Maestro flow** on an Android emulator, run in CI.
+4. **A manual run on a real Android phone and a real iPhone**, written into the matrix with the date, device and who ran it.
+5. For store release: **14 days of closed testing** (Google) and a **TestFlight beta** with real students, with the bugs they found closed.
+
+Web e2e tests stay as they are. Two-user flows (waves, chat, meetups) are tested with two devices or two emulators.
+
+### 10.7 Risks
+
+| Risk | Mitigation |
+|---|---|
+| **Apple 4.3(b):** dating apps are not accepted "unless they offer a meaningfully different or improved experience" | Review notes spell out what is different (campus-verified students only, reasons for every pick, six picks a day, match only when both wave, public meetups, human moderation). If rejected twice: ship Android first and keep the web app for iPhone users while we appeal |
+| **Apple 4.2 repackaged-website rejection** | Native screens (Expo), native features in M14 and M15, no bare web views |
+| Apple **1.2** (user-generated content) | Report, block, photos reviewed by hand (Month-1 scope map, module G), published contact (the Contact page), moderation SLA in the playbook |
+| Google's 12-tester, 14-day rule resets or fails if testers drop out | Recruit 15 to 20; keep them engaged with new builds; clock starts in Week 5 |
+| `emailOTP` through the Expo client is not documented | Spike in M01, fallback is custom token endpoints |
+| One developer plus Claude Code carries about 65 days of work in 63 | Cut list in §10.5; teammates take testing, screenshots, tester recruiting and the matrix |
+| Winter break: few students on campus for testing and launch | Test with teammates, ambassadors and friends; schedule public release at semester start (G9) |
+| Push through overseas processors | Generic payloads only, G8, `docs/data-flow.md` updated, lawyer risk acceptance recorded |
+| Store rules change | Re-read Apple's guidelines and Google's policy at M17 and again before submitting |
+
+### 10.8 Sources checked on 2026-10-22
+
+- Capacitor config, `server.url`: https://capacitorjs.com/docs/config
+- Apple App Store Review Guidelines (4.2, 4.3(b), 1.2, 5.1.1(v), 4.8): https://developer.apple.com/app-store/review/guidelines/
+- Apple Developer Program fee and fee waivers: https://developer.apple.com/programs/ and https://developer.apple.com/help/account/membership/fee-waivers
+- Apple minimum SDK: https://www.developer.apple.com/news/upcoming-requirements/
+- Google Play registration fee and account requirements: https://support.google.com/googleplay/android-developer/answer/6112435
+- Google Play closed-testing requirement: https://support.google.com/googleplay/android-developer/answer/14151465
+- Google Play target API requirement: https://developer.android.com/google/play/requirements/target-sdk
+- Better Auth Expo integration: https://www.better-auth.com/docs/integrations/expo
+- Expo pricing (EAS Free plan): https://expo.dev/pricing
