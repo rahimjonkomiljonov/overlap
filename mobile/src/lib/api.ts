@@ -9,13 +9,15 @@ export type ApiErrorCode =
   | 'FORBIDDEN'
   | 'INVALID_INPUT'
   | 'NOT_FOUND'
+  | 'REQUEST_IN_PROGRESS'
+  | 'IDEMPOTENCY_KEY_REUSED'
   | 'RATE_LIMITED'
   | 'INTERNAL'
   | 'NETWORK';
 
 export type ApiResult<T> = { ok: true; data: T } | { ok: false; code: ApiErrorCode };
 
-const KNOWN_CODES: readonly string[] = ['UPGRADE_REQUIRED', 'UNAUTHENTICATED', 'ACCOUNT_RESTRICTED', 'FORBIDDEN', 'INVALID_INPUT', 'NOT_FOUND', 'RATE_LIMITED', 'INTERNAL'];
+const KNOWN_CODES: readonly string[] = ['UPGRADE_REQUIRED', 'UNAUTHENTICATED', 'ACCOUNT_RESTRICTED', 'FORBIDDEN', 'INVALID_INPUT', 'NOT_FOUND', 'REQUEST_IN_PROGRESS', 'IDEMPOTENCY_KEY_REUSED', 'RATE_LIMITED', 'INTERNAL'];
 
 /**
  * Calls a mobile API route as the signed-in user. The session cookie comes from the Better Auth

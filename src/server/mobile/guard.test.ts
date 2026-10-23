@@ -4,11 +4,30 @@ import { Role, UserStatus } from "@/generated/prisma/enums";
 import type { Actor } from "@/server/auth/authz";
 import { MOBILE_ERRORS, withMobileAuth } from "./guard";
 
-const actor = (status: UserStatus = UserStatus.ACTIVE): Actor => ({ userId: "user-a", campusId: "campus-1", role: Role.USER, status });
-const request = (version: string | null = "0.1.0") => new Request("https://overlaps.tech/api/mobile/v1/x", { headers: version ? { "x-app-version": version } : {} });
+const actor = (status: UserStatus = UserStatus.ACTIVE): Actor => ({
+  userId: "user-a",
+  campusId: "campus-1",
+  role: Role.USER,
+  status,
+});
+const request = (version: string | null = "0.1.0") =>
+  new Request("https://overlaps.tech/api/mobile/v1/x", {
+    headers: version ? { "x-app-version": version } : {},
+  });
 const ok = () => NextResponse.json({ ok: true });
 
-async function call(found: Actor, { version, allowRestricted, handler }: { version?: string | null; allowRestricted?: boolean; handler?: () => NextResponse | Promise<NextResponse> } = {}) {
+async function call(
+  found: Actor,
+  {
+    version,
+    allowRestricted,
+    handler,
+  }: {
+    version?: string | null;
+    allowRestricted?: boolean;
+    handler?: () => NextResponse | Promise<NextResponse>;
+  } = {},
+) {
   const getActor = vi.fn(async () => found);
   const route = withMobileAuth("test", handler ?? ok, { getActor }, { allowRestricted });
   const response = await route(request(version === undefined ? "0.1.0" : version));
@@ -17,7 +36,9 @@ async function call(found: Actor, { version, allowRestricted, handler }: { versi
 
 describe("withMobileAuth", () => {
   it("runs the handler for a signed-in, active account and hands it the actor", async () => {
-    const handler = vi.fn(async ({ actor: a }: { actor: NonNullable<Actor> }) => NextResponse.json({ who: a.userId }));
+    const handler = vi.fn(async ({ actor: a }: { actor: NonNullable<Actor> }) =>
+      NextResponse.json({ who: a.userId }),
+    );
     const route = withMobileAuth("test", handler, { getActor: async () => actor() });
     const response = await route(request());
     expect(response.status).toBe(200);
@@ -33,7 +54,12 @@ describe("withMobileAuth", () => {
   });
 
   it("refuses paused, suspended, banned and deleted accounts with 403 ACCOUNT_RESTRICTED", async () => {
-    for (const status of [UserStatus.PAUSED, UserStatus.SUSPENDED, UserStatus.BANNED, UserStatus.DELETED]) {
+    for (const status of [
+      UserStatus.PAUSED,
+      UserStatus.SUSPENDED,
+      UserStatus.BANNED,
+      UserStatus.DELETED,
+    ]) {
       const { response, body } = await call(actor(status));
       expect(response.status).toBe(403);
       expect(body).toEqual({ error: "ACCOUNT_RESTRICTED" });
@@ -70,6 +96,12 @@ describe("withMobileAuth", () => {
   });
 
   it("uses the documented status for every error code", () => {
-    expect(MOBILE_ERRORS).toMatchObject({ UPGRADE_REQUIRED: 426, UNAUTHENTICATED: 401, ACCOUNT_RESTRICTED: 403, RATE_LIMITED: 429, INTERNAL: 500 });
+    expect(MOBILE_ERRORS).toMatchObject({
+      UPGRADE_REQUIRED: 426,
+      UNAUTHENTICATED: 401,
+      ACCOUNT_RESTRICTED: 403,
+      RATE_LIMITED: 429,
+      INTERNAL: 500,
+    });
   });
 });

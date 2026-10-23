@@ -18,7 +18,10 @@ export function getMinAppVersion(): string {
 }
 
 /** True when `version` ("1.2.3") is at least `minimum`. Anything that is not three numbers counts as too old. */
-export function isAppVersionSupported(version: string | null | undefined, minimum: string = getMinAppVersion()): boolean {
+export function isAppVersionSupported(
+  version: string | null | undefined,
+  minimum: string = getMinAppVersion(),
+): boolean {
   const parse = (v: string) => {
     const parts = v.split(".");
     if (parts.length !== 3 || parts.some((p) => !/^\d+$/.test(p))) return null;

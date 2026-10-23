@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 import { UserStatus } from "@/generated/prisma/enums";
 import { AuthError, requireUser, type Actor } from "@/server/auth/authz";
 import { captureError } from "@/server/logging";
+import { mobileJson } from "./responses";
 import { APP_VERSION_HEADER, isAppVersionSupported } from "./version";
 
 /**
@@ -16,13 +17,21 @@ export const MOBILE_ERRORS = {
   FORBIDDEN: 403,
   INVALID_INPUT: 400,
   NOT_FOUND: 404,
+  REQUEST_IN_PROGRESS: 409,
+  IDEMPOTENCY_KEY_REUSED: 422,
   RATE_LIMITED: 429,
   INTERNAL: 500,
 } as const;
 export type MobileErrorCode = keyof typeof MOBILE_ERRORS;
 
-export function mobileError(code: MobileErrorCode): NextResponse {
-  return NextResponse.json({ error: code }, { status: MOBILE_ERRORS[code], headers: { "Cache-Control": "no-store" } });
+/** Which part of the request was wrong and how, never the value that was sent. */
+export type FieldProblem = { name: string; problem: string };
+
+export function mobileError(
+  code: MobileErrorCode,
+  extra: { fields?: FieldProblem[] } = {},
+): NextResponse {
+  return mobileJson({ error: code, ...extra }, { status: MOBILE_ERRORS[code] });
 }
 
 export type MobileContext = { actor: NonNullable<Actor>; request: Request };
@@ -52,18 +61,27 @@ export function withMobileAuth(
   options: MobileGuardOptions = {},
 ): (request: Request) => Promise<NextResponse> {
   return async (request) => {
-    if (!isAppVersionSupported(request.headers.get(APP_VERSION_HEADER))) return mobileError("UPGRADE_REQUIRED");
+    if (!isAppVersionSupported(request.headers.get(APP_VERSION_HEADER)))
+      return mobileError("UPGRADE_REQUIRED");
     try {
       const actor = await deps.getActor(request);
       if (options.allowRestricted) {
         // signed in is enough, but an account that has been deleted is treated as signed out
-        if (!actor || actor.status === UserStatus.DELETED) throw new AuthError("UNAUTHENTICATED", "Sign-in required.");
+        if (!actor || actor.status === UserStatus.DELETED)
+          throw new AuthError("UNAUTHENTICATED", "Sign-in required.");
       } else {
         requireUser(actor);
       }
       return await handler({ actor, request });
     } catch (error) {
-      if (error instanceof AuthError) return mobileError(error.code === "UNAUTHENTICATED" ? "UNAUTHENTICATED" : error.code === "FORBIDDEN" ? "FORBIDDEN" : "ACCOUNT_RESTRICTED");
+      if (error instanceof AuthError)
+        return mobileError(
+          error.code === "UNAUTHENTICATED"
+            ? "UNAUTHENTICATED"
+            : error.code === "FORBIDDEN"
+              ? "FORBIDDEN"
+              : "ACCOUNT_RESTRICTED",
+        );
       captureError(`mobile.${route}`, error);
       return mobileError("INTERNAL");
     }

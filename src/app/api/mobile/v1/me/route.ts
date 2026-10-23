@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/server/db";
 import { mobileError } from "@/server/mobile/guard";
+import { mobileJson } from "@/server/mobile/responses";
 import { mobileRoute } from "@/server/mobile/route";
 
 /**
@@ -11,20 +11,20 @@ import { mobileRoute } from "@/server/mobile/route";
 export const GET = mobileRoute(
   "me",
   async ({ actor }) => {
-    const user = await prisma.user.findUnique({ where: { id: actor.userId }, select: { email: true, name: true } });
+    const user = await prisma.user.findUnique({
+      where: { id: actor.userId },
+      select: { email: true, name: true },
+    });
     if (!user) return mobileError("UNAUTHENTICATED");
-    return NextResponse.json(
-      {
-        userId: actor.userId,
-        email: user.email,
-        name: user.name,
-        role: actor.role,
-        status: actor.status,
-        // Account setup (campus, age, consents) is the next screen flow; profile setup comes after it.
-        accountSetupComplete: actor.campusId !== "",
-      },
-      { headers: { "Cache-Control": "no-store" } },
-    );
+    return mobileJson({
+      userId: actor.userId,
+      email: user.email,
+      name: user.name,
+      role: actor.role,
+      status: actor.status,
+      // Account setup (campus, age, consents) is the next screen flow; profile setup comes after it.
+      accountSetupComplete: actor.campusId !== "",
+    });
   },
   { allowRestricted: true },
 );

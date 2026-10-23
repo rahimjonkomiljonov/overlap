@@ -190,9 +190,11 @@ model User {
   eventRsvps                EventRsvp[]
   eventConnectsMade         EventConnect[]        @relation("EventConnectFrom")
   eventConnectsReceived     EventConnect[]        @relation("EventConnectTo")
+  idempotencyKeys           IdempotencyKey[]
 
   @@index([campusId])
   @@index([cohortId])
+
   @@map("users")
 }
 
@@ -405,6 +407,28 @@ model RateLimit {
   windowEnds DateTime
 
   @@map("rate_limits")
+}
+
+/// M03: the mobile API's "do this once" memory. A phone on a bad connection retries a send (a wave, a
+/// message); the retry carries the same Idempotency-Key header and gets the first answer back instead
+/// of sending twice. Rows are claimed before the work runs (status 0 = in progress), completed with
+/// the response afterwards, and purged after a day. Cascades with the account.
+model IdempotencyKey {
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  key         String
+  /// e.g. "POST /waves": a key is only valid for the route it was first used on.
+  route       String
+  /// SHA-256 of the request body: the same key with a different body is a mistake, not a retry.
+  requestHash String
+  /// 0 while the first request is still running.
+  status      Int      @default(0)
+  response    Json?
+  createdAt   DateTime @default(now())
+
+  @@id([userId, key])
+  @@index([createdAt])
+  @@map("idempotency_keys")
 }
 
 // --- S06: reference data (imported from CSV by scripts/import-reference.ts, never

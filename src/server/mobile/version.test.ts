@@ -18,7 +18,8 @@ describe("isAppVersionSupported", () => {
   });
 
   it("refuses a version it cannot read, or none at all", () => {
-    for (const bad of ["", "1.2", "1.2.3.4", "1.2.x", "v1.2.3", "1.2.3-beta", null, undefined]) expect(isAppVersionSupported(bad, "1.0.0")).toBe(false);
+    for (const bad of ["", "1.2", "1.2.3.4", "1.2.x", "v1.2.3", "1.2.3-beta", null, undefined])
+      expect(isAppVersionSupported(bad, "1.0.0")).toBe(false);
   });
 });
 
