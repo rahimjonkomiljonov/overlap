@@ -36,4 +36,18 @@ export const MOBILE_ROUTES: readonly MobileRouteSpec[] = [
     summary:
       "Who is signed in: own email, name, role, account status and whether account setup is finished.",
   },
+  {
+    method: "GET",
+    path: "/onboarding",
+    access: "user",
+    summary:
+      "What the app needs for the account-setup screens: is setup done, is an invite code required, the minimum age.",
+  },
+  {
+    method: "POST",
+    path: "/onboarding/account",
+    access: "user",
+    summary:
+      "Finish account setup: birth date (age check only, not stored), 19+ and Terms/Privacy consent, the optional sensitive consent, the invite code when required.",
+  },
 ];

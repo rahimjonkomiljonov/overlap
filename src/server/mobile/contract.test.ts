@@ -18,6 +18,8 @@ vi.mock("@/server/db", () => ({ prisma: mocks.prisma }));
 const LOADERS: Record<string, () => Promise<Record<string, unknown>>> = {
   "/health": () => import("@/app/api/mobile/v1/health/route"),
   "/me": () => import("@/app/api/mobile/v1/me/route"),
+  "/onboarding": () => import("@/app/api/mobile/v1/onboarding/route"),
+  "/onboarding/account": () => import("@/app/api/mobile/v1/onboarding/account/route"),
 };
 
 const actor = (status: UserStatus = UserStatus.ACTIVE): Actor => ({

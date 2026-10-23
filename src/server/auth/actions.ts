@@ -1,10 +1,9 @@
 "use server";
 
 import { headers } from "next/headers";
-import { ConsentType } from "@/generated/prisma/enums";
-import { getDatingStatus, isCohortReleaseEnabled, redeemInviteCode } from "@/server/cohorts/release";
-import { recordConsent } from "@/server/consent/consent";
+import { isCohortReleaseEnabled } from "@/server/cohorts/release";
 import { prisma } from "@/server/db";
+import { completeAccountSetup } from "./account-setup";
 import { auth } from "./auth";
 import { getActiveAgeVerifier } from "./age-verifier";
 import { resolveCampusForEmail } from "./campus";
@@ -112,80 +111,20 @@ export async function completeOnboarding(
     return { status: "error", code: "INVALID_INPUT" };
   }
 
-  const user = await prisma.user.findUniqueOrThrow({ where: { id: actor.userId } });
-  const campus = await resolveCampusForEmail(prisma, user.email);
-  if (!campus) {
-    // Shouldn't happen (domain was already checked at login), but never leave an
-    // account onboarded against no campus at all.
-    return { status: "error", code: "INVALID_DOMAIN" };
-  }
-
-  const verifier = getActiveAgeVerifier();
-  const result = verifier.verify({
-    birthYear: parsed.data.birthYear,
-    birthMonth: parsed.data.birthMonth,
-    birthDay: parsed.data.birthDay,
-    attestedAdult: parsed.data.attestedAdult === "on",
-  });
-  if (!result.eligible) {
-    return { status: "error", code: result.reason };
-  }
-
-  const sensitiveGranted = parsed.data.sensitivePreference === "on";
-  const cohortRelease = isCohortReleaseEnabled();
-  if (cohortRelease && !parsed.data.inviteCode) {
-    return { status: "error", code: "INVALID_INVITE" };
-  }
-
-  try {
-    await prisma.$transaction(async (tx) => {
-      // Redeemed first and in the same transaction: a bad code leaves the account
-      // exactly as it was, with no consents recorded and no campus set.
-      if (cohortRelease) {
-        const redeemed = await redeemInviteCode(tx, {
-          userId: actor.userId,
-          campusId: campus.id,
-          code: parsed.data.inviteCode!,
-        });
-        if (!redeemed) throw new InvalidInviteError();
-      }
-      await tx.user.update({
-      where: { id: actor.userId },
-      data: {
-        campusId: campus.id,
-        birthYear: parsed.data.birthYear,
-        ageVerifiedAt: result.verifiedAt,
-      },
-    });
-    await recordConsent(tx, {
+  return completeAccountSetup(
+    { db: prisma, verifier: getActiveAgeVerifier(), cohortRelease: isCohortReleaseEnabled() },
+    {
       userId: actor.userId,
-      type: ConsentType.TERMS,
-      granted: true,
+      birthYear: parsed.data.birthYear,
+      birthMonth: parsed.data.birthMonth,
+      birthDay: parsed.data.birthDay,
+      attestedAdult: parsed.data.attestedAdult === "on",
+      sensitiveGranted: parsed.data.sensitivePreference === "on",
+      inviteCode: parsed.data.inviteCode,
       source: "onboarding",
-    });
-    await recordConsent(tx, {
-      userId: actor.userId,
-      type: ConsentType.PRIVACY_POLICY,
-      granted: true,
-      source: "onboarding",
-    });
-    await recordConsent(tx, {
-      userId: actor.userId,
-      type: ConsentType.SENSITIVE_PREFERENCE,
-      granted: sensitiveGranted,
-      source: "onboarding",
-    });
-    });
-  } catch (error) {
-    if (error instanceof InvalidInviteError) return { status: "error", code: "INVALID_INVITE" };
-    throw error;
-  }
-
-  const datingStatus = await getDatingStatus(prisma, actor.userId, { cohortRelease });
-  return { status: "complete", datingAvailable: datingStatus === "available" };
+    },
+  );
 }
-
-class InvalidInviteError extends Error {}
 
 export async function signOutEverywhere(): Promise<void> {
   await auth.api.revokeSessions({ headers: await headers() });

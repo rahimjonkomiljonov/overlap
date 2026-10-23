@@ -1,11 +1,7 @@
-import { useEffect, useState } from 'react';
-
-import { Body, Button, Card, Loading, Notice, Screen, Title } from '@/components/ui';
-import { apiGet } from '@/lib/api';
+import { Body, Button, Card, Notice, Screen, Title } from '@/components/ui';
 import { authClient } from '@/lib/auth-client';
+import { useMe } from '@/lib/me';
 import { strings } from '@/lib/strings';
-
-type Me = { userId: string; email: string; name: string; role: string; status: string; accountSetupComplete: boolean };
 
 const STATUS_NOTICE: Record<string, string> = {
   PAUSED: strings.statusPaused,
@@ -13,27 +9,10 @@ const STATUS_NOTICE: Record<string, string> = {
   BANNED: strings.statusBanned,
 };
 
-/** The signed-in home. For now it asks the server who you are and shows the account's state. */
+/** The signed-in home. For now it shows who you are and the account's state; the real home comes with picks. */
 export default function HomeScreen() {
-  const [me, setMe] = useState<Me | null>(null);
-  const [problem, setProblem] = useState<string | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    apiGet<Me>('/me').then(async (result) => {
-      if (!active) return;
-      if (result.ok) return setMe(result.data);
-      // The server no longer accepts this session (expired, or the account is gone): sign out
-      // locally and the layout shows the sign-in screen.
-      if (result.code === 'UNAUTHENTICATED') return void authClient.signOut();
-      setProblem(strings.offlineBody);
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  if (!me && !problem) return <Loading label={strings.loading} />;
+  const { state } = useMe();
+  const me = state.phase === 'ready' ? state.me : null;
 
   return (
     <Screen>
@@ -43,11 +22,8 @@ export default function HomeScreen() {
             <Body tone="muted">{strings.signedInAs}</Body>
             <Title>{me.email}</Title>
             {STATUS_NOTICE[me.status] ? <Notice>{STATUS_NOTICE[me.status]}</Notice> : null}
-            {!me.accountSetupComplete && me.status === 'ACTIVE' ? <Body tone="muted">{strings.accountSetupNext}</Body> : null}
           </>
-        ) : (
-          <Body tone="bad">{problem}</Body>
-        )}
+        ) : null}
         <Button label={strings.signOut} variant="outline" onPress={() => void authClient.signOut()} />
       </Card>
     </Screen>

@@ -13,9 +13,9 @@ Tick a box only when the proof exists. For the manual columns write the date, de
 | F02 | Personal mail address is refused | M02 | ☑ | ☐ | ☐ | ☐ | ☐ | API tests and the 12-check script; checked by hand on the Android 16 emulator 2026-10-24. UI tests, Maestro, real Android phone and iPhone still to do. |
 | F03 | Sign out and session expiry | M02 | ☑ | ☐ | ☐ | ☐ | ☐ | API tests and the 12-check script; checked by hand on the Android 16 emulator 2026-10-24. UI tests, Maestro, real Android phone and iPhone still to do. |
 | F04 | Force-upgrade gate (minimum app version) | M02 | ☑ | ☐ | ☐ | ☐ | ☐ | API tests and the 12-check script; checked by hand on the Android 16 emulator 2026-10-24. UI tests, Maestro, real Android phone and iPhone still to do. |
-| F05 | Terms and Privacy consent (sensitive consent optional) | M04 | ☐ | ☐ | ☐ | ☐ | ☐ | |
-| F06 | Age declaration 19+ | M04 | ☐ | ☐ | ☐ | ☐ | ☐ | |
-| F07 | Invite code (when cohort release is on) | M04 | ☐ | ☐ | ☐ | ☐ | ☐ | |
+| F05 | Terms and Privacy consent (sensitive consent optional) | M04 | ☑ | ☐ | ☐ | ☐ | ☐ | API and shared-service unit tests; checked by hand on the Android 16 emulator 2026-10-24. UI tests, Maestro, real Android phone and iPhone still to do. |
+| F06 | Age declaration 19+ | M04 | ☑ | ☐ | ☐ | ☐ | ☐ | API and shared-service unit tests; checked by hand on the Android 16 emulator 2026-10-24. UI tests, Maestro, real Android phone and iPhone still to do. |
+| F07 | Invite code (when cohort release is on) | M04 | ☑ | ☐ | ☐ | ☐ | ☐ | API and shared-service unit tests; checked by hand on the Android 16 emulator 2026-10-24. UI tests, Maestro, real Android phone and iPhone still to do. |
 | F08 | Profile wizard: basics and intents | M05 | ☐ | ☐ | ☐ | ☐ | ☐ | |
 | F09 | Course and club pickers | M05 | ☐ | ☐ | ☐ | ☐ | ☐ | |
 | F10 | Interests, prompts, values quiz | M05 | ☐ | ☐ | ☐ | ☐ | ☐ | |

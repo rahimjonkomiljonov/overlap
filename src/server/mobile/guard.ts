@@ -19,6 +19,7 @@ export const MOBILE_ERRORS = {
   NOT_FOUND: 404,
   REQUEST_IN_PROGRESS: 409,
   IDEMPOTENCY_KEY_REUSED: 422,
+  RULE_VIOLATION: 422,
   RATE_LIMITED: 429,
   INTERNAL: 500,
 } as const;
@@ -27,9 +28,13 @@ export type MobileErrorCode = keyof typeof MOBILE_ERRORS;
 /** Which part of the request was wrong and how, never the value that was sent. */
 export type FieldProblem = { name: string; problem: string };
 
+/**
+ * `fields` (INVALID_INPUT) says which part of the request was wrong. `reason` (RULE_VIOLATION) is a
+ * stable code for a rule the request was well-formed but broke, such as TOO_YOUNG or INVALID_INVITE.
+ */
 export function mobileError(
   code: MobileErrorCode,
-  extra: { fields?: FieldProblem[] } = {},
+  extra: { fields?: FieldProblem[]; reason?: string } = {},
 ): NextResponse {
   return mobileJson({ error: code, ...extra }, { status: MOBILE_ERRORS[code] });
 }
