@@ -22,6 +22,7 @@ The backend the store apps talk to (BUILD_PLAN §10). Everything lives under `/a
 | 401 | `UNAUTHENTICATED` | No session, an expired or revoked one, or a deleted account. The app signs out and shows sign-in. |
 | 403 | `ACCOUNT_RESTRICTED` | The account is paused, suspended or banned and may not do this. |
 | 403 | `FORBIDDEN` | The role is not allowed. |
+| 403 | `ACCOUNT_SETUP_REQUIRED` | The account has not finished account setup (no campus yet). Send the person to the setup screens. |
 | 404 | `NOT_FOUND` | It does not exist, or it is not yours to see. |
 | 409 | `REQUEST_IN_PROGRESS` | The same `Idempotency-Key` is still being processed. Retry in a moment. |
 | 422 | `IDEMPOTENCY_KEY_REUSED` | The same key was used with a different body or on a different route. A bug in the app. |
@@ -76,6 +77,37 @@ Signed in. Finishes account setup with the same rules as the website (they call 
 - Success: `{ "status": "complete", "datingAvailable": false }`. Calling it again after setup is finished changes nothing and returns `{ "status": "complete", "alreadyComplete": true }`.
 - A rule that was broken (well-formed request, wrong answer): `422 RULE_VIOLATION` with `reason` one of `TOO_YOUNG`, `INVALID_DATE`, `IMPLAUSIBLE_YEAR`, `INVALID_INVITE`, `INVALID_DOMAIN`. A bad invite code changes nothing.
 - Limited to 10 attempts per 15 minutes per person.
+
+### Profile (all need finished account setup)
+
+Every route below needs a signed-in, active account that has **finished account setup**; without it they answer `403 ACCOUNT_SETUP_REQUIRED`. They use the website's own rules and limits (one shared code), and are limited to 120 saves an hour per person. Bodies are strict: a field that is not listed is refused.
+
+#### `GET /api/mobile/v1/profile`
+The person's own profile and wizard state: `onboardingStep` (furthest step reached, to resume), `completedAt`, `strength`, every answer, `photos`, `missing` (required pieces still missing: `basics`, `intents`, `valuesQuiz`, `prompts`, `photos`) and `datingStatus` (`available`, `needs_consent` or `cohort_closed`). It includes the person's own "who I'd like to meet", which is theirs to see and edit; it is never returned for anyone else.
+
+#### `GET /api/mobile/v1/profile/options`
+The lists and limits the screens are built from, so the app never hard-codes a rule: `limits`, `genders`, `studyYears`, `majorGroups`, `valuesQuiz`, `prompts`, `interests`.
+
+#### `GET /api/mobile/v1/reference/search`
+Search for the pickers (up to 20 results), with `?type=course|club|spot|interest&q=...`. Courses, clubs and spots are always the caller's **own campus**. `term` (optional) picks the course term; the default is the current one. Limited to 300 searches per 10 minutes.
+
+#### Saving a step
+Saving replaces that step's answers, so repeating a save is harmless. Success is `{ "status": "saved" }`. A rule the step enforces is `422 RULE_VIOLATION` with a `reason`.
+
+| Route | Body | Reasons it can refuse |
+|---|---|---|
+| `PUT /api/mobile/v1/profile/basics` | `firstName`, `gender`, `pronouns?`, `year`, `major`, `interestedIn[]` | none. `interestedIn` is stored only if the sensitive consent was granted, otherwise it is ignored |
+| `PUT /api/mobile/v1/profile/intents` | `intents[]` (`FRIENDS`, `STUDY`, `DATING`) | `DATING_REQUIRES_CONSENT`, `DATING_NOT_OPEN` |
+| `PUT /api/mobile/v1/profile/courses` | `courseIds[]` | none. Ids that are not on your campus are dropped |
+| `PUT /api/mobile/v1/profile/clubs` | `clubIds[]` | none. Same |
+| `PUT /api/mobile/v1/profile/spots` | `spotIds[]` | none. Same |
+| `PUT /api/mobile/v1/profile/free-time` | `slots[]` (0 to 83) | none |
+| `PUT /api/mobile/v1/profile/interests` | `interestTagIds[]`, `freeText[]` | `TOO_MANY_INTERESTS`, `SENSITIVE_CONTENT` |
+| `PUT /api/mobile/v1/profile/prompts` | `promptIds[]`, `answers[]` (exactly 3 each) | `DUPLICATE_PROMPT`, `INVALID_PROMPT` |
+| `PUT /api/mobile/v1/profile/values` | `answers[]` (8 numbers, 1 to 5) | none |
+
+#### `POST /api/mobile/v1/profile/finish`
+Marks the profile finished once every required piece is there. Returns `{ "status": "complete" }` or `{ "status": "incomplete", "missing": [...] }`.
 
 ## Adding a route
 

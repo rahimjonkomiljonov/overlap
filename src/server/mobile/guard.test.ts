@@ -95,11 +95,61 @@ describe("withMobileAuth", () => {
     expect(JSON.stringify(body)).not.toContain("secret");
   });
 
+  it("with requireAccountSetup, refuses an account that has no campus yet (403) without running the handler", async () => {
+    const handler = vi.fn(ok);
+    const unfinished: Actor = {
+      userId: "user-a",
+      campusId: "",
+      role: Role.USER,
+      status: UserStatus.ACTIVE,
+    };
+    const route = withMobileAuth(
+      "test",
+      handler,
+      { getActor: async () => unfinished },
+      { requireAccountSetup: true },
+    );
+    const response = await route(request());
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({ error: "ACCOUNT_SETUP_REQUIRED" });
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("with requireAccountSetup, still lets a finished account through, and without it an unfinished one passes", async () => {
+    const finished = withMobileAuth(
+      "test",
+      ok,
+      { getActor: async () => actor() },
+      { requireAccountSetup: true },
+    );
+    expect((await finished(request())).status).toBe(200);
+    const unfinished: Actor = {
+      userId: "user-a",
+      campusId: "",
+      role: Role.USER,
+      status: UserStatus.ACTIVE,
+    };
+    const plain = withMobileAuth("test", ok, { getActor: async () => unfinished });
+    expect((await plain(request())).status).toBe(200);
+  });
+
+  it("checks sign-in and status before account setup, so a signed-out caller learns nothing about setup", async () => {
+    const route = withMobileAuth(
+      "test",
+      ok,
+      { getActor: async () => null },
+      { requireAccountSetup: true },
+    );
+    expect((await route(request())).status).toBe(401);
+  });
+
   it("uses the documented status for every error code", () => {
     expect(MOBILE_ERRORS).toMatchObject({
       UPGRADE_REQUIRED: 426,
       UNAUTHENTICATED: 401,
       ACCOUNT_RESTRICTED: 403,
+      ACCOUNT_SETUP_REQUIRED: 403,
+      RULE_VIOLATION: 422,
       RATE_LIMITED: 429,
       INTERNAL: 500,
     });

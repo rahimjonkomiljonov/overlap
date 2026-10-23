@@ -15,6 +15,7 @@ export const MOBILE_ERRORS = {
   UNAUTHENTICATED: 401,
   ACCOUNT_RESTRICTED: 403,
   FORBIDDEN: 403,
+  ACCOUNT_SETUP_REQUIRED: 403,
   INVALID_INPUT: 400,
   NOT_FOUND: 404,
   REQUEST_IN_PROGRESS: 409,
@@ -48,6 +49,11 @@ export type MobileGuardOptions = {
    * can explain the restriction instead of showing a generic error.
    */
   allowRestricted?: boolean;
+  /**
+   * Refuse an account that has not finished account setup (no campus yet) with 403
+   * ACCOUNT_SETUP_REQUIRED. Every route that works with campus data or the profile sets this.
+   */
+  requireAccountSetup?: boolean;
 };
 
 /**
@@ -77,6 +83,8 @@ export function withMobileAuth(
       } else {
         requireUser(actor);
       }
+      if (options.requireAccountSetup && actor.campusId === "")
+        return mobileError("ACCOUNT_SETUP_REQUIRED");
       return await handler({ actor, request });
     } catch (error) {
       if (error instanceof AuthError)

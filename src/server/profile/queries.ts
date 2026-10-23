@@ -2,6 +2,7 @@ import { decryptField } from "@/server/privacy/encryption";
 import { prisma } from "@/server/db";
 import { resolvePhotoUrl } from "@/server/storage/photos";
 import { REQUIRED_PROMPT_COUNT, VALUES_QUIZ_LENGTH } from "./schema";
+import { ensureProfileWith } from "./service";
 import { calculateProfileStrength } from "./strength";
 
 /**
@@ -9,16 +10,15 @@ import { calculateProfileStrength } from "./strength";
  * from here on is a plain update against a row that's guaranteed to exist.
  */
 export async function ensureProfile(userId: string) {
-  return prisma.profile.upsert({
-    where: { userId },
-    update: {},
-    create: { userId },
-  });
+  return ensureProfileWith(prisma, userId);
 }
 
 /** Cheap check for the (app) layout guard — does not create a Profile row. */
 export async function hasCompletedProfile(userId: string): Promise<boolean> {
-  const profile = await prisma.profile.findUnique({ where: { userId }, select: { completedAt: true } });
+  const profile = await prisma.profile.findUnique({
+    where: { userId },
+    select: { completedAt: true },
+  });
   return profile?.completedAt != null;
 }
 
@@ -97,7 +97,9 @@ export async function getWizardState(userId: string): Promise<WizardState> {
     pronouns: profile.pronouns ?? "",
     year: profile.year,
     major: profile.major ?? "",
-    interestedIn: profile.interestedIn ? (JSON.parse(decryptField(profile.interestedIn)) as string[]) : [],
+    interestedIn: profile.interestedIn
+      ? (JSON.parse(decryptField(profile.interestedIn)) as string[])
+      : [],
     intents: profile.intents,
     courses: courses.map((c) => ({ id: c.course.id, code: c.course.code, title: c.course.title })),
     clubs: clubs.map((c) => ({ id: c.club.id, name: c.club.name })),
@@ -129,7 +131,8 @@ export async function getMissingRequiredSteps(userId: string): Promise<string[]>
   ]);
 
   const missing: string[] = [];
-  if (!profile.firstName || !profile.gender || !profile.major || !profile.year) missing.push("basics");
+  if (!profile.firstName || !profile.gender || !profile.major || !profile.year)
+    missing.push("basics");
   if (profile.intents.length === 0) missing.push("intents");
   if (profile.valuesAnswers.length < VALUES_QUIZ_LENGTH) missing.push("valuesQuiz");
   if (promptCount < REQUIRED_PROMPT_COUNT) missing.push("prompts");

@@ -9,10 +9,31 @@ import { MOBILE_ROUTES } from "./routes";
 // A fake database and a controllable "who is signed in": no real session, no real database.
 const mocks = vi.hoisted(() => ({
   getActorForRequest: vi.fn(),
-  prisma: { user: { findUnique: vi.fn() }, idempotencyKey: {} },
+  prisma: {
+    user: { findUnique: vi.fn() },
+    idempotencyKey: {},
+    rateLimit: { findUnique: async () => null, upsert: async () => ({}), update: async () => ({}) },
+    prompt: { findMany: async () => [] },
+    interestTag: { findMany: async () => [] },
+  },
 }));
 vi.mock("@/server/auth/session", () => ({ getActorForRequest: mocks.getActorForRequest }));
 vi.mock("@/server/db", () => ({ prisma: mocks.prisma }));
+// The profile and search code behind the profile routes: these tests are about who may call a route, not about what it reads.
+vi.mock("@/server/profile/queries", () => ({
+  getWizardState: async () => ({ onboardingStep: 0, completedAt: null, photos: [] }),
+  getMissingRequiredSteps: async () => ["basics"],
+}));
+vi.mock("@/server/reference/search", () => ({
+  searchClubs: async () => [],
+  searchCourses: async () => [],
+  searchInterests: async () => [],
+  searchSpots: async () => [],
+}));
+vi.mock("@/server/cohorts/release", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/server/cohorts/release")>()),
+  getDatingStatus: async () => "needs_consent",
+}));
 
 /** Every route file, loaded by path. A new route must be added here and to routes.ts. */
 const LOADERS: Record<string, () => Promise<Record<string, unknown>>> = {
@@ -20,11 +41,24 @@ const LOADERS: Record<string, () => Promise<Record<string, unknown>>> = {
   "/me": () => import("@/app/api/mobile/v1/me/route"),
   "/onboarding": () => import("@/app/api/mobile/v1/onboarding/route"),
   "/onboarding/account": () => import("@/app/api/mobile/v1/onboarding/account/route"),
+  "/profile": () => import("@/app/api/mobile/v1/profile/route"),
+  "/profile/options": () => import("@/app/api/mobile/v1/profile/options/route"),
+  "/reference/search": () => import("@/app/api/mobile/v1/reference/search/route"),
+  "/profile/basics": () => import("@/app/api/mobile/v1/profile/basics/route"),
+  "/profile/intents": () => import("@/app/api/mobile/v1/profile/intents/route"),
+  "/profile/courses": () => import("@/app/api/mobile/v1/profile/courses/route"),
+  "/profile/clubs": () => import("@/app/api/mobile/v1/profile/clubs/route"),
+  "/profile/spots": () => import("@/app/api/mobile/v1/profile/spots/route"),
+  "/profile/free-time": () => import("@/app/api/mobile/v1/profile/free-time/route"),
+  "/profile/interests": () => import("@/app/api/mobile/v1/profile/interests/route"),
+  "/profile/prompts": () => import("@/app/api/mobile/v1/profile/prompts/route"),
+  "/profile/values": () => import("@/app/api/mobile/v1/profile/values/route"),
+  "/profile/finish": () => import("@/app/api/mobile/v1/profile/finish/route"),
 };
 
-const actor = (status: UserStatus = UserStatus.ACTIVE): Actor => ({
+const actor = (status: UserStatus = UserStatus.ACTIVE, campusId = "campus-1"): Actor => ({
   userId: "user-a",
-  campusId: "campus-1",
+  campusId,
   role: Role.USER,
   status,
 });
@@ -139,10 +173,25 @@ describe.each(MOBILE_ROUTES)("$method $path ($access)", (spec) => {
     if (spec.method === "GET") {
       it("answers an active account with 200", async () => {
         mocks.getActorForRequest.mockResolvedValue(actor());
-        const { status } = await callRoute(await handlerOf(spec), mobileRequest(spec.path));
+        const { status } = await callRoute(
+          await handlerOf(spec),
+          mobileRequest(spec.path + (spec.sampleQuery ?? "")),
+        );
         expect(status).toBe(200);
       });
     }
+  }
+
+  if (spec.requiresSetup) {
+    it("refuses an account that has not finished setup (403 ACCOUNT_SETUP_REQUIRED)", async () => {
+      mocks.getActorForRequest.mockResolvedValue(actor(UserStatus.ACTIVE, ""));
+      const { status, body } = await callRoute(
+        await handlerOf(spec),
+        mobileRequest(spec.path + (spec.sampleQuery ?? ""), { method: spec.method }),
+      );
+      expect(status).toBe(403);
+      expect(body).toEqual({ error: "ACCOUNT_SETUP_REQUIRED" });
+    });
   }
 
   if (spec.idempotent) {

@@ -16,14 +16,14 @@ Tick a box only when the proof exists. For the manual columns write the date, de
 | F05 | Terms and Privacy consent (sensitive consent optional) | M04 | ☑ | ☐ | ☐ | ☐ | ☐ | API and shared-service unit tests; checked by hand on the Android 16 emulator 2026-10-24. UI tests, Maestro, real Android phone and iPhone still to do. |
 | F06 | Age declaration 19+ | M04 | ☑ | ☐ | ☐ | ☐ | ☐ | API and shared-service unit tests; checked by hand on the Android 16 emulator 2026-10-24. UI tests, Maestro, real Android phone and iPhone still to do. |
 | F07 | Invite code (when cohort release is on) | M04 | ☑ | ☐ | ☐ | ☐ | ☐ | API and shared-service unit tests; checked by hand on the Android 16 emulator 2026-10-24. UI tests, Maestro, real Android phone and iPhone still to do. |
-| F08 | Profile wizard: basics and intents | M05 | ☐ | ☐ | ☐ | ☐ | ☐ | |
-| F09 | Course and club pickers | M05 | ☐ | ☐ | ☐ | ☐ | ☐ | |
-| F10 | Interests, prompts, values quiz | M05 | ☐ | ☐ | ☐ | ☐ | ☐ | |
-| F11 | Free-time slots | M05 | ☐ | ☐ | ☐ | ☐ | ☐ | |
-| F12 | Photo upload, reorder, delete (camera and library) | M05 | ☐ | ☐ | ☐ | ☐ | ☐ | |
+| F08 | Profile wizard: basics and intents | M05 | ☑ | ☐ | ☐ | ☐ | ☐ | Server rules proved against the real local database (34 checks) and by unit tests. App screens (M05c), UI tests, Maestro, real Android phone and iPhone still to do. |
+| F09 | Course and club pickers | M05 | ☑ | ☐ | ☐ | ☐ | ☐ | Server rules proved against the real local database (34 checks) and by unit tests. App screens (M05c), UI tests, Maestro, real Android phone and iPhone still to do. |
+| F10 | Interests, prompts, values quiz | M05 | ☑ | ☐ | ☐ | ☐ | ☐ | Server rules proved against the real local database (34 checks) and by unit tests. App screens (M05c), UI tests, Maestro, real Android phone and iPhone still to do. |
+| F11 | Free-time slots | M05 | ☑ | ☐ | ☐ | ☐ | ☐ | Server rules proved against the real local database (34 checks) and by unit tests. App screens (M05c), UI tests, Maestro, real Android phone and iPhone still to do. |
+| F12 | Photo upload and delete (camera and library). The website has no reorder, so there is none here | M05 | ☐ | ☐ | ☐ | ☐ | ☐ | |
 | F13 | Selfie verification | M05 | ☐ | ☐ | ☐ | ☐ | ☐ | |
-| F14 | Profile preview and edit | M05 | ☐ | ☐ | ☐ | ☐ | ☐ | |
-| F15 | "Who I'd like to meet" (sensitive, consent-gated, never leaks) | M05 | ☐ | ☐ | ☐ | ☐ | ☐ | |
+| F14 | Profile preview and edit | M05 | ☑ | ☐ | ☐ | ☐ | ☐ | Server rules proved against the real local database (34 checks) and by unit tests. App screens (M05c), UI tests, Maestro, real Android phone and iPhone still to do. |
+| F15 | "Who I'd like to meet" (sensitive, consent-gated, never leaks) | M05 | ☑ | ☐ | ☐ | ☐ | ☐ | Server rules proved against the real local database (34 checks) and by unit tests. App screens (M05c), UI tests, Maestro, real Android phone and iPhone still to do. |
 | F16 | Daily picks (six, with reasons) | M06 | ☐ | ☐ | ☐ | ☐ | ☐ | |
 | F17 | Pick detail | M06 | ☐ | ☐ | ☐ | ☐ | ☐ | |
 | F18 | Pass | M06 | ☐ | ☐ | ☐ | ☐ | ☐ | |
