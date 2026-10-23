@@ -1,4 +1,4 @@
-# Mobile test matrix
+|||| ☑ | ☐ | ☐ | ☐ | ☐ | API tests and the 12-check script; checked by hand on the Android 16 emulator 2026-10-24. UI tests, Maestro, real Android phone and iPhone still to do. ||||| ☑ | ☐ | ☐ | ☐ | ☐ | API tests and the 12-check script; checked by hand on the Android 16 emulator 2026-10-24. UI tests, Maestro, real Android phone and iPhone still to do. ||||| ☑ | ☐ | ☐ | ☐ | ☐ | API tests and the 12-check script; checked by hand on the Android 16 emulator 2026-10-24. UI tests, Maestro, real Android phone and iPhone still to do. ||||| ☑ | ☐ | ☐ | ☐ | ☐ | API tests and the 12-check script; checked by hand on the Android 16 emulator 2026-10-24. UI tests, Maestro, real Android phone and iPhone still to do. |# Mobile test matrix
 
 Every function of the store apps (BUILD_PLAN §10), with the five proofs a function needs before it counts as **tested**.
 Tick a box only when the proof exists. For the manual columns write the date, device and who ran it in the Notes column.
@@ -9,10 +9,10 @@ Tick a box only when the proof exists. For the manual columns write the date, de
 
 | ID | Function | Step | API | UI | Maestro | Android | iPhone | Notes |
 |---|---|---|---|---|---|---|---|---|
-| F01 | Sign in with email code (school address only) | M02 | ☐ | ☐ | ☐ | ☐ | ☐ | |
-| F02 | Personal mail address is refused | M02 | ☐ | ☐ | ☐ | ☐ | ☐ | |
-| F03 | Sign out and session expiry | M02 | ☐ | ☐ | ☐ | ☐ | ☐ | |
-| F04 | Force-upgrade gate (minimum app version) | M02 | ☐ | ☐ | ☐ | ☐ | ☐ | |
+| F01 | Sign in with email code (school address only) | M02 | ☑ | ☐ | ☐ | ☐ | ☐ | API tests and the 12-check script; checked by hand on the Android 16 emulator 2026-10-24. UI tests, Maestro, real Android phone and iPhone still to do. |
+| F02 | Personal mail address is refused | M02 | ☑ | ☐ | ☐ | ☐ | ☐ | API tests and the 12-check script; checked by hand on the Android 16 emulator 2026-10-24. UI tests, Maestro, real Android phone and iPhone still to do. |
+| F03 | Sign out and session expiry | M02 | ☑ | ☐ | ☐ | ☐ | ☐ | API tests and the 12-check script; checked by hand on the Android 16 emulator 2026-10-24. UI tests, Maestro, real Android phone and iPhone still to do. |
+| F04 | Force-upgrade gate (minimum app version) | M02 | ☑ | ☐ | ☐ | ☐ | ☐ | API tests and the 12-check script; checked by hand on the Android 16 emulator 2026-10-24. UI tests, Maestro, real Android phone and iPhone still to do. |
 | F05 | Terms and Privacy consent (sensitive consent optional) | M04 | ☐ | ☐ | ☐ | ☐ | ☐ | |
 | F06 | Age declaration 19+ | M04 | ☐ | ☐ | ☐ | ☐ | ☐ | |
 | F07 | Invite code (when cohort release is on) | M04 | ☐ | ☐ | ☐ | ☐ | ☐ | |

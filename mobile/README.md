@@ -23,6 +23,10 @@ Installed on 2026-10-23 without administrator rights, under the user profile: JD
 4. In this folder: `EXPO_PUBLIC_API_URL=http://10.0.2.2:3000 npx expo start --android`. The first run installs Expo Go on the phone by itself.
 5. Drive it from a script with `adb shell input tap X Y`, `adb shell input text ...`, `adb exec-out screencap -p > shot.png` and `adb shell uiautomator dump` (in Git Bash set `MSYS_NO_PATHCONV=1` or it rewrites `/sdcard` paths).
 
+## Server-side sign-in checks
+
+`node scripts/check-mobile-auth.mjs` runs 12 checks against a running **local** website and its throwaway database (sign-in, own-account-only, expired, deleted, revoked and brute-forced sessions, Gmail refused on the raw route). It refuses to run against anything that is not localhost. Run the website with `MIN_APP_VERSION=9.0.0` to see the app's update screen.
+
 ## Checks (the same ones CI runs)
 
 `npx tsc --noEmit`, `npx expo lint`, `npx expo-doctor`, `npx expo export --platform android`.
@@ -32,4 +36,4 @@ Installed on 2026-10-23 without administrator rights, under the user profile: JD
 - Install packages with `npx expo install <package>` so versions match the SDK.
 - No secrets in the app: anything in the bundle can be read by anyone. Only `EXPO_PUBLIC_*` values are bundled and they must be non-secret.
 - The app talks to the backend only through `/api/mobile/v1/*` and Better Auth's `/api/auth/*`.
-- `bundleIdentifier` and `package` (`tech.overlaps.app`) are permanent once the first build is published. Confirm before the first store upload.
+- `bundleIdentifier` and `package` (`tech.overlaps.app`) are permanent once the first build is published. The owner confirmed this id on 2026-10-24.

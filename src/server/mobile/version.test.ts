@@ -1,5 +1,7 @@
-import { describe, expect, it } from "vitest";
-import { isAppVersionSupported, MIN_APP_VERSION, MOBILE_API_VERSION } from "./version";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { getMinAppVersion, isAppVersionSupported, MOBILE_API_VERSION } from "./version";
+
+afterEach(() => vi.unstubAllEnvs());
 
 describe("isAppVersionSupported", () => {
   it("accepts the minimum itself and anything newer", () => {
@@ -15,12 +17,23 @@ describe("isAppVersionSupported", () => {
     expect(isAppVersionSupported("0.9.0", "1.0.0")).toBe(false);
   });
 
-  it("refuses a version it cannot read", () => {
-    for (const bad of ["", "1.2", "1.2.3.4", "1.2.x", "v1.2.3", "1.2.3-beta"]) expect(isAppVersionSupported(bad, "1.0.0")).toBe(false);
+  it("refuses a version it cannot read, or none at all", () => {
+    for (const bad of ["", "1.2", "1.2.3.4", "1.2.x", "v1.2.3", "1.2.3-beta", null, undefined]) expect(isAppVersionSupported(bad, "1.0.0")).toBe(false);
+  });
+});
+
+describe("getMinAppVersion", () => {
+  it("defaults to the first app version, which therefore satisfies it", () => {
+    expect(getMinAppVersion()).toBe("0.1.0");
+    expect(isAppVersionSupported("0.1.0")).toBe(true);
+    expect(MOBILE_API_VERSION).toBe(1);
   });
 
-  it("uses the server's own minimum by default, and the first app version satisfies it", () => {
-    expect(isAppVersionSupported(MIN_APP_VERSION)).toBe(true);
-    expect(MOBILE_API_VERSION).toBe(1);
+  it("can be raised from the environment, and ignores a malformed value", () => {
+    vi.stubEnv("MIN_APP_VERSION", "2.0.0");
+    expect(getMinAppVersion()).toBe("2.0.0");
+    expect(isAppVersionSupported("1.9.9")).toBe(false);
+    vi.stubEnv("MIN_APP_VERSION", "nonsense");
+    expect(getMinAppVersion()).toBe("0.1.0");
   });
 });
