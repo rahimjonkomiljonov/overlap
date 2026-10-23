@@ -1,10 +1,12 @@
 import { betterAuth } from "better-auth";
+import { APIError, createAuthMiddleware } from "better-auth/api";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { emailOTP } from "better-auth/plugins";
 import { prisma } from "@/server/db";
 import { getEnv } from "@/server/env";
 import { sendEmail } from "@/server/email/send";
+import { guardAuthRequest } from "./guard";
 import { OTP_TTL_SECONDS } from "./otp";
 
 // Fails loudly at startup if BETTER_AUTH_SECRET/BETTER_AUTH_URL are missing, instead of
@@ -23,9 +25,12 @@ const env = getEnv();
  * dashboard configuration. Better Auth's emailOTP plugin takes a plain callback, so it
  * reuses our existing sendEmail() (console/outbox fallback) with no extra infra.
  *
- * Domain allowlisting is NOT done here via a hook: our own server actions
- * (src/server/auth/actions.ts) check resolveCampusForEmail() before ever calling
- * Better Auth's send-OTP API, the same pattern already used for the waitlist.
+ * Domain allowlisting is done twice on purpose: our own server actions
+ * (src/server/auth/actions.ts) check resolveCampusForEmail() before calling Better Auth,
+ * and the `hooks.before` guard below applies the same rule to every email-code route.
+ * The second one matters because Better Auth also serves those routes directly at
+ * /api/auth/*: without it, anyone could request a code for, and sign in with, a personal
+ * address (found 2026-10-23 while starting the mobile app, which uses those routes).
  */
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "postgresql" }),
@@ -34,6 +39,13 @@ export const auth = betterAuth({
   emailAndPassword: { enabled: false },
   session: {
     expiresIn: 60 * 60 * 24 * 30, // 30 days; fine for Month-1 traffic
+  },
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      const result = await guardAuthRequest(prisma, ctx.path, ctx.body);
+      if (result.ok) return;
+      throw new APIError(result.code === "RATE_LIMITED" ? "TOO_MANY_REQUESTS" : "BAD_REQUEST", { message: result.code });
+    }),
   },
   plugins: [
     emailOTP({
