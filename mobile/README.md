@@ -13,6 +13,16 @@ This folder is its own package: the website's typecheck, lint and Vercel upload 
 By default the app talks to production (`https://overlaps.tech`). To use a local website instead, start it on your computer and run
 `EXPO_PUBLIC_API_URL=http://<your computer's LAN address>:3000 npx expo start`. The website's `BETTER_AUTH_URL` must match.
 
+## Run it on the Android emulator (this Windows machine)
+
+Installed on 2026-10-23 without administrator rights, under the user profile: JDK 17 in `C:\Users\Rahimjon\java`, the Android SDK in `C:\Users\Rahimjon\android-sdk` (platform-tools, emulator, Android 16 / API 36, a Google APIs x86_64 system image) and a virtual phone named `overlap_pixel`.
+
+1. Set `JAVA_HOME` to the JDK folder and `ANDROID_HOME` to the SDK folder, and put `platform-tools` and `emulator` on `PATH`.
+2. Start the phone: `emulator -avd overlap_pixel -gpu swiftshader_indirect -no-snapshot` (add `-no-window` to run it hidden). It boots in about a minute.
+3. Start a local website and database (the emulator reaches your computer at **10.0.2.2**, not localhost).
+4. In this folder: `EXPO_PUBLIC_API_URL=http://10.0.2.2:3000 npx expo start --android`. The first run installs Expo Go on the phone by itself.
+5. Drive it from a script with `adb shell input tap X Y`, `adb shell input text ...`, `adb exec-out screencap -p > shot.png` and `adb shell uiautomator dump` (in Git Bash set `MSYS_NO_PATHCONV=1` or it rewrites `/sdcard` paths).
+
 ## Checks (the same ones CI runs)
 
 `npx tsc --noEmit`, `npx expo lint`, `npx expo-doctor`, `npx expo export --platform android`.
