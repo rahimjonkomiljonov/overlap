@@ -1,2 +1,3 @@
-# The Expo app is built by EAS, not by the website's Vercel deployment.
-mobile
+# The Expo app is built by EAS, not by the website deployment. Anchored with a leading slash: a bare
+# "mobile" would also match src/app/api/mobile and src/server/mobile and strip them from the deploy.
+/mobile
