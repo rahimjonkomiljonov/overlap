@@ -69,3 +69,10 @@ next-env.d.ts
 # dev-only web push outbox (src/server/push/send.ts) when VAPID keys are unset
 /.dev-push.jsonl
 .playwright-mcp/
+
+# mobile app (Expo)
+/mobile/node_modules/
+/mobile/.expo/
+/mobile/dist/
+/mobile/android/
+/mobile/ios/

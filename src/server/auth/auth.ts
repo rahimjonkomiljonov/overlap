@@ -1,3 +1,4 @@
+import { expo } from "@better-auth/expo";
 import { betterAuth } from "better-auth";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { prismaAdapter } from "better-auth/adapters/prisma";
@@ -37,6 +38,8 @@ export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
   baseURL: env.BETTER_AUTH_URL,
   emailAndPassword: { enabled: false },
+  // The mobile apps send requests from the "overlap://" scheme instead of a web origin.
+  trustedOrigins: ["overlap://"],
   session: {
     expiresIn: 60 * 60 * 24 * 30, // 30 days; fine for Month-1 traffic
   },
@@ -59,6 +62,8 @@ export const auth = betterAuth({
         });
       },
     }),
+    // Lets the Expo mobile client sign in (it carries its origin in an `expo-origin` header).
+    expo(),
     // Must be last: makes auth.api.* calls from Server Actions set cookies via
     // next/headers automatically instead of silently doing nothing.
     nextCookies(),

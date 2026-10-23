@@ -31,6 +31,29 @@ jobs:
       - run: npm run typecheck
       - run: npm test
 
+  # M01: the Expo app in mobile/ has its own package. Typecheck, lint, config check and a real
+  # Android bundle (Metro compiles every screen and library the phone would run).
+  mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npx expo lint
+      - run: npx expo-doctor
+      - run: npx expo export --platform android --output-dir /tmp/mobile-export
+        env:
+          CI: "1"
+
   # S22: split from a single sequential job into a {desktop, mobile} matrix. The old
   # single-job "npm run e2e" (no --project filter) ran both projects back to back and
   # consistently blew the job's 20-minute timeout, so every run since at least S12 shows

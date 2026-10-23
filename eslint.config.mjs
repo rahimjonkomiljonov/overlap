@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // The Expo app has its own package, lint and typecheck (mobile/).
+    "mobile/**",
     // Generated reports
     "coverage/**",
     "playwright-report/**",

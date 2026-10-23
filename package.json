@@ -36,6 +36,7 @@
     "db:load-test-chat": "tsx scripts/load-test-chat.ts"
   },
   "dependencies": {
+    "@better-auth/expo": "1.7.5",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "@supabase/supabase-js": "^2.117.1",
