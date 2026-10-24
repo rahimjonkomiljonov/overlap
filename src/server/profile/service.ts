@@ -30,6 +30,8 @@ import { isProfileComplete } from "./strength";
  * parameter, so tests can use a fake.
  */
 export type ProfileDb = PrismaClient;
+/** The helpers below only touch the profile table, so they accept anything that has it. */
+export type ProfileTableDb = Pick<PrismaClient, "profile">;
 
 export type StepResult = { status: "success" } | { status: "error"; code: StepErrorCode };
 export type StepErrorCode =
@@ -56,12 +58,17 @@ export const STEP_INDEX = {
 } as const;
 
 /** Creates an empty Profile row on first use, so every step is a plain update against a row that exists. */
-export function ensureProfileWith(db: ProfileDb, userId: string) {
+export function ensureProfileWith(db: ProfileTableDb, userId: string) {
   return db.profile.upsert({ where: { userId }, update: {}, create: { userId } });
 }
 
 /** Records how far the person has got. Never moves a resumed step backward. */
-export async function bumpStep(db: ProfileDb, profileId: string, current: number, step: number) {
+export async function bumpStep(
+  db: ProfileTableDb,
+  profileId: string,
+  current: number,
+  step: number,
+) {
   if (current > step) return;
   await db.profile.update({ where: { id: profileId }, data: { onboardingStep: step + 1 } });
 }

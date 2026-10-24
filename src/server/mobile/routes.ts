@@ -151,4 +151,35 @@ export const MOBILE_ROUTES: readonly MobileRouteSpec[] = [
     summary:
       "Mark the profile finished when every required piece is there; otherwise lists what is missing.",
   },
+  {
+    method: "POST",
+    path: "/profile/photos",
+    access: "user",
+    requiresSetup: true,
+    summary:
+      'Add one profile photo (multipart field "photo", at most 4 MB, three to six per profile). Resized and stripped of metadata.',
+  },
+  {
+    method: "DELETE",
+    path: "/profile/photos/[photoId]",
+    access: "user",
+    requiresSetup: true,
+    summary: "Remove one of your own photos (a finished profile keeps its three-photo minimum).",
+  },
+  {
+    method: "GET",
+    path: "/verification",
+    access: "user",
+    requiresSetup: true,
+    summary:
+      "Where your own verification stands: unsubmitted, pending, rejected with the reason, or verified.",
+  },
+  {
+    method: "POST",
+    path: "/verification/selfie",
+    access: "user",
+    requiresSetup: true,
+    summary:
+      'Submit a verification selfie (multipart field "selfie", at most 4 MB). Private to you and the reviewing moderator.',
+  },
 ];

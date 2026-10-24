@@ -21,6 +21,7 @@ import type { WizardState } from "@/server/profile/queries";
 import { VALUES_QUIZ_ITEMS } from "@/server/profile/values-quiz";
 import { mobileJson } from "./responses";
 import type { MobileContext } from "./guard";
+import { absoluteUrl } from "./urls";
 import { readQuery } from "./validate";
 
 /** GET /profile: everything the wizard needs to draw and resume, plus what is still missing and whether Dating is open. */
@@ -44,6 +45,11 @@ export async function profileView(
   return mobileJson({
     ...state,
     completedAt: state.completedAt ? state.completedAt.toISOString() : null,
+    // Full addresses the phone can load, in local development as well as with real storage.
+    photos: state.photos.map((photo) => ({
+      ...photo,
+      url: absoluteUrl(context.request, photo.url),
+    })),
     missing,
     datingStatus,
   });

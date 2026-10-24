@@ -24,6 +24,9 @@ vi.mock("@/server/profile/queries", () => ({
   getWizardState: async () => ({ onboardingStep: 0, completedAt: null, photos: [] }),
   getMissingRequiredSteps: async () => ["basics"],
 }));
+vi.mock("@/server/verification/queries", () => ({
+  getMyVerificationStatus: async () => ({ state: "unsubmitted" }),
+}));
 vi.mock("@/server/reference/search", () => ({
   searchClubs: async () => [],
   searchCourses: async () => [],
@@ -54,6 +57,10 @@ const LOADERS: Record<string, () => Promise<Record<string, unknown>>> = {
   "/profile/prompts": () => import("@/app/api/mobile/v1/profile/prompts/route"),
   "/profile/values": () => import("@/app/api/mobile/v1/profile/values/route"),
   "/profile/finish": () => import("@/app/api/mobile/v1/profile/finish/route"),
+  "/profile/photos": () => import("@/app/api/mobile/v1/profile/photos/route"),
+  "/profile/photos/[photoId]": () => import("@/app/api/mobile/v1/profile/photos/[photoId]/route"),
+  "/verification": () => import("@/app/api/mobile/v1/verification/route"),
+  "/verification/selfie": () => import("@/app/api/mobile/v1/verification/selfie/route"),
 };
 
 const actor = (status: UserStatus = UserStatus.ACTIVE, campusId = "campus-1"): Actor => ({

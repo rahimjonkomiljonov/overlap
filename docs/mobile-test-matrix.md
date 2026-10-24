@@ -20,8 +20,8 @@ Tick a box only when the proof exists. For the manual columns write the date, de
 | F09 | Course and club pickers | M05 | ☑ | ☐ | ☐ | ☐ | ☐ | Server rules proved against the real local database (34 checks) and by unit tests. App screens (M05c), UI tests, Maestro, real Android phone and iPhone still to do. |
 | F10 | Interests, prompts, values quiz | M05 | ☑ | ☐ | ☐ | ☐ | ☐ | Server rules proved against the real local database (34 checks) and by unit tests. App screens (M05c), UI tests, Maestro, real Android phone and iPhone still to do. |
 | F11 | Free-time slots | M05 | ☑ | ☐ | ☐ | ☐ | ☐ | Server rules proved against the real local database (34 checks) and by unit tests. App screens (M05c), UI tests, Maestro, real Android phone and iPhone still to do. |
-| F12 | Photo upload and delete (camera and library). The website has no reorder, so there is none here | M05 | ☐ | ☐ | ☐ | ☐ | ☐ | |
-| F13 | Selfie verification | M05 | ☐ | ☐ | ☐ | ☐ | ☐ | |
+| F12 | Photo upload and delete (camera and library). The website has no reorder, so there is none here | M05 | ☑ | ☐ | ☐ | ☐ | ☐ | Server rules proved with real image files against the local database and storage (29 checks) and by unit tests. App screens (M05c), UI tests, Maestro, real Android phone and iPhone still to do. |
+| F13 | Selfie verification | M05 | ☑ | ☐ | ☐ | ☐ | ☐ | Server rules proved with real image files against the local database and storage (29 checks) and by unit tests. App screens (M05c), UI tests, Maestro, real Android phone and iPhone still to do. |
 | F14 | Profile preview and edit | M05 | ☑ | ☐ | ☐ | ☐ | ☐ | Server rules proved against the real local database (34 checks) and by unit tests. App screens (M05c), UI tests, Maestro, real Android phone and iPhone still to do. |
 | F15 | "Who I'd like to meet" (sensitive, consent-gated, never leaks) | M05 | ☑ | ☐ | ☐ | ☐ | ☐ | Server rules proved against the real local database (34 checks) and by unit tests. App screens (M05c), UI tests, Maestro, real Android phone and iPhone still to do. |
 | F16 | Daily picks (six, with reasons) | M06 | ☐ | ☐ | ☐ | ☐ | ☐ | |

@@ -3,17 +3,9 @@
 import { checkRateLimit } from "@/server/auth/rate-limit";
 import { getActor } from "@/server/auth/session";
 import { prisma } from "@/server/db";
+import { getMissingRequiredSteps } from "./queries";
+import { addPhotoStep, removePhotoStep } from "./photos-service";
 import {
-  deletePhoto,
-  newPhotoStorageKey,
-  processPhoto,
-  resolvePhotoUrl,
-  uploadPhoto,
-} from "@/server/storage/photos";
-import { ensureProfile, getMissingRequiredSteps } from "./queries";
-import {
-  MAX_PHOTOS,
-  MIN_PHOTOS,
   VALUES_QUIZ_LENGTH,
   basicsSchema,
   clubsSchema,
@@ -26,8 +18,6 @@ import {
   valuesQuizSchema,
 } from "./schema";
 import {
-  STEP_INDEX,
-  bumpStep,
   finishProfileStep,
   saveBasicsStep,
   saveClubsStep,
@@ -157,46 +147,13 @@ export async function addPhoto(_prev: AddPhotoState, formData: FormData): Promis
   if (!rate.allowed) return { status: "error", code: "RATE_LIMITED" };
 
   const file = formData.get("photo");
-  if (!(file instanceof File) || file.size === 0) {
-    return { status: "error", code: "INVALID_INPUT" };
-  }
-  if (file.size > MAX_PHOTO_BYTES) {
-    return { status: "error", code: "FILE_TOO_LARGE" };
-  }
-  if (!file.type.startsWith("image/")) {
-    return { status: "error", code: "INVALID_FILE_TYPE" };
-  }
-
-  const profile = await ensureProfile(actor.userId);
-  const [existingCount, maxOrder] = await Promise.all([
-    prisma.photo.count({ where: { profileId: profile.id } }),
-    prisma.photo.aggregate({ where: { profileId: profile.id }, _max: { sortOrder: true } }),
-  ]);
-  if (existingCount >= MAX_PHOTOS) {
-    return { status: "error", code: "TOO_MANY_PHOTOS" };
-  }
-
-  let processed;
-  try {
-    processed = await processPhoto(Buffer.from(await file.arrayBuffer()));
-  } catch {
-    return { status: "error", code: "INVALID_FILE_TYPE" };
-  }
-
-  const storageKey = newPhotoStorageKey(actor.userId);
-  await uploadPhoto(storageKey, processed.bytes);
-  const photo = await prisma.photo.create({
-    data: {
-      profileId: profile.id,
-      storageKey,
-      sortOrder: (maxOrder._max.sortOrder ?? -1) + 1,
-      width: processed.width,
-      height: processed.height,
-    },
-  });
-  await bumpStep(prisma, profile.id, profile.onboardingStep, STEP_INDEX.photos);
-
-  return { status: "success", photo: { id: photo.id, url: await resolvePhotoUrl(storageKey) } };
+  if (!(file instanceof File)) return { status: "error", code: "INVALID_INPUT" };
+  return addPhotoStep(
+    prisma,
+    actor,
+    { size: file.size, type: file.type, bytes: async () => Buffer.from(await file.arrayBuffer()) },
+    MAX_PHOTO_BYTES,
+  );
 }
 
 export type RemovePhotoState =
@@ -211,24 +168,7 @@ export async function removePhoto(
 
   const photoId = formData.get("photoId");
   if (typeof photoId !== "string") return { status: "error", code: "INVALID_INPUT" };
-
-  const profile = await ensureProfile(actor.userId);
-  const photo = await prisma.photo.findUnique({ where: { id: photoId } });
-  if (!photo || photo.profileId !== profile.id) {
-    return { status: "error", code: "NOT_FOUND" };
-  }
-
-  // A finished profile has to stay finished: once it is complete (the app is open to this
-  // person), photos can be swapped but not removed below the required minimum.
-  if (profile.completedAt) {
-    const photoCount = await prisma.photo.count({ where: { profileId: profile.id } });
-    if (photoCount <= MIN_PHOTOS) return { status: "error", code: "MIN_PHOTOS" };
-  }
-
-  await deletePhoto(photo.storageKey);
-  await prisma.photo.delete({ where: { id: photoId } });
-
-  return { status: "success", photoId };
+  return removePhotoStep(prisma, actor, photoId);
 }
 
 export type FinishState =

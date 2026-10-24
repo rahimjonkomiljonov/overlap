@@ -109,6 +109,26 @@ Saving replaces that step's answers, so repeating a save is harmless. Success is
 #### `POST /api/mobile/v1/profile/finish`
 Marks the profile finished once every required piece is there. Returns `{ "status": "complete" }` or `{ "status": "incomplete", "missing": [...] }`.
 
+### Photos and selfie (need finished account setup)
+
+Uploads are `multipart/form-data` with one file field. **A file may be at most 4 MB**, a limit lower than the 4.5 MB request cap Vercel enforces before our code runs, so you get our clear `FILE_TOO_LARGE` and not a platform error. The app therefore shrinks every photo on the phone first (a 1600 pixel JPEG is well under 1 MB). The declared file type is only what the sender claims: the server decodes the bytes, and anything that is not a picture is `INVALID_FILE_TYPE`. Every stored photo is re-encoded, so EXIF data (GPS, device, timestamps) never reaches storage.
+
+An upload is not given an idempotency key: if a retry does add the photo twice, delete the extra one.
+
+Refusals are `422 RULE_VIOLATION` with a `reason`: `FILE_TOO_LARGE`, `INVALID_FILE_TYPE`, `TOO_MANY_PHOTOS` (the limit is six), `ALREADY_PENDING` (selfie), `MIN_PHOTOS` (delete). A missing file or wrong content type is `400 INVALID_INPUT`.
+
+#### `POST /api/mobile/v1/profile/photos`
+Field `photo`. Success is `201 { "photo": { "id": "…", "url": "https://…" } }`. Limited to 20 uploads an hour. Photos also appear in `GET /profile` with full web addresses the phone can load (signed and short-lived with real storage, so read the profile again when one expires).
+
+#### `DELETE /api/mobile/v1/profile/photos/[photoId]`
+Removes one of your own photos: `{ "status": "deleted", "photoId": "…" }`. Someone else's photo is `404 NOT_FOUND`, exactly like one that does not exist. Once the profile is finished it must keep at least three photos (`MIN_PHOTOS`).
+
+#### `POST /api/mobile/v1/verification/selfie`
+Field `selfie`. Success is `201 { "status": "submitted" }`. One selfie waits for review at a time. Limited to 10 an hour. A selfie is private to you and the moderator who reviews it; there is no route that returns it.
+
+#### `GET /api/mobile/v1/verification`
+`{ "state": "unsubmitted" | "pending" | "verified" }` or `{ "state": "rejected", "reason": "…" | null }`.
+
 ## Adding a route
 
 1. Create `src/app/api/mobile/v1/<path>/route.ts` and export the handler from `mobileRoute("<name>", handler, { idempotent?, allowRestricted? })`.
