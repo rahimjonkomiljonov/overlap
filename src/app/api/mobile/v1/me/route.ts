@@ -13,7 +13,7 @@ export const GET = mobileRoute(
   async ({ actor }) => {
     const user = await prisma.user.findUnique({
       where: { id: actor.userId },
-      select: { email: true, name: true },
+      select: { email: true, name: true, profile: { select: { completedAt: true } } },
     });
     if (!user) return mobileError("UNAUTHENTICATED");
     return mobileJson({
@@ -22,8 +22,9 @@ export const GET = mobileRoute(
       name: user.name,
       role: actor.role,
       status: actor.status,
-      // Account setup (campus, age, consents) is the next screen flow; profile setup comes after it.
+      // Account setup (campus, age, consents) comes first; the profile wizard comes after it.
       accountSetupComplete: actor.campusId !== "",
+      profileComplete: user.profile?.completedAt != null,
     });
   },
   { allowRestricted: true },

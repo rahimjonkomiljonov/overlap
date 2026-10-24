@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { apiGet, type ApiErrorCode } from './api';
 import { authClient } from './auth-client';
 
-export type Me = { userId: string; email: string; name: string; role: string; status: string; accountSetupComplete: boolean };
+export type Me = { userId: string; email: string; name: string; role: string; status: string; accountSetupComplete: boolean; profileComplete: boolean };
 
 type MeState = { phase: 'idle' } | { phase: 'loading' } | { phase: 'ready'; me: Me } | { phase: 'failed'; code: ApiErrorCode };
 

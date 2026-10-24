@@ -97,6 +97,18 @@ describe("absoluteUrl", () => {
       "http://10.0.2.2:3000/api/dev-storage/profile-photos/u/p.jpg",
     );
   });
+  it("uses the Host the caller typed when the server rebuilt the request address as localhost", () => {
+    const rebuilt = new Request("http://localhost:3000/api/mobile/v1/profile", {
+      headers: { host: "10.0.2.2:3000" },
+    });
+    expect(absoluteUrl(rebuilt, "/api/dev-storage/x.jpg")).toBe(
+      "http://10.0.2.2:3000/api/dev-storage/x.jpg",
+    );
+  });
+  it("ignores a Host that is not a plain host name", () => {
+    const odd = new Request("http://localhost:3000/a", { headers: { host: "evil.example/x?y=" } });
+    expect(absoluteUrl(odd, "/p.jpg")).toBe("http://localhost:3000/p.jpg");
+  });
   it("leaves a full address alone", () => {
     expect(absoluteUrl(request, "https://abc.supabase.co/storage/v1/sign/x?token=1")).toBe(
       "https://abc.supabase.co/storage/v1/sign/x?token=1",

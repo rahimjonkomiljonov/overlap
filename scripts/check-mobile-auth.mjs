@@ -41,7 +41,7 @@ const me = (cookie, version = "0.1.0") => fetch(`${BASE}/api/mobile/v1/me`, { he
   let r = await me(cookie);
   let body = await r.json();
   check("/me with a valid session returns the caller's own account", r.status === 200 && body.email === email && body.status === "ACTIVE" && body.accountSetupComplete === false, JSON.stringify(body).slice(0, 110));
-  check("/me never returns fields beyond the documented ones", Object.keys(body).sort().join() === "accountSetupComplete,email,name,role,status,userId");
+  check("/me never returns fields beyond the documented ones", Object.keys(body).sort().join() === "accountSetupComplete,email,name,profileComplete,role,status,userId");
 
   r = await me("better-auth.session_token=not-a-real-token");
   check("/me with a made-up cookie is 401", r.status === 401);

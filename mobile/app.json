@@ -33,7 +33,15 @@
           "imageWidth": 160
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Overlap uses the camera for your profile photos and your verification selfie.",
+          "photosPermission": "Overlap uses your photos so you can add them to your profile.",
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

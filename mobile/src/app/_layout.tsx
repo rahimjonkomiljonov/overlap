@@ -61,12 +61,17 @@ function Routes({ signedIn }: { signedIn: boolean }) {
   if (signedIn && state.phase === 'failed') return <Offline onRetry={refresh} />;
 
   const setUp = state.phase === 'ready' && state.me.accountSetupComplete;
+  const profileDone = setUp && state.phase === 'ready' && state.me.profileComplete;
   return (
     <>
       <StatusBar style="dark" />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#faf8f3' } }}>
-        <Stack.Protected guard={signedIn && setUp}>
+        <Stack.Protected guard={signedIn && setUp && !profileDone}>
+          <Stack.Screen name="profile" />
+        </Stack.Protected>
+        <Stack.Protected guard={signedIn && profileDone}>
           <Stack.Screen name="index" />
+          <Stack.Screen name="verify" />
         </Stack.Protected>
         <Stack.Protected guard={signedIn && !setUp}>
           <Stack.Screen name="onboarding" />
