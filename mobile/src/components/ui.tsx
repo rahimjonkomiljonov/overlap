@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export const colors = {
@@ -16,10 +16,14 @@ export const colors = {
 };
 
 /** Page frame: safe area, scrolling, the brand wordmark on top. */
-export function Screen({ children }: { children: ReactNode }) {
+export function Screen({ children, onRefresh, refreshing }: { children: ReactNode; /** Pull down to refresh. */ onRefresh?: () => void; refreshing?: boolean }) {
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={colors.brand} colors={[colors.brand]} /> : undefined}
+      >
         <Text style={styles.brand} accessibilityRole="header">
           overlap
         </Text>

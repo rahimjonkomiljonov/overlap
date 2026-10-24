@@ -24,10 +24,10 @@ Tick a box only when the proof exists. For the manual columns write the date, de
 | F13 | Selfie verification | M05 | ☑ | ☐ | ☐ | ☐ | ☐ | Server rules proved with real image files against the local database and storage (29 checks) and by unit tests. App screens built and run end to end on the Android 16 emulator 2026-10-24 (44 scripted checks, local database and storage). UI tests, Maestro in CI, real Android phone and iPhone still to do. |
 | F14 | Profile preview and edit | M05 | ☑ | ☐ | ☐ | ☐ | ☐ | Server rules proved against the real local database (34 checks) and by unit tests. App screens built and run end to end on the Android 16 emulator 2026-10-24 (44 scripted checks, local database and storage). UI tests, Maestro in CI, real Android phone and iPhone still to do. |
 | F15 | "Who I'd like to meet" (sensitive, consent-gated, never leaks) | M05 | ☑ | ☐ | ☐ | ☐ | ☐ | Server rules proved against the real local database (34 checks) and by unit tests. App screens built and run end to end on the Android 16 emulator 2026-10-24 (44 scripted checks, local database and storage). UI tests, Maestro in CI, real Android phone and iPhone still to do. |
-| F16 | Daily picks (six, with reasons) | M06 | ☐ | ☐ | ☐ | ☐ | ☐ | |
-| F17 | Pick detail | M06 | ☐ | ☐ | ☐ | ☐ | ☐ | |
-| F18 | Pass | M06 | ☐ | ☐ | ☐ | ☐ | ☐ | |
-| F19 | "How your picks are chosen" | M06 | ☐ | ☐ | ☐ | ☐ | ☐ | |
+| F16 | Daily picks (six, with reasons) | M06 | ☑ | ☐ | ☐ | ☐ | ☐ | Server: 28 real-database checks plus unit tests. App run end to end on the Android 16 emulator 2026-10-24 (20 scripted checks). UI tests, Maestro in CI, real Android phone and iPhone still to do. |
+| F17 | Pick detail | M06 | ☑ | ☐ | ☐ | ☐ | ☐ | No separate route: the list card holds everything the detail shows. Server: 28 real-database checks plus unit tests. App run end to end on the Android 16 emulator 2026-10-24 (20 scripted checks). UI tests, Maestro in CI, real Android phone and iPhone still to do. |
+| F18 | Pass | M06 | ☑ | ☐ | ☐ | ☐ | ☐ | Server: 28 real-database checks plus unit tests. App run end to end on the Android 16 emulator 2026-10-24 (20 scripted checks). UI tests, Maestro in CI, real Android phone and iPhone still to do. |
+| F19 | "How your picks are chosen" | M06 | ☐ | ☐ | ☐ | ☐ | ☐ | Opens the website page in the browser, so there is no API to prove. Checked on the Android 16 emulator 2026-10-24 (opens, Back returns). UI test, Android phone and iPhone still to do. |
 | F20 | Cohort-closed state | M06 | ☐ | ☐ | ☐ | ☐ | ☐ | |
 | F21 | Wave with a note | M08 | ☐ | ☐ | ☐ | ☐ | ☐ | |
 | F22 | Waved-at-you inbox | M08 | ☐ | ☐ | ☐ | ☐ | ☐ | |

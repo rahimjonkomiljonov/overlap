@@ -9,6 +9,7 @@ import { countWavesSentToday, DAILY_WAVE_CAP, WAVE_ATTEMPT_RATE_LIMIT } from "@/
 import { formMatch } from "@/server/waves/match";
 import { enqueueNotification } from "@/server/notifications/queue";
 import { passPickSchema, sendWaveSchema } from "./schema";
+import { passPickStep } from "./service";
 
 export type SendWaveState = { status: "idle" } | { status: "success" } | { status: "error"; code: string };
 
@@ -130,18 +131,8 @@ export async function passPick(_prev: PassPickState, formData: FormData): Promis
     return { status: "error", code: "INVALID_INPUT" };
   }
 
-  const item = await prisma.batchItem.findUnique({
-    where: { id: parsed.data.batchItemId },
-    select: { id: true, decision: true, dailyBatch: { select: { userId: true } } },
-  });
-  if (!item || item.dailyBatch.userId !== actor.userId) {
-    return { status: "error", code: "NOT_FOUND" };
-  }
-  if (item.decision !== null) {
-    return { status: "error", code: "ALREADY_DECIDED" };
-  }
-
-  await prisma.batchItem.update({ where: { id: item.id }, data: { decision: "PASSED", decidedAt: new Date() } });
+  const result = await passPickStep(prisma, actor, parsed.data.batchItemId);
+  if (result.status === "error") return { status: "error", code: result.code };
 
   return { status: "success" };
 }

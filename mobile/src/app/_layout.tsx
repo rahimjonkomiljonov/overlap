@@ -6,6 +6,7 @@ import { Body, Button, Card, Loading, Screen, Title } from '@/components/ui';
 import { authClient } from '@/lib/auth-client';
 import { fetchHealth } from '@/lib/health';
 import { MeProvider, useMe } from '@/lib/me';
+import { PicksProvider } from '@/lib/picks';
 import { strings } from '@/lib/strings';
 
 type Gate = 'checking' | 'offline' | 'upgrade' | 'ready';
@@ -63,7 +64,7 @@ function Routes({ signedIn }: { signedIn: boolean }) {
   const setUp = state.phase === 'ready' && state.me.accountSetupComplete;
   const profileDone = setUp && state.phase === 'ready' && state.me.profileComplete;
   return (
-    <>
+    <PicksProvider enabled={signedIn && profileDone}>
       <StatusBar style="dark" />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#faf8f3' } }}>
         <Stack.Protected guard={signedIn && setUp && !profileDone}>
@@ -71,6 +72,7 @@ function Routes({ signedIn }: { signedIn: boolean }) {
         </Stack.Protected>
         <Stack.Protected guard={signedIn && profileDone}>
           <Stack.Screen name="index" />
+          <Stack.Screen name="pick/[id]" />
           <Stack.Screen name="verify" />
         </Stack.Protected>
         <Stack.Protected guard={signedIn && !setUp}>
@@ -80,7 +82,7 @@ function Routes({ signedIn }: { signedIn: boolean }) {
           <Stack.Screen name="sign-in" />
         </Stack.Protected>
       </Stack>
-    </>
+    </PicksProvider>
   );
 }
 

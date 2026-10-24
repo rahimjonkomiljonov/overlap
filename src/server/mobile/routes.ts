@@ -182,4 +182,20 @@ export const MOBILE_ROUTES: readonly MobileRouteSpec[] = [
     summary:
       'Submit a verification selfie (multipart field "selfie", at most 4 MB). Private to you and the reviewing moderator.',
   },
+  {
+    method: "GET",
+    path: "/picks",
+    access: "user",
+    requiresSetup: true,
+    summary:
+      "Today's picks for every mode you opted into, undecided only: photos, prompts, the reasons you overlap, first name, year and major. Same batch as the website.",
+  },
+  {
+    method: "POST",
+    path: "/picks/[batchItemId]/pass",
+    access: "user",
+    idempotent: true,
+    requiresSetup: true,
+    summary: "Pass on one of your own picks. It is never listed again.",
+  },
 ];

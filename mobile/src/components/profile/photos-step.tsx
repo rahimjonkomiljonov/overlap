@@ -8,7 +8,8 @@ import { apiDelete, apiUpload, imageSource } from '@/lib/api';
 import { PHOTO_MAX_SIDE, shrinkImage } from '@/lib/image';
 import { problemText } from '@/lib/profile';
 import { strings } from '@/lib/strings';
-import { StepFooter, useCookie, type StepProps } from './common';
+import { useCookie } from '@/lib/use-cookie';
+import { StepFooter, type StepProps } from './common';
 
 /**
  * Three to six photos. Each one is shrunk on the phone first (a camera picture can be 10 MB, the server takes

@@ -129,6 +129,23 @@ Field `selfie`. Success is `201 { "status": "submitted" }`. One selfie waits for
 #### `GET /api/mobile/v1/verification`
 `{ "state": "unsubmitted" | "pending" | "verified" }` or `{ "state": "rejected", "reason": "…" | null }`.
 
+### Daily picks (need finished account setup and a finished profile)
+
+#### `GET /api/mobile/v1/picks`
+Today's picks for every mode the person opted into, the same batch and rules as the website's `/picks` (the first call of the day composes it). Query: `?locale=en|ko` (default `en`), the language of the reason labels and prompt questions; the app writes its own words. Limited to 120 calls an hour. A profile that is not finished is `422 RULE_VIOLATION` with `reason: PROFILE_INCOMPLETE`.
+```json
+{ "intents": [ { "intent": "FRIENDS", "items": [ {
+  "id": "…", "firstName": "Mina", "year": 2, "major": "…",
+  "photos": [ { "id": "…", "url": "https://…" } ],
+  "prompts": [ { "id": "…", "question": "My perfect day looks like", "answer": "…" } ],
+  "reasons": [ { "type": "course", "label": "…" }, { "type": "club", "label": "…" }, { "type": "interest", "label": "…" }, { "type": "freeTime", "day": 2, "block": 8 }, { "type": "values" } ],
+  "secondChance": false } ] } ] }
+```
+Only undecided picks are listed, best first, so an intent with an empty `items` is the "you're caught up" state, and no `intents` at all means no mode is chosen. `id` is the pick's own id: it is what the app sends to act on a card, and it means something only to its owner. A card has no field for the other person's user id, email, birth year, gender or who they would like to meet. (A photo address contains the photo's storage folder, which is the owner's id, exactly as the website's photo links do.) `reasons` use the website's own encoding: `freeTime.day` is 0 (Monday) to 6, `block` is a two-hour block 0 (12 to 2 am) to 11. Photo addresses are full addresses, signed and short-lived with real storage. There is no separate detail route: a card holds everything the detail screen shows.
+
+#### `POST /api/mobile/v1/picks/[batchItemId]/pass`
+Idempotent (needs an `Idempotency-Key`). Passes on one of your own picks: `{ "status": "passed", "batchItemId": "…" }`. Someone else's pick, or one that does not exist, is `404 NOT_FOUND`; a pick already decided (passed or waved) is `422 RULE_VIOLATION` with `reason: ALREADY_DECIDED`. Limited to 200 passes an hour. A passed person is not listed again, and after a second pass they are not offered again at all.
+
 ## Adding a route
 
 1. Create `src/app/api/mobile/v1/<path>/route.ts` and export the handler from `mobileRoute("<name>", handler, { idempotent?, allowRestricted? })`.

@@ -6,7 +6,8 @@ import { Body, colors, Title } from '@/components/ui';
 import { apiPost, imageSource } from '@/lib/api';
 import { problemText } from '@/lib/profile';
 import { strings } from '@/lib/strings';
-import { StepFooter, useCookie, type StepProps } from './common';
+import { useCookie } from '@/lib/use-cookie';
+import { StepFooter, type StepProps } from './common';
 
 type FinishResult = { status: 'complete' } | { status: 'incomplete'; missing: string[] };
 

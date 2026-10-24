@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
     idempotencyKey: {},
     rateLimit: { findUnique: async () => null, upsert: async () => ({}), update: async () => ({}) },
     prompt: { findMany: async () => [] },
+    profile: { findUnique: async () => ({ completedAt: new Date() }) },
     interestTag: { findMany: async () => [] },
   },
 }));
@@ -24,6 +25,7 @@ vi.mock("@/server/profile/queries", () => ({
   getWizardState: async () => ({ onboardingStep: 0, completedAt: null, photos: [] }),
   getMissingRequiredSteps: async () => ["basics"],
 }));
+vi.mock("@/server/picks/queries", () => ({ getPicksForActor: async () => [] }));
 vi.mock("@/server/verification/queries", () => ({
   getMyVerificationStatus: async () => ({ state: "unsubmitted" }),
 }));
@@ -59,6 +61,8 @@ const LOADERS: Record<string, () => Promise<Record<string, unknown>>> = {
   "/profile/finish": () => import("@/app/api/mobile/v1/profile/finish/route"),
   "/profile/photos": () => import("@/app/api/mobile/v1/profile/photos/route"),
   "/profile/photos/[photoId]": () => import("@/app/api/mobile/v1/profile/photos/[photoId]/route"),
+  "/picks": () => import("@/app/api/mobile/v1/picks/route"),
+  "/picks/[batchItemId]/pass": () => import("@/app/api/mobile/v1/picks/[batchItemId]/pass/route"),
   "/verification": () => import("@/app/api/mobile/v1/verification/route"),
   "/verification/selfie": () => import("@/app/api/mobile/v1/verification/selfie/route"),
 };

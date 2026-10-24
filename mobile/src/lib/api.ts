@@ -47,11 +47,11 @@ type RequestBody = { json: unknown } | { file: UploadFile; field: string } | und
  * client (kept in secure storage) and is sent by hand, because React Native has no cookie jar.
  * Never throws: a failure comes back as `{ ok: false, code }`.
  */
-async function apiRequest<T>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', path: string, body?: RequestBody): Promise<ApiResult<T>> {
+async function apiRequest<T>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', path: string, body?: RequestBody, extraHeaders?: Record<string, string>): Promise<ApiResult<T>> {
   let response: Response;
   try {
     const cookie = await authClient.getCookie();
-    const headers: Record<string, string> = { 'X-App-Version': APP_VERSION, Cookie: cookie };
+    const headers: Record<string, string> = { 'X-App-Version': APP_VERSION, Cookie: cookie, ...extraHeaders };
     let payload: string | FormData | undefined;
     if (body && 'json' in body) {
       headers['Content-Type'] = 'application/json';
@@ -75,6 +75,11 @@ async function apiRequest<T>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', path: st
 
 export const apiGet = <T>(path: string) => apiRequest<T>('GET', path);
 export const apiPost = <T>(path: string, body: unknown) => apiRequest<T>('POST', path, { json: body });
+/**
+ * A send the server must not apply twice (BUILD_PLAN M08 waves, M06 pass). Pass the same `idempotencyKey` on a retry of the
+ * same action and the server replays its first answer; use a new key for a new action.
+ */
+export const apiPostOnce = <T>(path: string, idempotencyKey: string) => apiRequest<T>('POST', path, { json: {} }, { 'Idempotency-Key': idempotencyKey });
 export const apiPut = <T>(path: string, body: unknown) => apiRequest<T>('PUT', path, { json: body });
 export const apiDelete = <T>(path: string) => apiRequest<T>('DELETE', path);
 export const apiUpload = <T>(path: string, field: string, file: UploadFile) => apiRequest<T>('POST', path, { file, field });
