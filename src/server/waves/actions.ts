@@ -4,10 +4,9 @@ import { checkRateLimit } from "@/server/auth/rate-limit";
 import { isRestricted } from "@/server/auth/authz";
 import { getActor } from "@/server/auth/session";
 import { prisma } from "@/server/db";
-import { isBlockedEitherWay } from "./blocks";
-import { countWavesSentToday, DAILY_WAVE_CAP, WAVE_ATTEMPT_RATE_LIMIT } from "./cap";
-import { formMatch } from "./match";
+import { WAVE_ATTEMPT_RATE_LIMIT } from "./cap";
 import { declineWaveSchema, unmatchSchema, waveBackSchema } from "./schema";
+import { declineWaveStep, waveBackStep } from "./service";
 
 export type WaveBackState = { status: "idle" } | { status: "success" } | { status: "error"; code: string };
 
@@ -37,38 +36,8 @@ export async function waveBack(_prev: WaveBackState, formData: FormData): Promis
     return { status: "error", code: "INVALID_INPUT" };
   }
 
-  const incoming = await prisma.wave.findUnique({
-    where: { id: parsed.data.waveId },
-    select: { id: true, toUserId: true, fromUserId: true, status: true },
-  });
-  if (!incoming || incoming.toUserId !== actor.userId) {
-    return { status: "error", code: "NOT_FOUND" };
-  }
-  if (incoming.status !== "PENDING") {
-    return { status: "error", code: "ALREADY_DECIDED" };
-  }
-
-  if (await isBlockedEitherWay(prisma, actor.userId, incoming.fromUserId)) {
-    return { status: "error", code: "BLOCKED" };
-  }
-
-  const sentToday = await countWavesSentToday(prisma, actor.userId);
-  if (sentToday >= DAILY_WAVE_CAP) {
-    return { status: "error", code: "DAILY_CAP_REACHED" };
-  }
-
-  await prisma.$transaction(async (tx) => {
-    await tx.wave.create({
-      data: {
-        fromUserId: actor.userId,
-        toUserId: incoming.fromUserId,
-        targetElement: { type: "profile" },
-        note: parsed.data.note ?? null,
-        status: "MATCHED",
-      },
-    });
-    await formMatch(tx, actor.userId, incoming.fromUserId, incoming.id);
-  });
+  const result = await waveBackStep(prisma, actor, parsed.data.waveId, parsed.data.note);
+  if (result.status === "error") return { status: "error", code: result.code };
 
   return { status: "success" };
 }
@@ -85,18 +54,8 @@ export async function declineWave(_prev: DeclineWaveState, formData: FormData): 
     return { status: "error", code: "INVALID_INPUT" };
   }
 
-  const incoming = await prisma.wave.findUnique({
-    where: { id: parsed.data.waveId },
-    select: { id: true, toUserId: true, status: true },
-  });
-  if (!incoming || incoming.toUserId !== actor.userId) {
-    return { status: "error", code: "NOT_FOUND" };
-  }
-  if (incoming.status !== "PENDING") {
-    return { status: "error", code: "ALREADY_DECIDED" };
-  }
-
-  await prisma.wave.update({ where: { id: incoming.id }, data: { status: "DECLINED" } });
+  const result = await declineWaveStep(prisma, actor, parsed.data.waveId);
+  if (result.status === "error") return { status: "error", code: result.code };
 
   return { status: "success" };
 }

@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { PickHeading, PickPhoto, ReasonTags } from '@/components/pick-parts';
+import { PickHeading, PickPhoto, ReasonTags, WaveComposer } from '@/components/pick-parts';
 import { Body, Button, Card, Loading, Notice, Screen, Title, colors } from '@/components/ui';
 import { authClient } from '@/lib/auth-client';
 import { API_URL } from '@/lib/config';
@@ -43,6 +43,7 @@ function PickRow({ card }: { card: PickCard }) {
         <ReasonTags card={card} limit={3} />
       </Pressable>
       {error ? <Body tone="bad">{error}</Body> : null}
+      <WaveComposer cardId={card.id} />
       <Button label={busy ? strings.passing : strings.pass} variant="outline" disabled={busy} onPress={() => void onPass()} />
     </Card>
   );
@@ -103,6 +104,7 @@ export default function HomeScreen() {
 
       <Button label={strings.howPicksAreChosen} variant="link" onPress={() => void WebBrowser.openBrowserAsync(`${API_URL}/how-matching-works`)} />
 
+      <Button label={strings.wavesOpen} variant="outline" onPress={() => router.push('/waves')} />
       <Button label={strings.pocketsOpen} variant="outline" onPress={() => router.push('/pockets')} />
 
       <Card>

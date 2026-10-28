@@ -29,11 +29,11 @@ Tick a box only when the proof exists. For the manual columns write the date, de
 | F18 | Pass | M06 | ☑ | ☐ | ☐ | ☐ | ☐ | Server: 28 real-database checks plus unit tests. App run end to end on the Android 16 emulator 2026-10-24 (20 scripted checks). UI tests, Maestro in CI, real Android phone and iPhone still to do. |
 | F19 | "How your picks are chosen" | M06 | ☐ | ☐ | ☐ | ☐ | ☐ | Opens the website page in the browser, so there is no API to prove. Checked on the Android 16 emulator 2026-10-24 (opens, Back returns). UI test, Android phone and iPhone still to do. |
 | F20 | Cohort-closed state | M06 | ☐ | ☐ | ☐ | ☐ | ☐ | |
-| F21 | Wave with a note | M08 | ☐ | ☐ | ☐ | ☐ | ☐ | |
-| F22 | Waved-at-you inbox | M08 | ☐ | ☐ | ☐ | ☐ | ☐ | |
-| F23 | Wave back | M08 | ☐ | ☐ | ☐ | ☐ | ☐ | |
-| F24 | Decline a wave | M08 | ☐ | ☐ | ☐ | ☐ | ☐ | |
-| F25 | Daily wave cap and rate-limit messages | M08 | ☐ | ☐ | ☐ | ☐ | ☐ | |
+| F21 | Wave with a note | M08 | ☑ | ☐ | ☐ | ☐ | ☐ | New shared `sendWaveStep` (`src/server/picks/service.ts`) used by both the website's `sendWave` action and the new idempotent `POST /picks/{id}/wave` mobile route (profile-level only, no per-photo/per-prompt targeting yet). 7 unit tests, 20 mobile-handler tests, the contract test, and `scripts/check-mobile-waves.mjs` (19 checks against a real local Postgres 17 database, 2026-10-28) all pass. App: Wave button + note composer on the pick card and detail screen, typechecks; not yet run on the emulator. |
+| F22 | Waved-at-you inbox | M08 | ☑ | ☐ | ☐ | ☐ | ☐ | New `GET /waves` mobile route reuses the website's `getIncomingWaves`. Proved by `scripts/check-mobile-waves.mjs`: lists the sender's name, note and target, and never carries their email. App: new `waves.tsx` screen, typechecks; not yet run on the emulator. |
+| F23 | Wave back | M08 | ☑ | ☐ | ☐ | ☐ | ☐ | New shared `waveBackStep` (`src/server/waves/service.ts`) used by both the website's `waveBack` action and the new idempotent `POST /waves/{id}/wave-back` mobile route. `scripts/check-mobile-waves.mjs` proves it always forms a match (the incoming wave is already PENDING) and the matched wave leaves the inbox. App: wave-back composer in the inbox screen, typechecks; not yet run on the emulator. |
+| F24 | Decline a wave | M08 | ☑ | ☐ | ☐ | ☐ | ☐ | New shared `declineWaveStep` (`src/server/waves/service.ts`) used by both the website's `declineWave` action and the new `POST /waves/{id}/decline` mobile route. `scripts/check-mobile-waves.mjs` proves it costs neither side's cap and creates no match. App: Decline button in the inbox screen, typechecks; not yet run on the emulator. |
+| F25 | Daily wave cap and rate-limit messages | M08 | ☑ | ☐ | ☐ | ☐ | ☐ | The 8/day cap and block check are the same shared-service code already proved by `e2e/waves.spec.ts` (website, 4 tests, re-run live against the local database 2026-10-28 to confirm the `sendWave`/`waveBack`/`declineWave` refactor changed no behavior) and by unit tests on `sendWaveStep`/`waveBackStep` directly (`DAILY_CAP_REACHED`, `BLOCKED`). Mobile-specific: `npm run check` and the full mobile contract test pass with no regressions. |
 | F26 | Matches list | M09 | ☐ | ☐ | ☐ | ☐ | ☐ | |
 | F27 | Chat send and receive (two devices) | M09 | ☐ | ☐ | ☐ | ☐ | ☐ | |
 | F28 | Icebreakers | M09 | ☐ | ☐ | ☐ | ☐ | ☐ | |

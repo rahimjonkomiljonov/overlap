@@ -51,22 +51,37 @@ export default function PocketsScreen() {
   const [state, setState] = useState<State>({ phase: 'loading' });
   const [refreshing, setRefreshing] = useState(false);
 
-  const load = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    const result = await fetchMyPockets();
+  const applyResult = useCallback((result: Awaited<ReturnType<typeof fetchMyPockets>>) => {
     if (result.ok) setState({ phase: 'ready', data: result.data });
     else setState({ phase: 'failed', text: pocketsProblemText(result, strings.errorPocketsLoad) });
     setRefreshing(false);
   }, []);
 
+  // The initial load fetches directly (never calling a function that could itself set state
+  // synchronously) so the effect body only ever sets state from inside the `.then`, matching
+  // React's rule against synchronous setState from an effect (verify.tsx does the same).
   useEffect(() => {
-    void load();
-  }, [load]);
+    let active = true;
+    fetchMyPockets().then((result) => {
+      if (active) applyResult(result);
+    });
+    return () => {
+      active = false;
+    };
+  }, [applyResult]);
+
+  const reload = useCallback(
+    (isRefresh = false) => {
+      if (isRefresh) setRefreshing(true);
+      fetchMyPockets().then(applyResult);
+    },
+    [applyResult],
+  );
 
   if (state.phase === 'loading') return <Loading label={strings.loading} />;
 
   return (
-    <Screen onRefresh={() => void load(true)} refreshing={refreshing}>
+    <Screen onRefresh={() => reload(true)} refreshing={refreshing}>
       <View style={{ gap: 4 }}>
         <Title>{strings.pocketsTitle}</Title>
         <Body tone="muted">{strings.pocketsIntro}</Body>
@@ -75,7 +90,7 @@ export default function PocketsScreen() {
       {state.phase === 'failed' ? (
         <Card>
           <Body tone="bad">{state.text}</Body>
-          <Button label={strings.tryAgain} onPress={() => void load()} />
+          <Button label={strings.tryAgain} onPress={() => reload()} />
         </Card>
       ) : (
         <>

@@ -184,6 +184,25 @@ export const strings = {
   pickGone: 'This pick is no longer available.',
   errorPicksLoad: 'We could not load your picks. Check your connection and try again.',
   errorPass: 'We could not pass on that person. Please try again.',
+  wave: 'Wave',
+  waving: 'Waving…',
+  waveNotePlaceholder: 'Add a note (optional)…',
+  waveMatchedNow: "It's a match!",
+  errorWave: 'We could not wave at that person. Please try again.',
+
+  // ---- waves inbox
+  wavesTitle: 'Waved at you',
+  wavesOpen: 'Waved at you',
+  wavesEmptyTitle: 'No waves yet',
+  wavesEmptyBody: 'When someone waves at you, they will show up here.',
+  wavesDecline: 'Decline',
+  wavesWaveBack: 'Wave back',
+  wavesCancel: 'Cancel',
+  wavesSend: 'Send',
+  wavesTargetProfile: 'Waved at your profile',
+  wavesTargetPhoto: 'Waved at one of your photos',
+  wavesTargetPrompt: 'Waved at one of your prompt answers',
+  errorWavesLoad: 'We could not load your waves. Check your connection and try again.',
   profileIncomplete: 'Finish your profile to see your picks.',
 
   // ---- campus pockets

@@ -2,7 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 
-import { PickHeading, PickPhoto, ReasonTags } from '@/components/pick-parts';
+import { PickHeading, PickPhoto, ReasonTags, WaveComposer } from '@/components/pick-parts';
 import { Body, Button, Card, Screen, Title } from '@/components/ui';
 import { usePicks } from '@/lib/picks';
 import { strings } from '@/lib/strings';
@@ -68,6 +68,7 @@ export default function PickDetailScreen() {
         </View>
       ) : null}
       {error ? <Body tone="bad">{error}</Body> : null}
+      <WaveComposer cardId={card.id} onSettled={() => router.back()} />
       <Button label={busy ? strings.passing : strings.pass} disabled={busy} onPress={() => void onPass()} />
       <Button label={strings.back} variant="outline" onPress={() => router.back()} />
     </Screen>

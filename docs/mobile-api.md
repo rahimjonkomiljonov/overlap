@@ -146,6 +146,25 @@ Only undecided picks are listed, best first, so an intent with an empty `items` 
 #### `POST /api/mobile/v1/picks/[batchItemId]/pass`
 Idempotent (needs an `Idempotency-Key`). Passes on one of your own picks: `{ "status": "passed", "batchItemId": "…" }`. Someone else's pick, or one that does not exist, is `404 NOT_FOUND`; a pick already decided (passed or waved) is `422 RULE_VIOLATION` with `reason: ALREADY_DECIDED`. Limited to 200 passes an hour. A passed person is not listed again, and after a second pass they are not offered again at all.
 
+#### `POST /api/mobile/v1/picks/[batchItemId]/wave`
+Idempotent (needs an `Idempotency-Key`). Body: `{ "note"?: "…" }`. Waves at one of your own undecided picks: `{ "status": "sent", "batchItemId": "…", "matched": false }`. The app only ever sends a plain profile-level wave (no per-photo/per-prompt targeting yet, unlike the website's richer composer). Someone else's pick, or one that does not exist, is `404 NOT_FOUND`; a pick already decided is `422 RULE_VIOLATION` with `reason: ALREADY_DECIDED`; a blocked pair is `reason: BLOCKED`; the 8/day cap is `reason: DAILY_CAP_REACHED`. Limited to 200 a hour. If the other person already waved at you first, this call forms a match immediately (`matched: true`) via the same `formMatch` both directions share.
+
+### Waves (need finished account setup)
+
+#### `GET /api/mobile/v1/waves`
+Pending waves sent to you, most recent first — same data as the website's "Waved at you" inbox.
+```json
+{ "waves": [ { "id": "…", "fromUserId": "…", "firstName": "Mina", "photoUrl": "https://…",
+  "note": "Same section! See you Monday.", "targetElement": { "type": "profile" }, "createdAt": "2026-…" } ] }
+```
+Excludes anyone you have blocked or been blocked by. Limited to 120 calls an hour.
+
+#### `POST /api/mobile/v1/waves/[waveId]/wave-back`
+Idempotent (needs an `Idempotency-Key`). Body: `{ "note"?: "…" }`. Waves back at whoever sent this wave: `{ "status": "matched" }` — since the incoming wave is already `PENDING`, this always completes the pair into a match. Someone else's wave, or one that does not exist, is `404 NOT_FOUND`; one already decided is `422 RULE_VIOLATION` with `reason: ALREADY_DECIDED`; a blocked pair is `reason: BLOCKED`; the 8/day cap is `reason: DAILY_CAP_REACHED`. Limited to 200 an hour.
+
+#### `POST /api/mobile/v1/waves/[waveId]/decline`
+Dismisses an incoming wave without waving back: `{ "status": "declined" }`. No cost against either side's cap. Someone else's wave, or one that does not exist, is `404 NOT_FOUND`; one already decided is `422 RULE_VIOLATION` with `reason: ALREADY_DECIDED`. Limited to 200 an hour.
+
 ### Campus Pockets (need finished account setup)
 
 #### `GET /api/mobile/v1/pockets`

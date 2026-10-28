@@ -30,6 +30,8 @@ export type IntentPicks = { intent: string; items: PickCard[] };
 
 type State = { phase: 'loading' } | { phase: 'failed'; code: ApiErrorCode; reason?: string } | { phase: 'ready'; intents: IntentPicks[] };
 
+export type WaveOutcome = { ok: true; matched: boolean } | { ok: false; error: string };
+
 type PicksValue = {
   state: State;
   /** True while a pull-to-refresh is in flight (the list stays on screen meanwhile). */
@@ -37,6 +39,8 @@ type PicksValue = {
   reload: () => void;
   /** Passes on a pick. Returns null on success (the card is gone from the list) or the words to show on failure. */
   pass: (id: string) => Promise<string | null>;
+  /** Waves on a pick, with an optional note. The card leaves the list on success either way; `matched` says whether it formed a match right away. */
+  wave: (id: string, note?: string) => Promise<WaveOutcome>;
   find: (id: string) => PickCard | undefined;
 };
 
@@ -72,8 +76,9 @@ export function PicksProvider({ enabled, children }: { enabled: boolean; childre
   const [state, setState] = useState<State>({ phase: 'loading' });
   const [attempt, setAttempt] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
-  // One key per pass, kept until the pass is settled, so a retry after a dropped connection is the same request.
+  // One key per pass/wave, kept until it settles, so a retry after a dropped connection is the same request.
   const keys = useRef(new Map<string, string>());
+  const waveKeys = useRef(new Map<string, string>());
 
   useEffect(() => {
     if (!enabled) return;
@@ -117,12 +122,39 @@ export function PicksProvider({ enabled, children }: { enabled: boolean; childre
     [removeLocally],
   );
 
+  const wave = useCallback(
+    async (id: string, note?: string): Promise<WaveOutcome> => {
+      const key = waveKeys.current.get(id) ?? randomUUID();
+      waveKeys.current.set(id, key);
+      const result = await apiPostOnce<{ matched: boolean }>(`/picks/${id}/wave`, key, note ? { note } : {});
+      if (result.ok) {
+        waveKeys.current.delete(id);
+        removeLocally(id);
+        return { ok: true, matched: result.data.matched };
+      }
+      // Already decided somewhere else, or gone: the pick is not actionable any more, so it leaves the list either way.
+      if (result.code === 'NOT_FOUND' || (result.code === 'RULE_VIOLATION' && result.reason === 'ALREADY_DECIDED')) {
+        waveKeys.current.delete(id);
+        removeLocally(id);
+        return { ok: true, matched: false };
+      }
+      const reasonText =
+        result.code === 'RULE_VIOLATION' && result.reason === 'BLOCKED'
+          ? strings.pocketWaveBlocked
+          : result.code === 'RULE_VIOLATION' && result.reason === 'DAILY_CAP_REACHED'
+            ? strings.pocketWaveCapReached
+            : picksProblemText(result, strings.errorWave);
+      return { ok: false, error: reasonText };
+    },
+    [removeLocally],
+  );
+
   const find = useCallback(
     (id: string) => (state.phase === 'ready' ? state.intents.flatMap((group) => group.items).find((item) => item.id === id) : undefined),
     [state],
   );
 
-  return <PicksContext.Provider value={{ state, refreshing, reload, pass, find }}>{children}</PicksContext.Provider>;
+  return <PicksContext.Provider value={{ state, refreshing, reload, pass, wave, find }}>{children}</PicksContext.Provider>;
 }
 
 export function usePicks() {

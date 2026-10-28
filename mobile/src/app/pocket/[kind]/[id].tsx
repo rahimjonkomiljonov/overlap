@@ -81,15 +81,26 @@ export default function PocketDetailScreen() {
   const pocketKind = kind === 'club' ? 'club' : 'course';
   const [state, setState] = useState<State>({ phase: 'loading' });
 
-  const load = useCallback(async () => {
-    const result = await fetchPocketDetail(pocketKind, String(id));
+  const applyResult = useCallback((result: Awaited<ReturnType<typeof fetchPocketDetail>>) => {
     if (result.ok) setState({ phase: 'ready', data: result.data });
     else setState({ phase: 'failed', text: pocketsProblemText(result, strings.errorPocketsLoad) });
-  }, [pocketKind, id]);
+  }, []);
 
+  // Fetches directly in the effect (never calling a function that could itself set state
+  // synchronously), matching React's rule against synchronous setState from an effect.
   useEffect(() => {
-    void load();
-  }, [load]);
+    let active = true;
+    fetchPocketDetail(pocketKind, String(id)).then((result) => {
+      if (active) applyResult(result);
+    });
+    return () => {
+      active = false;
+    };
+  }, [pocketKind, id, applyResult]);
+
+  const reload = useCallback(() => {
+    fetchPocketDetail(pocketKind, String(id)).then(applyResult);
+  }, [pocketKind, id, applyResult]);
 
   function changeMember(userId: string, next: PocketMember) {
     setState((current) =>
@@ -104,7 +115,7 @@ export default function PocketDetailScreen() {
       <Screen>
         <Card>
           <Body tone="bad">{state.text}</Body>
-          <Button label={strings.tryAgain} onPress={() => void load()} />
+          <Button label={strings.tryAgain} onPress={reload} />
           <Button label={strings.pocketBackToList} variant="outline" onPress={() => router.back()} />
         </Card>
       </Screen>

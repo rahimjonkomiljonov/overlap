@@ -73,6 +73,7 @@ function Routes({ signedIn }: { signedIn: boolean }) {
         <Stack.Protected guard={signedIn && profileDone}>
           <Stack.Screen name="index" />
           <Stack.Screen name="pick/[id]" />
+          <Stack.Screen name="waves" />
           <Stack.Screen name="pockets" />
           <Stack.Screen name="pocket/[kind]/[id]" />
           <Stack.Screen name="verify" />

@@ -31,6 +31,7 @@ vi.mock("@/server/pockets/queries", () => ({
   getPocket: async () => ({ verified: false, visible: false, hasPocketIntent: false, label: "x", members: [] }),
   isPocketMember: async () => false,
 }));
+vi.mock("@/server/waves/queries", () => ({ getIncomingWaves: async () => [] }));
 vi.mock("@/server/verification/queries", () => ({
   getMyVerificationStatus: async () => ({ state: "unsubmitted" }),
 }));
@@ -74,6 +75,10 @@ const LOADERS: Record<string, () => Promise<Record<string, unknown>>> = {
   "/pockets/visibility": () => import("@/app/api/mobile/v1/pockets/visibility/route"),
   "/pockets/[kind]/[pocketId]": () => import("@/app/api/mobile/v1/pockets/[kind]/[pocketId]/route"),
   "/pockets/wave": () => import("@/app/api/mobile/v1/pockets/wave/route"),
+  "/picks/[batchItemId]/wave": () => import("@/app/api/mobile/v1/picks/[batchItemId]/wave/route"),
+  "/waves": () => import("@/app/api/mobile/v1/waves/route"),
+  "/waves/[waveId]/wave-back": () => import("@/app/api/mobile/v1/waves/[waveId]/wave-back/route"),
+  "/waves/[waveId]/decline": () => import("@/app/api/mobile/v1/waves/[waveId]/decline/route"),
 };
 
 const actor = (status: UserStatus = UserStatus.ACTIVE, campusId = "campus-1"): Actor => ({
