@@ -1,8 +1,9 @@
 import { randomUUID } from 'expo-crypto';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Linking, Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { Linking, Share, StyleSheet, Text, View } from 'react-native';
 
+import { Chip } from '@/components/form';
 import { Body, Button, Card, Loading, Screen, Title, colors } from '@/components/ui';
 import type { ApiResult } from '@/lib/api';
 import {
@@ -34,21 +35,6 @@ function problemText(result: Extract<ApiResult<unknown>, { ok: false }>): string
   if (result.code === 'RATE_LIMITED') return strings.errorTooManyRequests;
   if (result.code === 'RULE_VIOLATION' && result.reason && strings.meetupErrors[result.reason]) return strings.meetupErrors[result.reason];
   return strings.meetupErrorSave;
-}
-
-/** A selectable pill: one choice out of several (a day, a time, a place). 48 pt tall, above the 44 pt minimum. */
-function Chip({ label, selected, disabled, onPress }: { label: string; selected: boolean; disabled?: boolean; onPress: () => void }) {
-  return (
-    <Pressable
-      accessibilityRole="radio"
-      accessibilityState={{ selected, disabled: !!disabled }}
-      disabled={disabled}
-      onPress={onPress}
-      style={[styles.chip, selected && styles.chipSelected, disabled && styles.chipDisabled]}
-    >
-      <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
-    </Pressable>
-  );
 }
 
 /** G6: one tap from the meetup screen. A contact with no verified number shows its note instead, never an invented number. */
@@ -363,11 +349,6 @@ const styles = StyleSheet.create({
   when: { fontSize: 18, fontWeight: '700', color: colors.ink },
   groupLabel: { fontSize: 13, fontWeight: '700', color: colors.muted },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { minHeight: 48, borderRadius: 24, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.card, paddingHorizontal: 16, justifyContent: 'center' },
-  chipSelected: { borderColor: colors.brand, backgroundColor: '#e3f4f2' },
-  chipDisabled: { opacity: 0.4 },
-  chipText: { fontSize: 15, fontWeight: '600', color: colors.ink },
-  chipTextSelected: { color: colors.brand },
   contactLabel: { fontSize: 14, fontWeight: '700', color: colors.ink },
   emergency: { gap: 10, borderRadius: 20, borderWidth: 1, borderColor: colors.bad, backgroundColor: '#fdecea', padding: 16 },
   emergencyTitle: { fontSize: 16, fontWeight: '800', color: colors.bad },

@@ -32,6 +32,24 @@ vi.mock("@/server/pockets/queries", () => ({
   isPocketMember: async () => false,
 }));
 vi.mock("@/server/waves/queries", () => ({ getIncomingWaves: async () => [], getMatches: async () => [] }));
+vi.mock("@/server/events/queries", () => ({
+  listEvents: async () => [],
+  getEventDetail: async () => ({
+    id: "e1",
+    title: "x",
+    description: "x",
+    spotName: "x",
+    organizerFirstName: null,
+    startsAt: new Date(),
+    endsAt: new Date(),
+    phase: "upcoming",
+    goingCount: 0,
+    capacity: null,
+    myRsvp: null,
+    viewerVerified: false,
+    guests: [],
+  }),
+}));
 vi.mock("@/server/meetup/screen", () => ({
   getMeetupScreen: async () => ({
     matchId: "m1",
@@ -119,6 +137,10 @@ const LOADERS: Record<string, () => Promise<Record<string, unknown>>> = {
   "/meetup/proposals/[proposalId]/cancel": () => import("@/app/api/mobile/v1/meetup/proposals/[proposalId]/cancel/route"),
   "/meetup/proposals/[proposalId]/feedback": () => import("@/app/api/mobile/v1/meetup/proposals/[proposalId]/feedback/route"),
   "/meetup/proposals/[proposalId]/share-link": () => import("@/app/api/mobile/v1/meetup/proposals/[proposalId]/share-link/route"),
+  "/events": () => import("@/app/api/mobile/v1/events/route"),
+  "/events/[eventId]": () => import("@/app/api/mobile/v1/events/[eventId]/route"),
+  "/events/[eventId]/rsvp": () => import("@/app/api/mobile/v1/events/[eventId]/rsvp/route"),
+  "/events/[eventId]/connect": () => import("@/app/api/mobile/v1/events/[eventId]/connect/route"),
 };
 
 const actor = (status: UserStatus = UserStatus.ACTIVE, campusId = "campus-1"): Actor => ({

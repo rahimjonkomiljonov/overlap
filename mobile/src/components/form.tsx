@@ -24,6 +24,21 @@ export function SwitchRow({ value, onChange, label }: { value: boolean; onChange
   );
 }
 
+/** A selectable pill: one choice out of several (a day, a time, a place). 48 pt tall, above the 44 pt minimum. */
+export function Chip({ label, selected, disabled, onPress }: { label: string; selected: boolean; disabled?: boolean; onPress: () => void }) {
+  return (
+    <Pressable
+      accessibilityRole="radio"
+      accessibilityState={{ selected, disabled: !!disabled }}
+      disabled={disabled}
+      onPress={onPress}
+      style={[styles.chip, selected && styles.chipSelected, disabled && styles.chipDisabled]}
+    >
+      <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
+    </Pressable>
+  );
+}
+
 /** A labelled text box. 18 pt text, so phones do not zoom in on it. */
 export function Field({ label, ...props }: TextInputProps & { label: string }) {
   return (
@@ -35,6 +50,11 @@ export function Field({ label, ...props }: TextInputProps & { label: string }) {
 }
 
 const styles = StyleSheet.create({
+  chip: { minHeight: 48, borderRadius: 24, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.card, paddingHorizontal: 16, justifyContent: 'center' },
+  chipSelected: { borderColor: colors.brand, backgroundColor: '#e3f4f2' },
+  chipDisabled: { opacity: 0.4 },
+  chipText: { fontSize: 15, fontWeight: '600', color: colors.ink },
+  chipTextSelected: { color: colors.brand },
   row: { flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 56, paddingVertical: 6 },
   rowText: { flex: 1, fontSize: 16, lineHeight: 22, color: colors.ink },
   box: { width: 28, height: 28, borderRadius: 8, borderWidth: 2, borderColor: colors.brand, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' },

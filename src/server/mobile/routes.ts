@@ -369,4 +369,38 @@ export const MOBILE_ROUTES: readonly MobileRouteSpec[] = [
     samplePath: "/meetup/proposals/sample-proposal-id/share-link",
     summary: "A text-only, expiring \"share my plans\" link for a trusted contact.",
   },
+  {
+    method: "GET",
+    path: "/events",
+    access: "user",
+    requiresSetup: true,
+    summary:
+      "Upcoming and ongoing events on your campus, plus ones still in their 48-hour connect window, with how many are going and whether you are. Creating events stays on the web.",
+  },
+  {
+    method: "GET",
+    path: "/events/[eventId]",
+    access: "user",
+    requiresSetup: true,
+    samplePath: "/events/sample-event-id",
+    summary:
+      "One event: details, your RSVP, and who is going (opted-in guests only, verified viewers only, most in common first).",
+  },
+  {
+    method: "PUT",
+    path: "/events/[eventId]/rsvp",
+    access: "user",
+    requiresSetup: true,
+    samplePath: "/events/sample-event-id/rsvp",
+    summary: "Going or not, and whether to be listed to other verified guests. Capacity and the event's phase are enforced by the server.",
+  },
+  {
+    method: "POST",
+    path: "/events/[eventId]/connect",
+    access: "user",
+    idempotent: true,
+    requiresSetup: true,
+    samplePath: "/events/sample-event-id/connect",
+    summary: "\"We met\": pick a guest in the 48 hours after the event. A mutual pick makes a match with a chat.",
+  },
 ];

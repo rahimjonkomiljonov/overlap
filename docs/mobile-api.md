@@ -254,6 +254,33 @@ Body: `{ "response": "GREAT" | "FINE" | "NOT_FOR_ME" | "UNCOMFORTABLE" }`. The p
 #### `POST /api/mobile/v1/meetup/proposals/[proposalId]/share-link`
 Idempotent. A text-only "share my plans" link for a trusted contact who is not an Overlap user: `{ "status": "created", "url": "https://…/plan/…", "expiresAt": "2026-…" }`. It expires six hours after the meetup's end. Only on a confirmed meetup (`reason: NOT_ACCEPTED`). Limited to 20 an hour.
 
+### Events, attendee side (need finished account setup)
+
+Creating events stays on the web (ambassadors and up). An event on another campus, or one that does not exist, is `404 NOT_FOUND`.
+
+#### `GET /api/mobile/v1/events`
+Upcoming and ongoing events on your campus, plus ones still in their 48-hour connect window (soonest first, at most 50), same as the website's `/events`. Limited to 120 calls an hour.
+```json
+{ "events": [ { "id": "…", "title": "Welcome picnic", "spotName": "Central Square Lawn", "startsAt": "2026-…", "endsAt": "2026-…",
+  "phase": "upcoming", "goingCount": 12, "capacity": 40, "imGoing": false } ] }
+```
+`phase` is `upcoming`, `ongoing`, `connect` (ended less than 48 hours ago), `closed` or `cancelled`; the list only carries the first three. `capacity` is `null` for no limit.
+
+#### `GET /api/mobile/v1/events/[eventId]`
+```json
+{ "id": "…", "title": "…", "description": "…", "spotName": "…", "organizerFirstName": "Mina", "startsAt": "2026-…", "endsAt": "2026-…",
+  "phase": "upcoming", "goingCount": 12, "capacity": 40, "myRsvp": { "showInGuestList": true }, "viewerVerified": true,
+  "canRsvp": true, "canConnect": false,
+  "guests": [ { "userId": "…", "firstName": "Jun", "photoUrl": "https://…", "overlap": 2, "connected": false, "matched": false } ] }
+```
+`guests` is the website's own list: only people who chose to be listed for this event, who are active, verified, not incognito, and have no block or hide with you either way, most in common first. It is empty for a viewer who is not verified (`viewerVerified: false`: the app says to finish verification). A guest has no field beyond first name, photo and how much you share. `canRsvp` is true until the event ends; `canConnect` is true only in the connect window, when you are going and verified. `myRsvp` is `null` when you are not going.
+
+#### `PUT /api/mobile/v1/events/[eventId]/rsvp`
+Body: `{ "going": true, "showInGuestList": false }` (`showInGuestList` defaults to false: being listed is always your own choice). Answers `{ "status": "saved", "going": true, "showInGuestList": false }`; not going removes your RSVP and your listing. Setting the same answer again changes nothing. After the event ends it is `422 RULE_VIOLATION` with `reason: RSVP_CLOSED`; a full event is `reason: FULL` (someone already going can still change their listing). Limited to 60 RSVP and connect calls an hour together.
+
+#### `POST /api/mobile/v1/events/[eventId]/connect`
+Idempotent (needs an `Idempotency-Key`). Body: `{ "toUserId": "…" }`. "We met": `{ "status": "connected", "matched": false }`; when the other person had already picked you, `matched` is `true` and a match with a chat now exists (no wave needed). Outside the 48-hour window it is `422` `reason: CONNECT_CLOSED`; an unverified caller is `reason: NOT_VERIFIED`; picking yourself is `400 INVALID_INPUT`. Both of you must be going and the person must be in the guest list you can see, otherwise `404`. An earlier unmatch is final: it is never recreated.
+
 ## Adding a route
 
 1. Create `src/app/api/mobile/v1/<path>/route.ts` and export the handler from `mobileRoute("<name>", handler, { idempotent?, allowRestricted? })`.
