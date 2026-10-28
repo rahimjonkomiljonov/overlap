@@ -3,13 +3,14 @@
 import { getActor } from "@/server/auth/session";
 import { prisma } from "@/server/db";
 import { blockUserSchema, unblockUserSchema } from "./schema";
+import { blockUserStep, unblockUserStep } from "./service";
 
 export type BlockActionState =
   | { status: "idle" }
   | { status: "success" }
   | { status: "error"; code: string };
 
-/** G2: block = mutual invisibility, one-directional to create (either side can initiate), permanent unless undone. */
+/** G2: block = mutual invisibility, one-directional to create (either side can initiate), permanent unless undone. Rules in `blockUserStep`, shared with the mobile route. */
 export async function blockUser(_prev: BlockActionState, formData: FormData): Promise<BlockActionState> {
   const actor = await getActor();
   if (!actor) return { status: "error", code: "UNAUTHENTICATED" };
@@ -19,14 +20,9 @@ export async function blockUser(_prev: BlockActionState, formData: FormData): Pr
     reason: formData.get("reason") || undefined,
   });
   if (!parsed.success) return { status: "error", code: "INVALID_INPUT" };
-  if (parsed.data.targetUserId === actor.userId) return { status: "error", code: "CANNOT_BLOCK_SELF" };
 
-  await prisma.block.upsert({
-    where: { blockerId_blockedId: { blockerId: actor.userId, blockedId: parsed.data.targetUserId } },
-    update: {},
-    create: { blockerId: actor.userId, blockedId: parsed.data.targetUserId, reason: parsed.data.reason ?? null },
-  });
-
+  const result = await blockUserStep(prisma, { userId: actor.userId }, parsed.data);
+  if (result.status === "error") return { status: "error", code: result.code };
   return { status: "success" };
 }
 
@@ -38,6 +34,6 @@ export async function unblockUser(_prev: BlockActionState, formData: FormData): 
   const parsed = unblockUserSchema.safeParse({ targetUserId: formData.get("targetUserId") });
   if (!parsed.success) return { status: "error", code: "INVALID_INPUT" };
 
-  await prisma.block.deleteMany({ where: { blockerId: actor.userId, blockedId: parsed.data.targetUserId } });
+  await unblockUserStep(prisma, { userId: actor.userId }, parsed.data.targetUserId);
   return { status: "success" };
 }

@@ -281,6 +281,54 @@ Body: `{ "going": true, "showInGuestList": false }` (`showInGuestList` defaults 
 #### `POST /api/mobile/v1/events/[eventId]/connect`
 Idempotent (needs an `Idempotency-Key`). Body: `{ "toUserId": "…" }`. "We met": `{ "status": "connected", "matched": false }`; when the other person had already picked you, `matched` is `true` and a match with a chat now exists (no wave needed). Outside the 48-hour window it is `422` `reason: CONNECT_CLOSED`; an unverified caller is `reason: NOT_VERIFIED`; picking yourself is `400 INVALID_INPUT`. Both of you must be going and the person must be in the guest list you can see, otherwise `404`. An earlier unmatch is final: it is never recreated.
 
+### Safety (need finished account setup)
+
+Same rules and data as the website's report, block, hide-from and `/me/safety`. A person who does not exist is `404 NOT_FOUND`.
+
+#### `GET /api/mobile/v1/safety`
+Your own safety state. **Open to a paused, suspended or banned account**, so it can see why and appeal. Limited to 120 calls an hour.
+```json
+{ "status": "ACTIVE", "suspendedUntil": null, "paused": false, "incognito": false,
+  "blocked": [ { "userId": "…", "name": "…" } ], "hidden": [ { "userId": "…", "name": "…" } ],
+  "courses": [ { "id": "…", "code": "CS201", "title": "Data Structures" } ], "clubs": [ { "id": "…", "name": "…" } ],
+  "actions": [ { "id": "…", "type": "WARN", "reason": "…", "createdAt": "2026-…", "appealNote": null, "appealedAt": null } ],
+  "trust": { "limited": false, "reasons": [], "restoredUntil": null, "openAppealSince": null, "lastDecision": null } }
+```
+`status` is `ACTIVE`, `PAUSED`, `SUSPENDED` or `BANNED` (`suspendedUntil` for a suspension). `courses` and `clubs` are your own, for "hide from a group". `actions` is what moderators did to your account (`WARN`, `SUSPEND`, `BAN`, `DISMISS`, `POLICE_REFERRAL`), each with its stated reason and whether you have appealed. `trust.limited` means you are shown less widely; `reasons` are counts only, never who reported you.
+
+#### `PUT /api/mobile/v1/safety/paused`
+Body: `{ "paused": true }`. `{ "status": "saved", "paused": true }`. Only flips between ACTIVE and PAUSED, so it is open to a paused account (to come back); a suspended or banned account is `422 RULE_VIOLATION` with `reason: ACCOUNT_RESTRICTED`.
+
+#### `PUT /api/mobile/v1/safety/incognito`
+Body: `{ "incognito": true }`. `{ "status": "saved", "incognito": true }`. Browse and act as usual, but never appear in anyone else's picks.
+
+#### `POST /api/mobile/v1/reports`
+Idempotent (needs an `Idempotency-Key`). Body: `{ "targetUserId": "…", "category": "HARASSMENT", "description"?: "…", "conversationId"?: "…" }`. `category` is one of `NON_CONSENSUAL_IMAGERY`, `DEEPFAKE`, `ILLEGAL_FILMING`, `HARASSMENT`, `UNWANTED_CONTACT`, `SCAM_OR_PHISHING`, `SPAM`, `FAKE_PROFILE`, `INAPPROPRIATE_CONTENT`, `OTHER`; `description` is at most 500 characters. `{ "status": "filed", "hidden": true }`: **the person is hidden from you in the same transaction**, before any moderator decision (they leave your picks, pockets and event guest lists at once). With a `conversationId` the last 50 messages are attached as evidence, the only way a human reads chat; the conversation must be yours and with that person (`422` `reason: INVALID_CONVERSATION`). Reporting yourself is `422` `reason: CANNOT_REPORT_SELF`. Limited to 10 reports an hour.
+
+#### `POST /api/mobile/v1/blocks`
+Body: `{ "targetUserId": "…", "reason"?: "…" }` (reason at most 500 characters). `{ "status": "blocked" }`. Mutual invisibility, including an existing match and chat. Blocking yourself is `reason: CANNOT_BLOCK_SELF`. Blocking someone already blocked changes nothing.
+
+#### `DELETE /api/mobile/v1/blocks/[userId]`
+The undo: `{ "status": "unblocked" }`. Unblocking someone you never blocked is not an error.
+
+#### `POST /api/mobile/v1/hides/course`
+Body: `{ "courseId": "…" }`. `{ "status": "hidden", "count": 12 }`: resolves the course to everyone currently in it and stores one rule per person (`count` is how many were new), exactly like hiding them one by one.
+
+#### `POST /api/mobile/v1/hides/club`
+Body: `{ "clubId": "…" }`. Same as a course.
+
+#### `POST /api/mobile/v1/hides/email`
+Body: `{ "email": "name@school.ac.kr" }`. Hides one person: `{ "status": "hidden", "count": 1 }`. An email with no account is `404`; your own is `422` `reason: CANNOT_HIDE_SELF`. Limited to 20 an hour, because it answers whether an account exists.
+
+#### `DELETE /api/mobile/v1/hides/[userId]`
+`{ "status": "unhidden" }`.
+
+#### `POST /api/mobile/v1/safety/appeals`
+Body: `{ "moderationActionId": "…", "appealNote": "…" }` (1 to 1000 characters). `{ "status": "submitted" }`. The one-time appeal on a moderation action taken against you (PIPA Art. 37-2); open to a suspended or banned account. Someone else's action is `404`; one already appealed is `422` `reason: ALREADY_APPEALED`. Limited to 5 a day.
+
+#### `POST /api/mobile/v1/safety/trust-appeals`
+Body: `{ "note": "…" }`. `{ "status": "submitted" }`. Appeals a limit on how widely you are shown: `422` `reason: NOT_LIMITED` when there is none, `reason: ALREADY_OPEN` while one is waiting.
+
 ## Adding a route
 
 1. Create `src/app/api/mobile/v1/<path>/route.ts` and export the handler from `mobileRoute("<name>", handler, { idempotent?, allowRestricted? })`.

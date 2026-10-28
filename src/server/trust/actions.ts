@@ -5,7 +5,7 @@ import { checkRateLimit } from "@/server/auth/rate-limit";
 import { can, Role } from "@/server/auth/authz";
 import { getActor } from "@/server/auth/session";
 import { prisma } from "@/server/db";
-import { getMyTrustStatus } from "./queries";
+import { submitTrustAppealStep } from "@/server/safety/service";
 import { reviewTrustAppealSchema, submitTrustAppealSchema } from "./schema";
 import { REACH_RESTORE_DAYS } from "./score";
 
@@ -25,11 +25,8 @@ export async function submitTrustAppeal(_prev: TrustActionState, formData: FormD
   const parsed = submitTrustAppealSchema.safeParse({ note: formData.get("note") });
   if (!parsed.success) return { status: "error", code: "INVALID_INPUT" };
 
-  const status = await getMyTrustStatus(prisma, actor.userId);
-  if (!status.limited) return { status: "error", code: "NOT_LIMITED" };
-  if (status.openAppeal) return { status: "error", code: "ALREADY_OPEN" };
-
-  await prisma.trustAppeal.create({ data: { userId: actor.userId, note: parsed.data.note } });
+  const result = await submitTrustAppealStep(prisma, { userId: actor.userId }, parsed.data.note);
+  if (result.status === "error") return { status: "error", code: result.code };
   return { status: "success" };
 }
 

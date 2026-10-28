@@ -403,4 +403,103 @@ export const MOBILE_ROUTES: readonly MobileRouteSpec[] = [
     samplePath: "/events/sample-event-id/connect",
     summary: "\"We met\": pick a guest in the 48 hours after the event. A mutual pick makes a match with a chat.",
   },
+  {
+    method: "GET",
+    path: "/safety",
+    access: "user-or-restricted",
+    requiresSetup: true,
+    summary:
+      "Your own safety state: pause and incognito, the blocked and hidden lists, courses and clubs to hide from, actions taken on your account and how to appeal, and the reach-limit status. Open to a restricted account so it can see why.",
+  },
+  {
+    method: "PUT",
+    path: "/safety/paused",
+    access: "user-or-restricted",
+    requiresSetup: true,
+    summary:
+      "Pause or unpause the profile. Open to a paused account so it can come back; a suspended or banned account is refused.",
+  },
+  {
+    method: "PUT",
+    path: "/safety/incognito",
+    access: "user",
+    requiresSetup: true,
+    summary:
+      "Incognito mode: browse and act as usual but never appear in anyone else's picks.",
+  },
+  {
+    method: "POST",
+    path: "/safety/appeals",
+    access: "user-or-restricted",
+    requiresSetup: true,
+    summary:
+      "The one-time appeal on a moderation action taken against you. Open to a suspended or banned account.",
+  },
+  {
+    method: "POST",
+    path: "/safety/trust-appeals",
+    access: "user",
+    requiresSetup: true,
+    summary:
+      "Appeal a limit on how widely you are shown. One open appeal at a time.",
+  },
+  {
+    method: "POST",
+    path: "/reports",
+    access: "user",
+    idempotent: true,
+    requiresSetup: true,
+    summary:
+      "Report a person. They are hidden from you immediately, before any moderator decision; from a chat, the last 50 messages go along as evidence.",
+  },
+  {
+    method: "POST",
+    path: "/blocks",
+    access: "user",
+    requiresSetup: true,
+    summary:
+      "Block a person: mutual invisibility, permanent unless undone.",
+  },
+  {
+    method: "DELETE",
+    path: "/blocks/[userId]",
+    access: "user",
+    requiresSetup: true,
+    samplePath: "/blocks/sample-user-id",
+    summary:
+      "Unblock a person.",
+  },
+  {
+    method: "POST",
+    path: "/hides/course",
+    access: "user",
+    requiresSetup: true,
+    summary:
+      "Hide everyone currently in one of your courses (one rule per person).",
+  },
+  {
+    method: "POST",
+    path: "/hides/club",
+    access: "user",
+    requiresSetup: true,
+    summary:
+      "Hide everyone currently in one of your clubs (one rule per person).",
+  },
+  {
+    method: "POST",
+    path: "/hides/email",
+    access: "user",
+    requiresSetup: true,
+    summary:
+      "Hide one person by school email.",
+  },
+  {
+    method: "DELETE",
+    path: "/hides/[userId]",
+    access: "user",
+    requiresSetup: true,
+    samplePath: "/hides/sample-user-id",
+    summary:
+      "Unhide a person.",
+  },
 ];

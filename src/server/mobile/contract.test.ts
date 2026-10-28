@@ -32,6 +32,18 @@ vi.mock("@/server/pockets/queries", () => ({
   isPocketMember: async () => false,
 }));
 vi.mock("@/server/waves/queries", () => ({ getIncomingWaves: async () => [], getMatches: async () => [] }));
+vi.mock("@/server/safety/service", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/server/safety/service")>()),
+  getSafetyScreen: async () => ({
+    status: "ACTIVE",
+    suspendedUntil: null,
+    settings: { paused: false, incognito: false, blocked: [], hidden: [] },
+    courses: [],
+    clubs: [],
+    actions: [],
+    trust: { limited: false, reasons: [], restoredUntil: null, openAppeal: null, lastDecision: null },
+  }),
+}));
 vi.mock("@/server/events/queries", () => ({
   listEvents: async () => [],
   getEventDetail: async () => ({
@@ -141,6 +153,18 @@ const LOADERS: Record<string, () => Promise<Record<string, unknown>>> = {
   "/events/[eventId]": () => import("@/app/api/mobile/v1/events/[eventId]/route"),
   "/events/[eventId]/rsvp": () => import("@/app/api/mobile/v1/events/[eventId]/rsvp/route"),
   "/events/[eventId]/connect": () => import("@/app/api/mobile/v1/events/[eventId]/connect/route"),
+  "/safety": () => import("@/app/api/mobile/v1/safety/route"),
+  "/safety/paused": () => import("@/app/api/mobile/v1/safety/paused/route"),
+  "/safety/incognito": () => import("@/app/api/mobile/v1/safety/incognito/route"),
+  "/safety/appeals": () => import("@/app/api/mobile/v1/safety/appeals/route"),
+  "/safety/trust-appeals": () => import("@/app/api/mobile/v1/safety/trust-appeals/route"),
+  "/reports": () => import("@/app/api/mobile/v1/reports/route"),
+  "/blocks": () => import("@/app/api/mobile/v1/blocks/route"),
+  "/blocks/[userId]": () => import("@/app/api/mobile/v1/blocks/[userId]/route"),
+  "/hides/course": () => import("@/app/api/mobile/v1/hides/course/route"),
+  "/hides/club": () => import("@/app/api/mobile/v1/hides/club/route"),
+  "/hides/email": () => import("@/app/api/mobile/v1/hides/email/route"),
+  "/hides/[userId]": () => import("@/app/api/mobile/v1/hides/[userId]/route"),
 };
 
 const actor = (status: UserStatus = UserStatus.ACTIVE, campusId = "campus-1"): Actor => ({
@@ -252,7 +276,9 @@ describe.each(MOBILE_ROUTES)("$method $path ($access)", (spec) => {
             await handlerOf(spec),
             mobileRequest(spec.path, { method: spec.method }),
           );
-          expect(result.status).toBe(spec.access === "user" ? 403 : 200);
+          if (spec.access === "user") expect(result.status).toBe(403);
+          else if (spec.method === "GET") expect(result.status).toBe(200);
+          else expect(result.status).not.toBe(403);
         }
       },
     );

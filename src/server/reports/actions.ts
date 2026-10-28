@@ -1,16 +1,13 @@
 "use server";
 
-import type { Prisma } from "@/generated/prisma/client";
 import { ReportStatus, UserStatus } from "@/generated/prisma/enums";
 import { recordAuditLog } from "@/server/admin/audit";
 import { can, Role } from "@/server/auth/authz";
 import { checkRateLimit } from "@/server/auth/rate-limit";
 import { getActor } from "@/server/auth/session";
-import { getConversationForActor, getMessages } from "@/server/chat/queries";
 import { enqueueNotification } from "@/server/notifications/queue";
 import { prisma } from "@/server/db";
-import { buildEvidenceSnapshot } from "./evidence";
-import { priorityForCategory } from "./priority";
+import { fileReportStep, submitAppealStep } from "@/server/safety/service";
 import { appealSchema, fileReportSchema, moderationActionSchema } from "./schema";
 
 /** G8: the fixed length of the strike ladder's middle rung. */
@@ -45,42 +42,8 @@ export async function fileReport(_prev: FileReportState, formData: FormData): Pr
   });
   if (!parsed.success) return { status: "error", code: "INVALID_INPUT" };
 
-  const { targetUserId, category, description, conversationId } = parsed.data;
-  if (targetUserId === actor.userId) return { status: "error", code: "CANNOT_REPORT_SELF" };
-
-  const target = await prisma.user.findUnique({ where: { id: targetUserId }, select: { id: true } });
-  if (!target) return { status: "error", code: "NOT_FOUND" };
-
-  let evidence = null as ReturnType<typeof buildEvidenceSnapshot> | null;
-  if (conversationId) {
-    const conversation = await getConversationForActor(prisma, conversationId, actor.userId);
-    if (!conversation || conversation.otherUserId !== targetUserId) {
-      return { status: "error", code: "INVALID_CONVERSATION" };
-    }
-    const messages = await getMessages(prisma, conversationId);
-    evidence = buildEvidenceSnapshot(messages);
-  }
-
-  const priority = priorityForCategory(category);
-
-  await prisma.$transaction(async (tx) => {
-    await tx.report.create({
-      data: {
-        reporterId: actor.userId,
-        targetId: targetUserId,
-        conversationId: conversationId ?? null,
-        category,
-        priority,
-        description: description ?? null,
-        evidence: evidence ? (evidence as unknown as Prisma.InputJsonValue) : undefined,
-      },
-    });
-    await tx.hideRule.upsert({
-      where: { userId_hiddenUserId: { userId: actor.userId, hiddenUserId: targetUserId } },
-      update: {},
-      create: { userId: actor.userId, hiddenUserId: targetUserId },
-    });
-  });
+  const result = await fileReportStep(prisma, { userId: actor.userId }, parsed.data);
+  if (result.status === "error") return { status: "error", code: result.code };
 
   return { status: "success" };
 }
@@ -191,17 +154,8 @@ export async function submitAppeal(_prev: SubmitAppealState, formData: FormData)
   });
   if (!parsed.success) return { status: "error", code: "INVALID_INPUT" };
 
-  const action = await prisma.moderationAction.findUnique({
-    where: { id: parsed.data.moderationActionId },
-    select: { id: true, targetId: true, appealedAt: true },
-  });
-  if (!action || action.targetId !== actor.userId) return { status: "error", code: "NOT_FOUND" };
-  if (action.appealedAt) return { status: "error", code: "ALREADY_APPEALED" };
-
-  await prisma.moderationAction.update({
-    where: { id: action.id },
-    data: { appealNote: parsed.data.appealNote, appealedAt: new Date() },
-  });
+  const result = await submitAppealStep(prisma, { userId: actor.userId }, parsed.data);
+  if (result.status === "error") return { status: "error", code: result.code };
 
   return { status: "success" };
 }

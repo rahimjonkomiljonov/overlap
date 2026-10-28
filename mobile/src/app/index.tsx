@@ -105,6 +105,7 @@ export default function HomeScreen() {
       <Button label={strings.howPicksAreChosen} variant="link" onPress={() => void WebBrowser.openBrowserAsync(`${API_URL}/how-matching-works`)} />
 
       <Button label={strings.eventsOpen} variant="outline" onPress={() => router.push('/events')} />
+      <Button label={strings.safetyOpen} variant="outline" onPress={() => router.push('/safety')} />
       <Button label={strings.matchesOpen} variant="outline" onPress={() => router.push('/matches')} />
       <Button label={strings.wavesOpen} variant="outline" onPress={() => router.push('/waves')} />
       <Button label={strings.pocketsOpen} variant="outline" onPress={() => router.push('/pockets')} />

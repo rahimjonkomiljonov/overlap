@@ -5,6 +5,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 
 import { Field } from '@/components/form';
+import { SafetyActions } from '@/components/safety-actions';
 import { Body, Button, Card, Loading, Notice, Screen, Title, colors } from '@/components/ui';
 import { imageSource, type ApiResult } from '@/lib/api';
 import { fetchChatDetail, icebreakerSuggestions, reviveConversation, sendMessage, type ChatDetail } from '@/lib/chat';
@@ -177,6 +178,8 @@ export default function ChatScreen() {
         <Button label={strings.chatPlanMeetup} variant="outline" onPress={() => router.push({ pathname: '/meetup/[matchId]', params: { matchId: data.matchId } })} />
 
       ) : null}
+
+      <SafetyActions targetUserId={data.otherUserId} conversationId={data.conversationId} onBlocked={() => router.back()} />
 
       <Button label={strings.chatBackToMatches} variant="outline" onPress={() => router.back()} />
     </Screen>

@@ -1,8 +1,9 @@
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 
+import { SafetyActions } from '@/components/safety-actions';
 import { Body, Button, Card, Loading, Screen, Title, colors } from '@/components/ui';
 import { imageSource, type ApiResult } from '@/lib/api';
 import { fetchMatches, unmatch, type MatchSummary } from '@/lib/matches';
@@ -76,6 +77,8 @@ function MatchRow({ match, onUnmatched }: { match: MatchSummary; onUnmatched: (m
           ) : null}
         </View>
       )}
+
+      <SafetyActions targetUserId={match.otherUserId} conversationId={match.conversationId ?? undefined} onBlocked={() => onUnmatched(match.matchId)} />
     </Card>
   );
 }
@@ -105,6 +108,13 @@ export default function MatchesScreen() {
       active = false;
     };
   }, [applyResult]);
+
+  // Coming back from a chat (where the person may have been blocked) must show the list as it is now.
+  useFocusEffect(
+    useCallback(() => {
+      fetchMatches().then(applyResult);
+    }, [applyResult]),
+  );
 
   const reload = useCallback(
     (isRefresh = false) => {
