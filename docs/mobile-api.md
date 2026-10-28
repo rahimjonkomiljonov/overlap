@@ -218,6 +218,42 @@ Idempotent (needs an `Idempotency-Key`). Body: `{ "text": "…" }` (1 to 2000 ch
 #### `POST /api/mobile/v1/chat/[conversationId]/revive`
 The one-time "start this conversation again" after 7 days of silence: `{ "status": "revived" }`. A conversation that is not the caller's is `404 NOT_FOUND`; one whose match has ended is `422 RULE_VIOLATION` with `reason: UNMATCHED`; one that is not actually expired is `reason: NOT_EXPIRED`; one already revived once is `reason: ALREADY_REVIVED`. Limited to 10 an hour.
 
+### Meetup planner (needs finished account setup)
+
+All of these work on a match you are part of and that is still active; anything else is `404 NOT_FOUND`, exactly like one that does not exist.
+
+#### `GET /api/mobile/v1/meetup/[matchId]`
+Everything the planner screen shows, same data and rules as the website's `/meetup/{matchId}`. Limited to 120 calls an hour.
+```json
+{ "matchId": "…", "other": { "userId": "…", "firstName": "Mina", "photoUrl": "https://…" }, "now": "2026-…",
+  "proposal": { "proposalId": "…", "status": "PROPOSED", "proposedByUserId": "…",
+    "scheduledStart": "2026-…", "scheduledEnd": "2026-…", "spotName": "중앙도서관 앞", "spotNameEn": "In front of the Central Library",
+    "myFeedbackResponse": null, "shareLinks": [ { "id": "…", "url": "https://…/plan/…", "expiresAt": "2026-…", "revokedAt": null } ] },
+  "options": [ { "day": 2, "block": 8, "spotId": "…", "spotName": "…", "spotNameEn": "…", "start": "2026-…", "end": "2026-…" } ],
+  "safeSpots": [ { "id": "…", "name": "…", "nameEn": "…" } ],
+  "customDays": [ "2026-…" ], "customBlocks": [4, 5, 6, 7, 8, 9, 10],
+  "emergencyContacts": [ { "key": "police", "labelKo": "경찰", "labelEn": "Police", "phone": "112" } ] }
+```
+`proposal` is the live one (`PROPOSED` waiting for an answer, or `ACCEPTED` confirmed), or `null`. While one is live, `options` and `safeSpots` are empty. `options` are the top three suggested times from both people's shared free time, each at a Safe Spot; empty when there is no overlap or the campus has no Safe Spot. `customDays` are the 14 selectable days (Seoul midnight, today first) and `customBlocks` the allowed two-hour blocks (4 is 08:00 to 10:00, 10 is 20:00 to 22:00). An emergency contact with `phone: null` has no verified number yet: show its note, never a made-up number.
+
+#### `POST /api/mobile/v1/meetup/[matchId]/propose`
+Idempotent (needs an `Idempotency-Key`). Body: `{ "spotId": "…", "day": 2, "block": 8 }`. Proposes one of the suggested times: `{ "status": "proposed" }`. The server recomputes the options and refuses anything that is not one of them (`422 RULE_VIOLATION`, `reason: INVALID_OPTION`); a match that is already waiting or confirmed is `reason: ALREADY_PLANNED`; an ended match is `reason: UNMATCHED`. Limited to 60 writes an hour.
+
+#### `POST /api/mobile/v1/meetup/[matchId]/propose-custom`
+Idempotent. Body: `{ "spotId": "…", "dayOffset": 3, "block": 6 }`. "Suggest your own time": a day (0 is today, up to 13), a daytime block and an active Safe Spot on your campus. Same answers and refusals as `propose`; a time less than an hour away, outside daytime or outside the 14 days is `reason: INVALID_OPTION`.
+
+#### `POST /api/mobile/v1/meetup/proposals/[proposalId]/respond`
+Body: `{ "decision": "ACCEPT" | "DECLINE" }`. `{ "status": "accepted" | "declined" }`. A counter is a decline followed by a new proposal. Answering your own proposal with ACCEPT is `422` `reason: CANNOT_ACCEPT_OWN`; one already answered is `reason: NOT_PENDING`.
+
+#### `POST /api/mobile/v1/meetup/proposals/[proposalId]/cancel`
+Either person calls off a confirmed meetup: `{ "status": "cancelled" }`. Only a confirmed one: otherwise `422` `reason: NOT_ACCEPTED`.
+
+#### `POST /api/mobile/v1/meetup/proposals/[proposalId]/feedback`
+Body: `{ "response": "GREAT" | "FINE" | "NOT_FOR_ME" | "UNCOMFORTABLE" }`. The private after-meetup check-in: `{ "status": "saved" }`. Saving again replaces your earlier answer. It never files a report by itself, even for `UNCOMFORTABLE`. Only on a confirmed meetup (`reason: NOT_ACCEPTED`).
+
+#### `POST /api/mobile/v1/meetup/proposals/[proposalId]/share-link`
+Idempotent. A text-only "share my plans" link for a trusted contact who is not an Overlap user: `{ "status": "created", "url": "https://…/plan/…", "expiresAt": "2026-…" }`. It expires six hours after the meetup's end. Only on a confirmed meetup (`reason: NOT_ACCEPTED`). Limited to 20 an hour.
+
 ## Adding a route
 
 1. Create `src/app/api/mobile/v1/<path>/route.ts` and export the handler from `mobileRoute("<name>", handler, { idempotent?, allowRestricted? })`.

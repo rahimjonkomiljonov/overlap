@@ -1,11 +1,9 @@
 "use server";
 
-import { MeetupStatus } from "@/generated/prisma/enums";
 import { isRestricted } from "@/server/auth/authz";
 import { getActor } from "@/server/auth/session";
 import { prisma } from "@/server/db";
-import { customSlot } from "./custom";
-import { getMeetupOptions, loadMatchForActor } from "./queries";
+import { loadMatchForActor } from "./queries";
 import {
   cancelMeetupSchema,
   createShareLinkSchema,
@@ -15,21 +13,21 @@ import {
   revokeShareLinkSchema,
   submitMeetupFeedbackSchema,
 } from "./schema";
-import { generateShareToken } from "./token";
-
-/** How long after the meetup's own end a "share my plans" link stays live — long enough for a trusted contact to check in shortly after, never indefinitely. */
-const SHARE_LINK_GRACE_HOURS = 6;
+import {
+  cancelMeetupStep,
+  createShareLinkStep,
+  proposeCustomMeetupStep,
+  proposeMeetupStep,
+  respondToMeetupStep,
+  submitMeetupFeedbackStep,
+} from "./service";
 
 export type MeetupActionState =
   | { status: "idle" }
   | { status: "success" }
   | { status: "error"; code: string };
 
-/**
- * E1: "plan a meetup." Recomputes the actor's own top-3 options server-side and confirms
- * the submitted (day, block, spotId) is actually one of them — defense-in-depth against
- * a stale client render, same pattern as `sendWave`'s block/cap re-checks.
- */
+/** E1: "plan a meetup." The rules live in `proposeMeetupStep`, shared with the mobile route. */
 export async function proposeMeetup(_prev: MeetupActionState, formData: FormData): Promise<MeetupActionState> {
   const actor = await getActor();
   if (!actor) return { status: "error", code: "UNAUTHENTICATED" };
@@ -43,44 +41,12 @@ export async function proposeMeetup(_prev: MeetupActionState, formData: FormData
   });
   if (!parsed.success) return { status: "error", code: "INVALID_INPUT" };
 
-  const match = await loadMatchForActor(prisma, parsed.data.matchId, actor.userId);
-  if (!match) return { status: "error", code: "NOT_FOUND" };
-  if (match.status !== "ACTIVE") return { status: "error", code: "UNMATCHED" };
-
-  const existing = await prisma.meetProposal.findFirst({
-    where: { matchId: match.matchId, status: { in: [MeetupStatus.PROPOSED, MeetupStatus.ACCEPTED] } },
-    select: { id: true },
-  });
-  if (existing) return { status: "error", code: "ALREADY_PLANNED" };
-
-  const now = new Date();
-  const options = await getMeetupOptions(prisma, match, now);
-  const chosen = options.find((o) => o.day === parsed.data.day && o.block === parsed.data.block && o.spotId === parsed.data.spotId);
-  if (!chosen) return { status: "error", code: "INVALID_OPTION" };
-
-  await prisma.meetProposal.create({
-    data: {
-      matchId: match.matchId,
-      proposedByUserId: actor.userId,
-      spotId: parsed.data.spotId,
-      day: parsed.data.day,
-      block: parsed.data.block,
-      scheduledStart: chosen.start,
-      scheduledEnd: chosen.end,
-      proposerSeenStatus: MeetupStatus.PROPOSED,
-    },
-  });
-
+  const result = await proposeMeetupStep(prisma, { userId: actor.userId, campusId: actor.campusId }, parsed.data);
+  if (result.status === "error") return { status: "error", code: result.code };
   return { status: "success" };
 }
 
-/**
- * E1 fallback: "suggest your own time". For two people with no shared free time (or none
- * of the suggested times work). The person picks a day, a daytime block and a Safe Spot;
- * everything is re-checked here, not trusted from the form: the spot has to be an active
- * Safe Spot on the actor's campus and the time has to be allowed (see custom.ts). The other
- * person still accepts or declines, exactly as with a suggested time.
- */
+/** E1 fallback: "suggest your own time". Rules in `proposeCustomMeetupStep`. */
 export async function proposeCustomMeetup(_prev: MeetupActionState, formData: FormData): Promise<MeetupActionState> {
   const actor = await getActor();
   if (!actor) return { status: "error", code: "UNAUTHENTICATED" };
@@ -94,38 +60,8 @@ export async function proposeCustomMeetup(_prev: MeetupActionState, formData: Fo
   });
   if (!parsed.success) return { status: "error", code: "INVALID_INPUT" };
 
-  const match = await loadMatchForActor(prisma, parsed.data.matchId, actor.userId);
-  if (!match) return { status: "error", code: "NOT_FOUND" };
-  if (match.status !== "ACTIVE") return { status: "error", code: "UNMATCHED" };
-
-  const existing = await prisma.meetProposal.findFirst({
-    where: { matchId: match.matchId, status: { in: [MeetupStatus.PROPOSED, MeetupStatus.ACCEPTED] } },
-    select: { id: true },
-  });
-  if (existing) return { status: "error", code: "ALREADY_PLANNED" };
-
-  const spot = await prisma.spot.findFirst({
-    where: { id: parsed.data.spotId, campusId: actor.campusId, isSafeSpot: true, active: true },
-    select: { id: true },
-  });
-  if (!spot) return { status: "error", code: "INVALID_OPTION" };
-
-  const slot = customSlot(parsed.data.dayOffset, parsed.data.block, new Date());
-  if (!slot) return { status: "error", code: "INVALID_OPTION" };
-
-  await prisma.meetProposal.create({
-    data: {
-      matchId: match.matchId,
-      proposedByUserId: actor.userId,
-      spotId: spot.id,
-      day: slot.day,
-      block: slot.block,
-      scheduledStart: slot.start,
-      scheduledEnd: slot.end,
-      proposerSeenStatus: MeetupStatus.PROPOSED,
-    },
-  });
-
+  const result = await proposeCustomMeetupStep(prisma, { userId: actor.userId, campusId: actor.campusId }, parsed.data);
+  if (result.status === "error") return { status: "error", code: result.code };
   return { status: "success" };
 }
 
@@ -166,29 +102,8 @@ export async function respondToMeetup(_prev: MeetupActionState, formData: FormDa
   });
   if (!parsed.success) return { status: "error", code: "INVALID_INPUT" };
 
-  const proposal = await prisma.meetProposal.findUnique({
-    where: { id: parsed.data.proposalId },
-    select: { id: true, status: true, proposedByUserId: true, match: { select: { userAId: true, userBId: true } } },
-  });
-  if (!proposal) return { status: "error", code: "NOT_FOUND" };
-  const { match } = proposal;
-  if (match.userAId !== actor.userId && match.userBId !== actor.userId) return { status: "error", code: "NOT_FOUND" };
-  if (proposal.status !== MeetupStatus.PROPOSED) return { status: "error", code: "NOT_PENDING" };
-  if (parsed.data.decision === "ACCEPT" && proposal.proposedByUserId === actor.userId) {
-    return { status: "error", code: "CANNOT_ACCEPT_OWN" };
-  }
-
-  const newStatus = parsed.data.decision === "ACCEPT" ? MeetupStatus.ACCEPTED : MeetupStatus.DECLINED;
-  await prisma.meetProposal.update({
-    where: { id: proposal.id },
-    data: {
-      status: newStatus,
-      respondedByUserId: actor.userId,
-      respondedAt: new Date(),
-      ...(proposal.proposedByUserId === actor.userId ? { proposerSeenStatus: newStatus } : { responderSeenStatus: newStatus }),
-    },
-  });
-
+  const result = await respondToMeetupStep(prisma, { userId: actor.userId }, parsed.data.proposalId, parsed.data.decision);
+  if (result.status === "error") return { status: "error", code: result.code };
   return { status: "success" };
 }
 
@@ -199,20 +114,8 @@ export async function cancelMeetup(_prev: MeetupActionState, formData: FormData)
   const parsed = cancelMeetupSchema.safeParse({ proposalId: formData.get("proposalId") });
   if (!parsed.success) return { status: "error", code: "INVALID_INPUT" };
 
-  const proposal = await prisma.meetProposal.findUnique({
-    where: { id: parsed.data.proposalId },
-    select: { id: true, status: true, match: { select: { userAId: true, userBId: true } } },
-  });
-  if (!proposal) return { status: "error", code: "NOT_FOUND" };
-  const { match } = proposal;
-  if (match.userAId !== actor.userId && match.userBId !== actor.userId) return { status: "error", code: "NOT_FOUND" };
-  if (proposal.status !== MeetupStatus.ACCEPTED) return { status: "error", code: "NOT_ACCEPTED" };
-
-  await prisma.meetProposal.update({
-    where: { id: proposal.id },
-    data: { status: MeetupStatus.CANCELLED, respondedByUserId: actor.userId, respondedAt: new Date() },
-  });
-
+  const result = await cancelMeetupStep(prisma, { userId: actor.userId }, parsed.data.proposalId);
+  if (result.status === "error") return { status: "error", code: result.code };
   return { status: "success" };
 }
 
@@ -227,21 +130,8 @@ export async function submitMeetupFeedback(_prev: MeetupActionState, formData: F
   });
   if (!parsed.success) return { status: "error", code: "INVALID_INPUT" };
 
-  const proposal = await prisma.meetProposal.findUnique({
-    where: { id: parsed.data.proposalId },
-    select: { id: true, status: true, match: { select: { userAId: true, userBId: true } } },
-  });
-  if (!proposal) return { status: "error", code: "NOT_FOUND" };
-  const { match } = proposal;
-  if (match.userAId !== actor.userId && match.userBId !== actor.userId) return { status: "error", code: "NOT_FOUND" };
-  if (proposal.status !== MeetupStatus.ACCEPTED) return { status: "error", code: "NOT_ACCEPTED" };
-
-  await prisma.meetupFeedbackEntry.upsert({
-    where: { proposalId_userId: { proposalId: proposal.id, userId: actor.userId } },
-    update: { response: parsed.data.response },
-    create: { proposalId: proposal.id, userId: actor.userId, response: parsed.data.response },
-  });
-
+  const result = await submitMeetupFeedbackStep(prisma, { userId: actor.userId }, parsed.data.proposalId, parsed.data.response);
+  if (result.status === "error") return { status: "error", code: result.code };
   return { status: "success" };
 }
 
@@ -259,20 +149,9 @@ export async function createShareLink(_prev: CreateShareLinkState, formData: For
   const parsed = createShareLinkSchema.safeParse({ proposalId: formData.get("proposalId") });
   if (!parsed.success) return { status: "error", code: "INVALID_INPUT" };
 
-  const proposal = await prisma.meetProposal.findUnique({
-    where: { id: parsed.data.proposalId },
-    select: { id: true, status: true, scheduledEnd: true, match: { select: { userAId: true, userBId: true } } },
-  });
-  if (!proposal) return { status: "error", code: "NOT_FOUND" };
-  const { match } = proposal;
-  if (match.userAId !== actor.userId && match.userBId !== actor.userId) return { status: "error", code: "NOT_FOUND" };
-  if (proposal.status !== MeetupStatus.ACCEPTED) return { status: "error", code: "NOT_ACCEPTED" };
-
-  const token = generateShareToken();
-  const expiresAt = new Date(proposal.scheduledEnd.getTime() + SHARE_LINK_GRACE_HOURS * 60 * 60 * 1000);
-  await prisma.planShareLink.create({ data: { proposalId: proposal.id, token, expiresAt } });
-
-  return { status: "success", path: `/plan/${token}` };
+  const result = await createShareLinkStep(prisma, { userId: actor.userId }, parsed.data.proposalId);
+  if (result.status === "error") return { status: "error", code: result.code };
+  return { status: "success", path: result.path };
 }
 
 export async function revokeShareLink(_prev: MeetupActionState, formData: FormData): Promise<MeetupActionState> {

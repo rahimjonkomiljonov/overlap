@@ -32,6 +32,19 @@ vi.mock("@/server/pockets/queries", () => ({
   isPocketMember: async () => false,
 }));
 vi.mock("@/server/waves/queries", () => ({ getIncomingWaves: async () => [], getMatches: async () => [] }));
+vi.mock("@/server/meetup/screen", () => ({
+  getMeetupScreen: async () => ({
+    matchId: "m1",
+    other: { userId: "user-b", firstName: "Other", photoUrl: null },
+    proposal: null,
+    options: [],
+    safeSpots: [],
+    customDays: [],
+    customBlocks: [],
+    emergencyContacts: [],
+    now: new Date(),
+  }),
+}));
 vi.mock("@/server/chat/queries", () => ({
   getChatDetail: async () => ({
     conversationId: "c1",
@@ -99,6 +112,13 @@ const LOADERS: Record<string, () => Promise<Record<string, unknown>>> = {
   "/chat/[conversationId]": () => import("@/app/api/mobile/v1/chat/[conversationId]/route"),
   "/chat/[conversationId]/messages": () => import("@/app/api/mobile/v1/chat/[conversationId]/messages/route"),
   "/chat/[conversationId]/revive": () => import("@/app/api/mobile/v1/chat/[conversationId]/revive/route"),
+  "/meetup/[matchId]": () => import("@/app/api/mobile/v1/meetup/[matchId]/route"),
+  "/meetup/[matchId]/propose": () => import("@/app/api/mobile/v1/meetup/[matchId]/propose/route"),
+  "/meetup/[matchId]/propose-custom": () => import("@/app/api/mobile/v1/meetup/[matchId]/propose-custom/route"),
+  "/meetup/proposals/[proposalId]/respond": () => import("@/app/api/mobile/v1/meetup/proposals/[proposalId]/respond/route"),
+  "/meetup/proposals/[proposalId]/cancel": () => import("@/app/api/mobile/v1/meetup/proposals/[proposalId]/cancel/route"),
+  "/meetup/proposals/[proposalId]/feedback": () => import("@/app/api/mobile/v1/meetup/proposals/[proposalId]/feedback/route"),
+  "/meetup/proposals/[proposalId]/share-link": () => import("@/app/api/mobile/v1/meetup/proposals/[proposalId]/share-link/route"),
 };
 
 const actor = (status: UserStatus = UserStatus.ACTIVE, campusId = "campus-1"): Actor => ({

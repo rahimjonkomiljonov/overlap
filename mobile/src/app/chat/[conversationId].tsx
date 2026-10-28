@@ -172,6 +172,12 @@ export default function ChatScreen() {
         </View>
       ) : null}
 
+      {data.matchStatus === 'ACTIVE' ? (
+
+        <Button label={strings.chatPlanMeetup} variant="outline" onPress={() => router.push({ pathname: '/meetup/[matchId]', params: { matchId: data.matchId } })} />
+
+      ) : null}
+
       <Button label={strings.chatBackToMatches} variant="outline" onPress={() => router.back()} />
     </Screen>
   );

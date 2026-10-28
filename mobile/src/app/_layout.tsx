@@ -78,6 +78,7 @@ function Routes({ signedIn }: { signedIn: boolean }) {
           <Stack.Screen name="pocket/[kind]/[id]" />
           <Stack.Screen name="matches" />
           <Stack.Screen name="chat/[conversationId]" />
+          <Stack.Screen name="meetup/[matchId]" />
           <Stack.Screen name="verify" />
         </Stack.Protected>
         <Stack.Protected guard={signedIn && !setUp}>
