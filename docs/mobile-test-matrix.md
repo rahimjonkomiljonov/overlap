@@ -59,10 +59,10 @@ Tick a box only when the proof exists. For the manual columns write the date, de
 | F48 | Deep links and native share | M15 | ☐ | ☐ | ☐ | ☐ | ☐ | |
 | F49 | Offline, loading, empty and error states | M15 | ☐ | ☐ | ☐ | ☐ | ☐ | |
 | F50 | Accessibility: TalkBack, VoiceOver, text scaling, 44 pt targets | M15 | ☐ | ☐ | ☐ | ☐ | ☐ | |
-| F51 | Campus Pockets visibility switch (opt-in, off by default) | M07 | ☐ | ☐ | ☐ | ☐ | ☐ | |
-| F52 | Pockets list by course and club, with member counts | M07 | ☐ | ☐ | ☐ | ☐ | ☐ | |
-| F53 | Pocket people filtered by the shared thing (opted-in people only) | M07 | ☐ | ☐ | ☐ | ☐ | ☐ | |
-| F54 | Wave from a pocket | M07 | ☐ | ☐ | ☐ | ☐ | ☐ | |
+| F51 | Campus Pockets visibility switch (opt-in, off by default) | M07 | ☑ | ☐ | ☐ | ☐ | ☐ | Server: unit tests on the mobile handler (`PUT /pockets/visibility`) and the contract test. App screen built (`mobile/pockets.tsx`), typechecks; not yet run on the emulator (blocked this session by the e2e/local-database issue below, not by the app code). |
+| F52 | Pockets list by course and club, with member counts | M07 | ☑ | ☐ | ☐ | ☐ | ☐ | Server: reuses the website's `getMyPockets` (already proven by `e2e/pockets.spec.ts`) behind a new `GET /pockets` mobile route; unit tests on the handler and the contract test. App screen built, typechecks; not yet run on the emulator. |
+| F53 | Pocket people filtered by the shared thing (opted-in people only) | M07 | ☑ | ☐ | ☐ | ☐ | ☐ | Server: reuses the website's `getPocket`/`isPocketMember` (already proven by `e2e/pockets.spec.ts`) behind a new `GET /pockets/[kind]/[pocketId]` mobile route; unit tests confirm a member row carries no field beyond what the app shows. App screen built, typechecks; not yet run on the emulator. |
+| F54 | Wave from a pocket | M07 | ☑ | ☐ | ☐ | ☐ | ☐ | New shared `waveFromPocketStep` (`src/server/pockets/service.ts`) used by both the website's `waveFromPocket` action and the new idempotent `POST /pockets/wave` mobile route — 7 unit tests cover the cap, block, mutual-match and not-a-member cases directly. App screen built (optimistic wave button), typechecks; not yet run on the emulator. **This is the first mobile route that sends a wave: per M08's note, applying the `idempotency_keys` migration to the production database needs the owner's go-ahead before this route is used for real — not done yet, on purpose.** |
 | F55 | Events list and event detail | M11 | ☐ | ☐ | ☐ | ☐ | ☐ | |
 | F56 | RSVP and the opt-in "show me in who's going" | M11 | ☐ | ☐ | ☐ | ☐ | ☐ | |
 | F57 | Who's going, ranked by overlap (opted-in guests only) | M11 | ☐ | ☐ | ☐ | ☐ | ☐ | |

@@ -1,5 +1,6 @@
 import { Prisma } from "@/generated/prisma/client";
 import type { PrismaClient } from "@/generated/prisma/client";
+import { purgeIdempotencyKeys } from "@/server/mobile/idempotency-store";
 import { purgeSelfies } from "@/server/verification/purge";
 import { deletePhoto } from "@/server/storage/photos";
 import { deleteSelfie } from "@/server/storage/selfies";
@@ -156,7 +157,10 @@ export async function purgeDeletedAccounts(
   return toPurge.length;
 }
 
-export type RetentionJobDb = MessageRetentionDb & ReportEvidenceRetentionDb & AccountPurgeDb & Pick<PrismaClient, "selfie">;
+export type RetentionJobDb = MessageRetentionDb &
+  ReportEvidenceRetentionDb &
+  AccountPurgeDb &
+  Pick<PrismaClient, "selfie" | "idempotencyKey">;
 
 /**
  * The one job the cron route/CLI calls: every §15.4 purge rule this codebase
@@ -166,15 +170,28 @@ export type RetentionJobDb = MessageRetentionDb & ReportEvidenceRetentionDb & Ac
  * deliberately not included: no Campus/Term entity anywhere in this schema carries a
  * term *end date* (Course.term is just a label like "2026-2"), so there is nothing real
  * to compute a boundary from yet — flagged as a known gap, not silently dropped.
+ *
+ * Idempotency keys (M03/M08): forgets mobile send-route keys older than a day. Wired
+ * here only once the `idempotency_keys` migration was applied to the production
+ * database (owner-approved, M08's note) — before that, the table did not exist there,
+ * so calling this earlier would have broken this job's production run outright.
  */
 export async function runRetentionJob(
   db: RetentionJobDb,
   options: { now?: Date } = {},
-): Promise<{ selfies: number; messages: number; reportEvidence: number; accounts: number }> {
+): Promise<{
+  selfies: number;
+  messages: number;
+  reportEvidence: number;
+  accounts: number;
+  idempotencyKeys: number;
+}> {
   const now = options.now ?? new Date();
   const selfies = await purgeSelfies(db, { now });
   const messages = await purgeExpiredMessages(db, { now });
   const reportEvidence = await purgeReportEvidence(db, { now });
   const accounts = await purgeDeletedAccounts(db, { now });
-  return { selfies, messages, reportEvidence, accounts };
+  const idempotencyKeys = await purgeIdempotencyKeys(db, now);
+  await logPurge(db, "retention_purge_idempotency_keys", idempotencyKeys, now);
+  return { selfies, messages, reportEvidence, accounts, idempotencyKeys };
 }

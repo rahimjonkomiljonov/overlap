@@ -26,6 +26,11 @@ vi.mock("@/server/profile/queries", () => ({
   getMissingRequiredSteps: async () => ["basics"],
 }));
 vi.mock("@/server/picks/queries", () => ({ getPicksForActor: async () => [] }));
+vi.mock("@/server/pockets/queries", () => ({
+  getMyPockets: async () => ({ verified: false, visible: false, hasPocketIntent: false, pockets: [] }),
+  getPocket: async () => ({ verified: false, visible: false, hasPocketIntent: false, label: "x", members: [] }),
+  isPocketMember: async () => false,
+}));
 vi.mock("@/server/verification/queries", () => ({
   getMyVerificationStatus: async () => ({ state: "unsubmitted" }),
 }));
@@ -65,6 +70,10 @@ const LOADERS: Record<string, () => Promise<Record<string, unknown>>> = {
   "/picks/[batchItemId]/pass": () => import("@/app/api/mobile/v1/picks/[batchItemId]/pass/route"),
   "/verification": () => import("@/app/api/mobile/v1/verification/route"),
   "/verification/selfie": () => import("@/app/api/mobile/v1/verification/selfie/route"),
+  "/pockets": () => import("@/app/api/mobile/v1/pockets/route"),
+  "/pockets/visibility": () => import("@/app/api/mobile/v1/pockets/visibility/route"),
+  "/pockets/[kind]/[pocketId]": () => import("@/app/api/mobile/v1/pockets/[kind]/[pocketId]/route"),
+  "/pockets/wave": () => import("@/app/api/mobile/v1/pockets/wave/route"),
 };
 
 const actor = (status: UserStatus = UserStatus.ACTIVE, campusId = "campus-1"): Actor => ({
@@ -186,7 +195,7 @@ describe.each(MOBILE_ROUTES)("$method $path ($access)", (spec) => {
         mocks.getActorForRequest.mockResolvedValue(actor());
         const { status } = await callRoute(
           await handlerOf(spec),
-          mobileRequest(spec.path + (spec.sampleQuery ?? "")),
+          mobileRequest((spec.samplePath ?? spec.path) + (spec.sampleQuery ?? "")),
         );
         expect(status).toBe(200);
       });

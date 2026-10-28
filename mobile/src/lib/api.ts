@@ -76,10 +76,10 @@ async function apiRequest<T>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', path: st
 export const apiGet = <T>(path: string) => apiRequest<T>('GET', path);
 export const apiPost = <T>(path: string, body: unknown) => apiRequest<T>('POST', path, { json: body });
 /**
- * A send the server must not apply twice (BUILD_PLAN M08 waves, M06 pass). Pass the same `idempotencyKey` on a retry of the
- * same action and the server replays its first answer; use a new key for a new action.
+ * A send the server must not apply twice (BUILD_PLAN M07 pocket waves, M06 pass). Pass the same `idempotencyKey` on a retry of
+ * the same action and the server replays its first answer; use a new key for a new action.
  */
-export const apiPostOnce = <T>(path: string, idempotencyKey: string) => apiRequest<T>('POST', path, { json: {} }, { 'Idempotency-Key': idempotencyKey });
+export const apiPostOnce = <T>(path: string, idempotencyKey: string, body: unknown = {}) => apiRequest<T>('POST', path, { json: body }, { 'Idempotency-Key': idempotencyKey });
 export const apiPut = <T>(path: string, body: unknown) => apiRequest<T>('PUT', path, { json: body });
 export const apiDelete = <T>(path: string) => apiRequest<T>('DELETE', path);
 export const apiUpload = <T>(path: string, field: string, file: UploadFile) => apiRequest<T>('POST', path, { file, field });

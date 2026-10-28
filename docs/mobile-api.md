@@ -146,6 +146,31 @@ Only undecided picks are listed, best first, so an intent with an empty `items` 
 #### `POST /api/mobile/v1/picks/[batchItemId]/pass`
 Idempotent (needs an `Idempotency-Key`). Passes on one of your own picks: `{ "status": "passed", "batchItemId": "…" }`. Someone else's pick, or one that does not exist, is `404 NOT_FOUND`; a pick already decided (passed or waved) is `422 RULE_VIOLATION` with `reason: ALREADY_DECIDED`. Limited to 200 passes an hour. A passed person is not listed again, and after a second pass they are not offered again at all.
 
+### Campus Pockets (need finished account setup)
+
+#### `GET /api/mobile/v1/pockets`
+Your own course and club pockets, same data as the website's `/pockets`. Query: `?locale=en|ko` (default `en`), the language of each pocket's label.
+```json
+{ "verified": true, "visible": false, "hasPocketIntent": true,
+  "pockets": [ { "kind": "course", "id": "…", "label": "CS201 · Data Structures", "memberCount": 4 } ] }
+```
+`visible` is the person's own Pockets opt-in (off by default); `verified` and `hasPocketIntent` are the other two things that gate browsing (REQUIREMENTS.md C7). None of the three being false is an error: the app shows the matching empty state instead.
+
+#### `PUT /api/mobile/v1/pockets/visibility`
+Body: `{ "visible": true }`. Turns Campus Pockets on or off for the caller; answers back `{ "visible": true }`.
+
+#### `GET /api/mobile/v1/pockets/[kind]/[pocketId]`
+`kind` is `course` or `club`. One pocket in full, same data and rules as the website's `/pockets/{kind}/{pocketId}`. Query: `?locale=en|ko` (default `en`).
+```json
+{ "verified": true, "visible": true, "hasPocketIntent": true, "label": "CS201 · Data Structures",
+  "members": [ { "userId": "…", "firstName": "Mina", "year": 2, "photoUrl": "https://…",
+    "intents": ["FRIENDS", "STUDY"], "alsoShared": 1, "waved": false, "matched": false } ] }
+```
+A pocket that is not the caller's own course or club, or on another campus, is `404 NOT_FOUND`. `members` is join order, not ranked (Pockets is the non-algorithmic route); it is empty whenever `verified`/`visible`/`hasPocketIntent` is false, since that is the same browsing gate as the list route.
+
+#### `POST /api/mobile/v1/pockets/wave`
+Idempotent (needs an `Idempotency-Key`). Body: `{ "kind": "course", "pocketId": "…", "toUserId": "…", "note"?: "…" }`. Waves at someone the caller can currently see in that pocket: `{ "status": "sent", "matched": false }`. Same 8/day cap, rate limit, block check and mutual-match rule as a wave from Daily Picks (`src/server/pockets/service.ts`'s `waveFromPocketStep`, shared with the website's `waveFromPocket` action); the target is re-checked as a current pocket member here, not trusted from the app. Someone not currently visible to the caller in that pocket is `404 NOT_FOUND`; a blocked pair is `422 RULE_VIOLATION` with `reason: BLOCKED`; the cap is `422 RULE_VIOLATION` with `reason: DAILY_CAP_REACHED`. Waving someone already waved is a no-op success, not an error.
+
 ## Adding a route
 
 1. Create `src/app/api/mobile/v1/<path>/route.ts` and export the handler from `mobileRoute("<name>", handler, { idempotent?, allowRestricted? })`.

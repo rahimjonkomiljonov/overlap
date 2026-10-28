@@ -22,6 +22,8 @@ export type MobileRouteSpec = {
   requiresSetup?: boolean;
   /** A query string a valid GET call needs (for example "?type=club"), used by the contract test. */
   sampleQuery?: string;
+  /** For a GET route with a dynamic segment ([id]): a real-shaped path the contract test calls instead. */
+  samplePath?: string;
   summary: string;
 };
 
@@ -197,5 +199,38 @@ export const MOBILE_ROUTES: readonly MobileRouteSpec[] = [
     idempotent: true,
     requiresSetup: true,
     summary: "Pass on one of your own picks. It is never listed again.",
+  },
+  {
+    method: "GET",
+    path: "/pockets",
+    access: "user",
+    requiresSetup: true,
+    summary:
+      "Your own course and club pockets, each with how many people you could meet there. Same data as the website's /pockets.",
+  },
+  {
+    method: "PUT",
+    path: "/pockets/visibility",
+    access: "user",
+    requiresSetup: true,
+    summary: "Turn Campus Pockets on or off for yourself (off by default).",
+  },
+  {
+    method: "GET",
+    path: "/pockets/[kind]/[pocketId]",
+    access: "user",
+    requiresSetup: true,
+    samplePath: "/pockets/course/sample-pocket",
+    summary:
+      "One pocket in full: everyone you could meet there, in join order, each with whether you have waved or matched.",
+  },
+  {
+    method: "POST",
+    path: "/pockets/wave",
+    access: "user",
+    idempotent: true,
+    requiresSetup: true,
+    summary:
+      "Wave at someone you can currently see in one of your pockets. Same 8/day cap and mutual-match rule as a wave from Daily Picks.",
   },
 ];
