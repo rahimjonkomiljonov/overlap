@@ -284,6 +284,7 @@ Waitlist first (S04) so growth starts on Day 5 while the rest is built. Matching
 
 > **Status: APPROVED by the owner on 2026-10-22 (gate G1), not started.** M01 needs no money and can begin as soon as the owner says "start mobile". G2 (spending) was confirmed on 2026-10-22; G3 (creating the developer accounts) is still open: do it in Week 1, required before the first store upload in Week 5.
 > **Window:** Mon 2026-10-26 to Fri 2027-01-29 (14 weeks): build and submission to both stores. Review fixes (M19) can run into the first week of February. It was 13 weeks until the owner added Campus Pockets and Events on 2026-10-22 and accepted 7 more days. Same protocol as §1: one step at a time, "Done when" must pass, tick the box, one Progress Log line, commit as `Mxx: title`.
+> **Standing, on top of each step's own "Done when" (owner request, 2026-10-28, after it was missed twice): no M-step is done until its new or changed screens have been driven for real on the Android emulator** (`demo-work/*-emulator.cjs`-style script against the running app — not just unit/contract tests or a script hitting the mobile API directly, which prove the server but not the screen). Say so in the step's Progress Log line, with what was actually tapped through. This is separate from, and lighter than, §10.6's full "tested" bar (Maestro in CI, a real phone) — it is the per-step minimum, every time, not deferred to a later step or to G5.
 > Separate from the S-steps: S25 and S26 (launch gate) stay owner-side items and do not block M-steps.
 
 ### 10.1 The decision: build a real app with Expo, not a wrapper
@@ -371,6 +372,8 @@ Budgets are Claude Code working days. **Each feature step includes its own tests
 Build work adds up to about 65 working days (M01 to M18) against 63 working days in Weeks 1 to 13, so there is **no slack** and the last two days spill into Week 14. If a step runs over, cut in this order: (0) if Weeks 1 to 8 run late, Events and Campus Pockets move to the first update after approval, (1) haptics and polish beyond Apple's minimum, (2) realtime chat (keep polling), (3) pick preference sliders, (4) meetup share link, (5) iOS slips behind Android. Never cut safety, consent, account deletion or tests.
 
 ### 10.6 What "every function tested" means
+
+This defines the full, store-release bar — not the per-step minimum. Every step still needs its own real Android-emulator run as it ships (§10's intro note); that is necessary but not sufficient for a function to count as **tested** here.
 
 The function list is `docs/mobile-test-matrix.md`. A function is **tested** only when all of these are done:
 1. **API contract tests** (Vitest, fake database): authorization, validation, every error code, and the "sensitive field never reaches role X" select-shape check.

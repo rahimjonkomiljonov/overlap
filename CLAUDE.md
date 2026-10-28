@@ -9,6 +9,7 @@ Build it step by step from `docs/BUILD_PLAN.md`. The full product spec is `docs/
 - At the start of a session, read `docs/BUILD_PLAN.md`, find the first unchecked step (`- [ ]`) and do only that step.
 - Before coding a step, fetch current docs with Context7 for every library it touches. For Next.js 16 also read the matching guide in `node_modules/next/dist/docs/`.
 - A step is done only when every "Done when" check passes. Then tick its box, add a line to the Progress Log in `docs/BUILD_PLAN.md`, and commit as `Sxx: title`.
+- **Mobile-app steps (M-steps) are never done without a real Android-emulator run of the new screens** (see `docs/BUILD_PLAN.md` §10's intro note) — proving the server side with unit/contract tests or a script that only calls the mobile API is not enough, and has been missed before. Say what was actually driven in the step's Progress Log line.
 - Stop at checkpoints C1 to C4 and wait for the owner's review.
 - Build only what is in the Month-1 scope map. New ideas go to the Fast-follow list. Split any step that runs past 1.5x its budget.
 
