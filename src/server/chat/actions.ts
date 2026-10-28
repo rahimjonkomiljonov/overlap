@@ -4,9 +4,8 @@ import { checkRateLimit } from "@/server/auth/rate-limit";
 import { isRestricted } from "@/server/auth/authz";
 import { getActor } from "@/server/auth/session";
 import { prisma } from "@/server/db";
-import { getConversationForActor } from "./queries";
-import { broadcastNewMessage } from "./realtime";
 import { reviveConversationSchema, sendMessageSchema } from "./schema";
+import { reviveConversationStep, sendMessageStep } from "./service";
 
 export type SendMessageState = { status: "idle" } | { status: "success" } | { status: "error"; code: string };
 
@@ -31,34 +30,10 @@ export async function sendMessage(_prev: SendMessageState, formData: FormData): 
     return { status: "error", code: "INVALID_INPUT" };
   }
 
-  const conversation = await getConversationForActor(prisma, parsed.data.conversationId, actor.userId);
-  if (!conversation) {
-    return { status: "error", code: "NOT_FOUND" };
+  const result = await sendMessageStep(prisma, { userId: actor.userId }, parsed.data.conversationId, parsed.data.text);
+  if (result.status === "error") {
+    return { status: "error", code: result.code };
   }
-  if (conversation.matchStatus !== "ACTIVE") {
-    return { status: "error", code: "UNMATCHED" };
-  }
-  if (conversation.status !== "ACTIVE") {
-    return { status: "error", code: "EXPIRED" };
-  }
-
-  const now = new Date();
-  const [created] = await prisma.$transaction([
-    prisma.message.create({
-      data: { conversationId: conversation.conversationId, senderId: actor.userId, text: parsed.data.text },
-    }),
-    prisma.conversation.update({
-      where: { id: conversation.conversationId },
-      data: { lastMessageAt: now, nudgedAt: null },
-    }),
-  ]);
-
-  await broadcastNewMessage(conversation.conversationId, {
-    id: created.id,
-    senderId: created.senderId,
-    text: created.text,
-    createdAt: created.createdAt,
-  });
 
   return { status: "success" };
 }
@@ -75,25 +50,10 @@ export async function reviveConversation(_prev: ReviveConversationState, formDat
     return { status: "error", code: "INVALID_INPUT" };
   }
 
-  const conversation = await getConversationForActor(prisma, parsed.data.conversationId, actor.userId);
-  if (!conversation) {
-    return { status: "error", code: "NOT_FOUND" };
+  const result = await reviveConversationStep(prisma, { userId: actor.userId }, parsed.data.conversationId);
+  if (result.status === "error") {
+    return { status: "error", code: result.code };
   }
-  if (conversation.matchStatus !== "ACTIVE") {
-    return { status: "error", code: "UNMATCHED" };
-  }
-  if (conversation.status !== "EXPIRED") {
-    return { status: "error", code: "NOT_EXPIRED" };
-  }
-  if (conversation.revivedAt !== null) {
-    return { status: "error", code: "ALREADY_REVIVED" };
-  }
-
-  const now = new Date();
-  await prisma.conversation.update({
-    where: { id: conversation.conversationId },
-    data: { status: "ACTIVE", revivedAt: now, lastMessageAt: now },
-  });
 
   return { status: "success" };
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { declineWaveStep, waveBackStep, type DeclineWaveDb, type WaveBackDb } from "./service";
+import { declineWaveStep, unmatchStep, waveBackStep, type DeclineWaveDb, type UnmatchDb, type WaveBackDb } from "./service";
 
 function fakeWaveBackDb(options: {
   incoming?: { id: string; toUserId: string; fromUserId: string; status: string } | null;
@@ -118,5 +118,41 @@ describe("declineWaveStep", () => {
     const { db, update } = fakeDeclineDb({ id: "w1", toUserId: "me", status: "PENDING" });
     expect(await declineWaveStep(db, { userId: "me" }, "w1")).toEqual({ status: "declined" });
     expect(update).toHaveBeenCalledWith({ where: { id: "w1" }, data: { status: "DECLINED" } });
+  });
+});
+
+describe("unmatchStep", () => {
+  function fakeUnmatchDb(match: { id: string; userAId: string; userBId: string; status: string } | null) {
+    const update = vi.fn(async () => ({}));
+    const db = { match: { findUnique: vi.fn(async () => match), update } } as unknown as UnmatchDb;
+    return { db, update };
+  }
+
+  it("is NOT_FOUND for a match that does not exist, or that is not the caller's, and writes nothing", async () => {
+    for (const match of [null, { id: "m1", userAId: "other", userBId: "another", status: "ACTIVE" }]) {
+      const { db, update } = fakeUnmatchDb(match);
+      expect(await unmatchStep(db, { userId: "me" }, "m1")).toEqual({ status: "error", code: "NOT_FOUND" });
+      expect(update).not.toHaveBeenCalled();
+    }
+  });
+
+  it("is ALREADY_DECIDED once the match has already ended, and writes nothing", async () => {
+    const { db, update } = fakeUnmatchDb({ id: "m1", userAId: "me", userBId: "them", status: "UNMATCHED" });
+    expect(await unmatchStep(db, { userId: "me" }, "m1")).toEqual({ status: "error", code: "ALREADY_DECIDED" });
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it("ends an active match, recording who did it", async () => {
+    const { db, update } = fakeUnmatchDb({ id: "m1", userAId: "me", userBId: "them", status: "ACTIVE" });
+    expect(await unmatchStep(db, { userId: "me" }, "m1")).toEqual({ status: "unmatched" });
+    expect(update).toHaveBeenCalledWith({
+      where: { id: "m1" },
+      data: { status: "UNMATCHED", unmatchedAt: expect.any(Date), unmatchedByUserId: "me" },
+    });
+  });
+
+  it("works whichever side of the match the caller is", async () => {
+    const { db } = fakeUnmatchDb({ id: "m1", userAId: "them", userBId: "me", status: "ACTIVE" });
+    expect(await unmatchStep(db, { userId: "me" }, "m1")).toEqual({ status: "unmatched" });
   });
 });

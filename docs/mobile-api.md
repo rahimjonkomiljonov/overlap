@@ -190,6 +190,34 @@ A pocket that is not the caller's own course or club, or on another campus, is `
 #### `POST /api/mobile/v1/pockets/wave`
 Idempotent (needs an `Idempotency-Key`). Body: `{ "kind": "course", "pocketId": "…", "toUserId": "…", "note"?: "…" }`. Waves at someone the caller can currently see in that pocket: `{ "status": "sent", "matched": false }`. Same 8/day cap, rate limit, block check and mutual-match rule as a wave from Daily Picks (`src/server/pockets/service.ts`'s `waveFromPocketStep`, shared with the website's `waveFromPocket` action); the target is re-checked as a current pocket member here, not trusted from the app. Someone not currently visible to the caller in that pocket is `404 NOT_FOUND`; a blocked pair is `422 RULE_VIOLATION` with `reason: BLOCKED`; the cap is `422 RULE_VIOLATION` with `reason: DAILY_CAP_REACHED`. Waving someone already waved is a no-op success, not an error.
 
+### Matches and chat (need finished account setup)
+
+#### `GET /api/mobile/v1/matches`
+Every active match, most recent first — same data as the website's `/matches`, the chat entry point. Limited to 60 calls an hour.
+```json
+{ "matches": [ { "matchId": "…", "conversationId": "…", "otherUserId": "…", "firstName": "Mina", "photoUrl": "https://…", "matchedAt": "2026-…" } ] }
+```
+Excludes anyone you have blocked or been blocked by (same as the website). `conversationId` is never null in practice (every match gets its conversation the moment it forms).
+
+#### `POST /api/mobile/v1/matches/[matchId]/unmatch`
+Ends an active match for good, recording who did it: `{ "status": "unmatched" }`. No un-unmatch. A match that is not the caller's, or does not exist, is `404 NOT_FOUND`; one already ended is `422 RULE_VIOLATION` with `reason: ALREADY_DECIDED`. Limited to 30 an hour.
+
+#### `GET /api/mobile/v1/chat/[conversationId]`
+The thread itself: same data as the website's chat page. Query: `?locale=en|ko` (default `en`), the language of the icebreaker reason labels; the app writes its own sentences around them. Limited to 120 calls an hour — polled every few seconds while the thread is open, same cadence as the website.
+```json
+{ "conversationId": "…", "matchId": "…", "status": "ACTIVE", "revivedAt": null, "matchStatus": "ACTIVE",
+  "otherUserId": "…", "otherFirstName": "Mina", "otherPhotoUrl": "https://…", "canInteract": true,
+  "messages": [ { "id": "…", "senderId": "…", "text": "…", "createdAt": "2026-…" } ],
+  "icebreakers": [ { "type": "course", "label": "…" }, { "type": "freeTime", "day": 2, "block": 8 } ] }
+```
+A conversation that is not the caller's, or does not exist, or whose two participants have blocked each other, is `404 NOT_FOUND` — never distinguished, same as the website's own guard. `icebreakers` uses the same reason encoding as a pick's `reasons` (`src/server/picks/reasons.ts`), and is only ever non-empty while `messages` is still empty, falling back to nothing (the app shows its own generic prompts) when there is no shared-overlap wave to explain. `canInteract` is false once unmatched, or while `status` is `EXPIRED` and not yet revived — the app hides its composer exactly then.
+
+#### `POST /api/mobile/v1/chat/[conversationId]/messages`
+Idempotent (needs an `Idempotency-Key`). Body: `{ "text": "…" }` (1 to 2000 characters). Sends a message in an already-matched, still-interactable conversation: `{ "status": "sent", "message": { "id": "…", "senderId": "…", "text": "…", "createdAt": "2026-…" } }`. A conversation that is not the caller's is `404 NOT_FOUND`; one whose match has ended is `422 RULE_VIOLATION` with `reason: UNMATCHED`; one silent 7 days and not revived is `reason: EXPIRED`. Limited to 60 messages per 5 minutes (shared with the website's own chat rate limit).
+
+#### `POST /api/mobile/v1/chat/[conversationId]/revive`
+The one-time "start this conversation again" after 7 days of silence: `{ "status": "revived" }`. A conversation that is not the caller's is `404 NOT_FOUND`; one whose match has ended is `422 RULE_VIOLATION` with `reason: UNMATCHED`; one that is not actually expired is `reason: NOT_EXPIRED`; one already revived once is `reason: ALREADY_REVIVED`. Limited to 10 an hour.
+
 ## Adding a route
 
 1. Create `src/app/api/mobile/v1/<path>/route.ts` and export the handler from `mobileRoute("<name>", handler, { idempotent?, allowRestricted? })`.

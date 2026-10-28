@@ -20,6 +20,7 @@ export const DEFAULT_SENSITIVE_KEYS = [
   "content",
   "chatText",
   "chat_text",
+  "text",
   // General credential hygiene, so a stray secret in a payload doesn't leak either.
   "password",
   "token",

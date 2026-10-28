@@ -59,6 +59,31 @@ export async function waveBackStep(
   return { status: "matched" };
 }
 
+export type UnmatchDb = Pick<PrismaClient, "match">;
+
+export type UnmatchResult = { status: "unmatched" } | { status: "error"; code: "NOT_FOUND" | "ALREADY_DECIDED" };
+
+/** Ends an active match for good (no un-unmatch). Shared by the website's `unmatch` action and the mobile `POST /matches/{id}/unmatch` route. */
+export async function unmatchStep(db: UnmatchDb, person: { userId: string }, matchId: string): Promise<UnmatchResult> {
+  const match = await db.match.findUnique({
+    where: { id: matchId },
+    select: { id: true, userAId: true, userBId: true, status: true },
+  });
+  if (!match || (match.userAId !== person.userId && match.userBId !== person.userId)) {
+    return { status: "error", code: "NOT_FOUND" };
+  }
+  if (match.status !== "ACTIVE") {
+    return { status: "error", code: "ALREADY_DECIDED" };
+  }
+
+  await db.match.update({
+    where: { id: match.id },
+    data: { status: "UNMATCHED", unmatchedAt: new Date(), unmatchedByUserId: person.userId },
+  });
+
+  return { status: "unmatched" };
+}
+
 export type DeclineWaveDb = Pick<PrismaClient, "wave">;
 
 export type DeclineWaveResult = { status: "declined" } | { status: "error"; code: "NOT_FOUND" | "ALREADY_DECIDED" };

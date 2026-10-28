@@ -267,4 +267,46 @@ export const MOBILE_ROUTES: readonly MobileRouteSpec[] = [
     summary:
       "Wave at someone you can currently see in one of your pockets. Same 8/day cap and mutual-match rule as a wave from Daily Picks.",
   },
+  {
+    method: "GET",
+    path: "/matches",
+    access: "user",
+    requiresSetup: true,
+    summary: "Every active match, most recent first — the chat entry point. Same data as the website's /matches.",
+  },
+  {
+    method: "POST",
+    path: "/matches/[matchId]/unmatch",
+    access: "user",
+    requiresSetup: true,
+    samplePath: "/matches/sample-match-id/unmatch",
+    summary: "Ends an active match for good. No un-unmatch.",
+  },
+  {
+    method: "GET",
+    path: "/chat/[conversationId]",
+    access: "user",
+    requiresSetup: true,
+    samplePath: "/chat/sample-conversation-id",
+    summary:
+      "The thread itself: messages oldest first, and icebreakers (the reasons you overlap) while it is still empty. Polled every few seconds while the thread is open.",
+  },
+  {
+    method: "POST",
+    path: "/chat/[conversationId]/messages",
+    access: "user",
+    idempotent: true,
+    requiresSetup: true,
+    samplePath: "/chat/sample-conversation-id/messages",
+    summary: "Sends a message in an already-matched, still-interactable conversation.",
+  },
+  {
+    method: "POST",
+    path: "/chat/[conversationId]/revive",
+    access: "user",
+    requiresSetup: true,
+    samplePath: "/chat/sample-conversation-id/revive",
+    summary:
+      "The one-time \"start this conversation again\" after 7 days of silence. Refuses if it isn't actually expired or has already been revived once.",
+  },
 ];

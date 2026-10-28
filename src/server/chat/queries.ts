@@ -1,6 +1,8 @@
 import type { PrismaClient } from "@/generated/prisma/client";
+import { buildLabelMaps, resolveReasons, type ResolvedReason } from "@/server/picks/reasons";
 import { resolvePhotoUrl } from "@/server/storage/photos";
 import { isBlockedEitherWay } from "@/server/waves/blocks";
+import { getIcebreakerReasons } from "./icebreakers";
 
 export type ChatDb = Pick<PrismaClient, "conversation" | "message" | "block">;
 
@@ -96,4 +98,35 @@ export async function getMessages(db: ChatDb, conversationId: string): Promise<C
     select: { id: true, senderId: true, text: true, createdAt: true },
   });
   return messages;
+}
+
+export type ChatDetailDb = ChatDb & Pick<PrismaClient, "wave" | "course" | "club" | "interestTag">;
+
+export interface ChatDetail extends ConversationView {
+  messages: ChatMessage[];
+  /** The shared-overlap "why you two" suggestions (D4) — only computed while the thread is still empty, like the website's chat page. */
+  icebreakers: ResolvedReason[];
+}
+
+/**
+ * One call for everything a chat thread screen needs: the mobile counterpart of the website's
+ * `ChatPage` (`src/app/[locale]/(app)/matches/[conversationId]/page.tsx`), which composes the same
+ * pieces inline for its own render. Returns null for anything `getConversationForActor` would —
+ * doesn't exist, not a participant, or blocked either way.
+ */
+export async function getChatDetail(db: ChatDetailDb, conversationId: string, userId: string, locale: string): Promise<ChatDetail | null> {
+  const conversation = await getConversationForActor(db, conversationId, userId);
+  if (!conversation) return null;
+
+  const messages = await getMessages(db, conversationId);
+  let icebreakers: ResolvedReason[] = [];
+  if (messages.length === 0) {
+    const reasons = await getIcebreakerReasons(db, conversationId);
+    if (reasons.length > 0) {
+      const maps = await buildLabelMaps(db, [reasons]);
+      icebreakers = resolveReasons(reasons, maps, locale);
+    }
+  }
+
+  return { ...conversation, messages, icebreakers };
 }

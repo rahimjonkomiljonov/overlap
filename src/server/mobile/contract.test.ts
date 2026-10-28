@@ -31,7 +31,22 @@ vi.mock("@/server/pockets/queries", () => ({
   getPocket: async () => ({ verified: false, visible: false, hasPocketIntent: false, label: "x", members: [] }),
   isPocketMember: async () => false,
 }));
-vi.mock("@/server/waves/queries", () => ({ getIncomingWaves: async () => [] }));
+vi.mock("@/server/waves/queries", () => ({ getIncomingWaves: async () => [], getMatches: async () => [] }));
+vi.mock("@/server/chat/queries", () => ({
+  getChatDetail: async () => ({
+    conversationId: "c1",
+    matchId: "m1",
+    status: "ACTIVE",
+    revivedAt: null,
+    matchStatus: "ACTIVE",
+    otherUserId: "user-b",
+    otherFirstName: "Other",
+    otherPhotoUrl: null,
+    canInteract: true,
+    messages: [],
+    icebreakers: [],
+  }),
+}));
 vi.mock("@/server/verification/queries", () => ({
   getMyVerificationStatus: async () => ({ state: "unsubmitted" }),
 }));
@@ -79,6 +94,11 @@ const LOADERS: Record<string, () => Promise<Record<string, unknown>>> = {
   "/waves": () => import("@/app/api/mobile/v1/waves/route"),
   "/waves/[waveId]/wave-back": () => import("@/app/api/mobile/v1/waves/[waveId]/wave-back/route"),
   "/waves/[waveId]/decline": () => import("@/app/api/mobile/v1/waves/[waveId]/decline/route"),
+  "/matches": () => import("@/app/api/mobile/v1/matches/route"),
+  "/matches/[matchId]/unmatch": () => import("@/app/api/mobile/v1/matches/[matchId]/unmatch/route"),
+  "/chat/[conversationId]": () => import("@/app/api/mobile/v1/chat/[conversationId]/route"),
+  "/chat/[conversationId]/messages": () => import("@/app/api/mobile/v1/chat/[conversationId]/messages/route"),
+  "/chat/[conversationId]/revive": () => import("@/app/api/mobile/v1/chat/[conversationId]/revive/route"),
 };
 
 const actor = (status: UserStatus = UserStatus.ACTIVE, campusId = "campus-1"): Actor => ({

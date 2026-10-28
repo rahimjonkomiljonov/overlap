@@ -17,6 +17,21 @@ describe("scrub", () => {
     });
   });
 
+  it("redacts a real Message-row-shaped payload (M09: chat text must never be logged)", () => {
+    const result = scrub({
+      id: "msg-1",
+      senderId: "user-a",
+      text: "meet me outside the library at 7?",
+      createdAt: new Date("2026-10-28T00:00:00Z"),
+    });
+    expect(result).toEqual({
+      id: "msg-1",
+      senderId: "user-a",
+      text: "[REDACTED]",
+      createdAt: new Date("2026-10-28T00:00:00Z"),
+    });
+  });
+
   it("matches key names case-insensitively and across snake_case/camelCase", () => {
     const result = scrub({ Interested_In: "women", ChatText: "hi" });
     expect(result).toEqual({ Interested_In: "[REDACTED]", ChatText: "[REDACTED]" });

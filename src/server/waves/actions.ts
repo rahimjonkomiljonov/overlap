@@ -6,7 +6,7 @@ import { getActor } from "@/server/auth/session";
 import { prisma } from "@/server/db";
 import { WAVE_ATTEMPT_RATE_LIMIT } from "./cap";
 import { declineWaveSchema, unmatchSchema, waveBackSchema } from "./schema";
-import { declineWaveStep, waveBackStep } from "./service";
+import { declineWaveStep, unmatchStep, waveBackStep } from "./service";
 
 export type WaveBackState = { status: "idle" } | { status: "success" } | { status: "error"; code: string };
 
@@ -71,21 +71,10 @@ export async function unmatch(_prev: UnmatchState, formData: FormData): Promise<
     return { status: "error", code: "INVALID_INPUT" };
   }
 
-  const match = await prisma.match.findUnique({
-    where: { id: parsed.data.matchId },
-    select: { id: true, userAId: true, userBId: true, status: true },
-  });
-  if (!match || (match.userAId !== actor.userId && match.userBId !== actor.userId)) {
-    return { status: "error", code: "NOT_FOUND" };
+  const result = await unmatchStep(prisma, { userId: actor.userId }, parsed.data.matchId);
+  if (result.status === "error") {
+    return { status: "error", code: result.code };
   }
-  if (match.status !== "ACTIVE") {
-    return { status: "error", code: "ALREADY_DECIDED" };
-  }
-
-  await prisma.match.update({
-    where: { id: match.id },
-    data: { status: "UNMATCHED", unmatchedAt: new Date(), unmatchedByUserId: actor.userId },
-  });
 
   return { status: "success" };
 }
