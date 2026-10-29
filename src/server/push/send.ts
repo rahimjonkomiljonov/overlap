@@ -1,5 +1,6 @@
 import { appendFile } from "node:fs/promises";
 import path from "node:path";
+import { isExpoPushToken } from "./expo-token";
 
 export interface PushTarget {
   endpoint: string;
@@ -34,6 +35,12 @@ export function getVapidPublicKey(): string | null {
  * push service. Setting both VAPID keys turns on real delivery with no caller changes.
  */
 export async function sendPush(target: PushTarget, payload: PushPayload): Promise<PushResult> {
+  // A phone (Expo token) goes through Expo's push service; a browser goes through Web Push below.
+  if (isExpoPushToken(target.endpoint)) {
+    const { sendExpoPush } = await import("./expo");
+    return sendExpoPush(target.endpoint, payload);
+  }
+
   const publicKey = process.env.VAPID_PUBLIC_KEY;
   const privateKey = process.env.VAPID_PRIVATE_KEY;
 

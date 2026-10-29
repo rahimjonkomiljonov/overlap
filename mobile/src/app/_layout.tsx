@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -7,7 +7,29 @@ import { authClient } from '@/lib/auth-client';
 import { fetchHealth } from '@/lib/health';
 import { MeProvider, useMe } from '@/lib/me';
 import { PicksProvider } from '@/lib/picks';
+import { configureForeground, listenForNotificationTaps, screenForNotificationPath } from '@/lib/push';
 import { strings } from '@/lib/strings';
+
+configureForeground();
+
+/**
+ * Opens the right screen when a notification is tapped, including the tap that launched the app. Only mounted
+ * for someone who can see those screens; the notification carries a generic path, never a name or message.
+ */
+function NotificationTaps() {
+  const router = useRouter();
+  useEffect(() => {
+    let lastId: string | null = null;
+    return listenForNotificationTaps((path, id) => {
+      // The launch tap can be reported twice (by the listener and by the "last response" lookup).
+      if (id === lastId) return;
+      lastId = id;
+      const screen = screenForNotificationPath(path);
+      if (screen) router.push(screen);
+    });
+  }, [router]);
+  return null;
+}
 
 type Gate = 'checking' | 'offline' | 'upgrade' | 'ready';
 
@@ -66,6 +88,7 @@ function Routes({ signedIn }: { signedIn: boolean }) {
   return (
     <PicksProvider enabled={signedIn && profileDone}>
       <StatusBar style="dark" />
+      {signedIn && profileDone ? <NotificationTaps /> : null}
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#faf8f3' } }}>
         <Stack.Protected guard={signedIn && setUp && !profileDone}>
           <Stack.Screen name="profile" />

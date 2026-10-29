@@ -351,6 +351,15 @@ Body: `{ "type": "SENSITIVE_PREFERENCE" | "MARKETING" | "MARKETING_NIGHT" | "OVE
 #### `POST /api/mobile/v1/privacy/delete`
 Body: `{ "confirm": true }` (anything else is `400`, so a stray call cannot delete anything). `{ "status": "deleted", "purgeAfter": "2026-…" }`. **Two phases on purpose.** This call only flips the account to `DELETED`, stamps `deletedAt`, removes device push registrations, records a `DELETION` request and signs every session out; the person disappears from everyone else's picks, matches and lists straight away. It never touches personal data. The scrub (email replaced by a placeholder, name, photos, birth year and profile removed; the `User` row itself stays because waves, matches, messages and reports still reference it) runs 30 days later in the retention job, and `purgeAfter` is that date. After this call the same session answers `401`, and the app signs out. Limited to 5 an hour.
 
+#### `GET /api/mobile/v1/push`
+Whether push is switched on for this person's phones: `{ "enabled": true, "devices": 1 }`. Needs finished account setup. Browsers registered through the website are not counted. Limited to 120 reads an hour.
+
+#### `PUT /api/mobile/v1/push/device`
+Body: `{ "token": "ExponentPushToken[…]" }` (the token `getExpoPushTokenAsync` returns; anything else is `400`). `{ "status": "registered" }`. Saving the same token again changes nothing; a token that was on another account moves to this one. Phones and browsers share one table, so account deletion, the data export and the notification queue already cover them. Limited to 30 writes an hour.
+
+#### `DELETE /api/mobile/v1/push/device`
+Body: `{ "token": "ExponentPushToken[…]" }`. `{ "status": "removed" }`. Only ever removes the caller's own token; someone else's or an unknown one is silently left alone. **What is sent:** the queue sends a push only outside 21:00 to 08:00 Seoul time (it waits, nothing is dropped), with the same generic text as the email and no names, chat text or `interestedIn`. A token Expo reports as `DeviceNotRegistered` is deleted. Until `EXPO_PUSH_ENABLED=on` the push is only appended to `.dev-push.jsonl`.
+
 #### `GET /api/mobile/v1/preferences/matching` and `PUT /api/mobile/v1/preferences/matching`
 The three "what matters to me" sliders (needs finished account setup): `{ "classes": 1, "interests": 1, "freeTime": 1, "min": 0.5, "max": 1.5, "step": 0.25 }` for the `GET`. The `PUT` body is `{ "classes": 1.25, "interests": 1, "freeTime": 0.75 }`, each from 0.5 to 1.5 in steps of 0.25 (anything else is `400`); `{ "status": "saved", … }`. They apply from the next daily batch, never to picks already made today. Limited to 30 writes an hour.
 

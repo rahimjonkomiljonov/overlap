@@ -639,6 +639,21 @@
           "sees": "Notification email recipients and content",
           "location": "US — not yet active (currently logged to the server console instead)"
         },
+        "expoPush": {
+          "name": "Expo push service",
+          "sees": "A device push token and generic notification text only (never names, chat text or who you would like to meet)",
+          "location": "US — not yet active (currently logged locally instead)"
+        },
+        "apns": {
+          "name": "Apple APNs",
+          "sees": "The same token and generic text, relayed to iPhones",
+          "location": "US — not yet active, reached only through Expo"
+        },
+        "fcm": {
+          "name": "Google FCM",
+          "sees": "The same token and generic text, relayed to Android phones",
+          "location": "US — not yet active, reached only through Expo"
+        },
         "upstashRedis": {
           "name": "Upstash Redis",
           "sees": "Hashed identifiers for rate limiting only",

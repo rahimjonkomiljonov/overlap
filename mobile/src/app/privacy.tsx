@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Share, StyleSheet, Text, View } from 'react-native';
 
+import { PushCard } from '@/components/push-card';
 import { Body, Button, Card, Loading, Screen, Title, colors } from '@/components/ui';
 import type { ApiResult } from '@/lib/api';
 import { authClient } from '@/lib/auth-client';
@@ -182,10 +183,7 @@ export default function PrivacyScreen() {
         ))}
       </Card>
 
-      <Card>
-        <Title>{strings.privacyNotificationsTitle}</Title>
-        <Body tone="muted">{strings.privacyNotificationsBody}</Body>
-      </Card>
+      <PushCard />
 
       <Card>
         <Title>{strings.privacyRequestsTitle}</Title>

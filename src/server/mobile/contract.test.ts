@@ -51,6 +51,11 @@ vi.mock("@/server/privacy/service", () => ({
   withdrawConsentStep: async () => ({ status: "withdrawn" }),
   requestAccountDeletionStep: async () => ({ status: "deleted", purgeAfter: new Date() }),
 }));
+vi.mock("@/server/push/service", () => ({
+  deviceCountStep: async () => 0,
+  registerDeviceStep: async () => ({ status: "registered" }),
+  unregisterDeviceStep: async () => ({ status: "removed" }),
+}));
 vi.mock("@/server/preferences/queries", () => ({ getMyWeightSliders: async () => ({ classes: 1, interests: 1, freeTime: 1 }) }));
 vi.mock("@/server/preferences/service", () => ({ setWeightSlidersStep: async () => ({ status: "saved" }) }));
 vi.mock("@/server/events/queries", () => ({
@@ -178,6 +183,8 @@ const LOADERS: Record<string, () => Promise<Record<string, unknown>>> = {
   "/privacy/consents/withdraw": () => import("@/app/api/mobile/v1/privacy/consents/withdraw/route"),
   "/privacy/delete": () => import("@/app/api/mobile/v1/privacy/delete/route"),
   "/preferences/matching": () => import("@/app/api/mobile/v1/preferences/matching/route"),
+  "/push": () => import("@/app/api/mobile/v1/push/route"),
+  "/push/device": () => import("@/app/api/mobile/v1/push/device/route"),
   "/hides/[userId]": () => import("@/app/api/mobile/v1/hides/[userId]/route"),
 };
 

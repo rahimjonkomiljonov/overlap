@@ -82,6 +82,8 @@ export const apiPost = <T>(path: string, body: unknown) => apiRequest<T>('POST',
 export const apiPostOnce = <T>(path: string, idempotencyKey: string, body: unknown = {}) => apiRequest<T>('POST', path, { json: body }, { 'Idempotency-Key': idempotencyKey });
 export const apiPut = <T>(path: string, body: unknown) => apiRequest<T>('PUT', path, { json: body });
 export const apiDelete = <T>(path: string) => apiRequest<T>('DELETE', path);
+/** A DELETE that carries a JSON body (forgetting this phone's push token). */
+export const apiDeleteWith = <T>(path: string, body: unknown) => apiRequest<T>('DELETE', path, { json: body });
 export const apiUpload = <T>(path: string, field: string, file: UploadFile) => apiRequest<T>('POST', path, { file, field });
 
 /**

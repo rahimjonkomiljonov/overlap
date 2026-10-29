@@ -532,6 +532,30 @@ export const MOBILE_ROUTES: readonly MobileRouteSpec[] = [
   },
   {
     method: "GET",
+    path: "/push",
+    access: "user",
+    requiresSetup: true,
+    summary:
+      "Whether push notifications are switched on for your phones.",
+  },
+  {
+    method: "PUT",
+    path: "/push/device",
+    access: "user",
+    requiresSetup: true,
+    summary:
+      "Save this phone's Expo push token (switch push on).",
+  },
+  {
+    method: "DELETE",
+    path: "/push/device",
+    access: "user",
+    requiresSetup: true,
+    summary:
+      "Forget this phone's push token (switch push off). Only ever removes your own.",
+  },
+  {
+    method: "GET",
     path: "/preferences/matching",
     access: "user",
     requiresSetup: true,

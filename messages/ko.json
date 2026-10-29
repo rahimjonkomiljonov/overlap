@@ -639,6 +639,21 @@
           "sees": "알림 이메일 수신자와 내용",
           "location": "미국 — 아직 미사용(현재는 서버 콘솔 로그로만 대체)"
         },
+        "expoPush": {
+          "name": "Expo push service",
+          "sees": "기기 푸시 토큰과 일반적인 알림 문구만(이름, 채팅 내용, 만나고 싶은 사람 정보는 절대 포함하지 않음)",
+          "location": "미국 — 아직 미사용(현재는 로컬 로그로만 대체)"
+        },
+        "apns": {
+          "name": "Apple APNs",
+          "sees": "같은 토큰과 일반 문구, iPhone으로 전달",
+          "location": "미국 — 아직 미사용, Expo를 통해서만 연결"
+        },
+        "fcm": {
+          "name": "Google FCM",
+          "sees": "같은 토큰과 일반 문구, Android 폰으로 전달",
+          "location": "미국 — 아직 미사용, Expo를 통해서만 연결"
+        },
         "upstashRedis": {
           "name": "Upstash Redis",
           "sees": "요청 빈도 제한용 해시 식별자만",
