@@ -1,11 +1,10 @@
-import * as WebBrowser from 'expo-web-browser';
 import { useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { PickHeading, PickPhoto, ReasonTags, WaveComposer } from '@/components/pick-parts';
 import { Body, Button, Card, Loading, Notice, Screen, Title, colors } from '@/components/ui';
-import { authClient } from '@/lib/auth-client';
 import { API_URL } from '@/lib/config';
 import { useMe } from '@/lib/me';
 import { picksProblemText, usePicks, type PickCard } from '@/lib/picks';
@@ -51,7 +50,6 @@ function PickRow({ card }: { card: PickCard }) {
 
 /** The signed-in home: today's picks for every mode the person chose, then the way to verify and to sign out. */
 export default function HomeScreen() {
-  const router = useRouter();
   const { state: meState } = useMe();
   const { state, refreshing, reload } = usePicks();
   const me = meState.phase === 'ready' ? meState.me : null;
@@ -104,24 +102,6 @@ export default function HomeScreen() {
 
       <Button label={strings.howPicksAreChosen} variant="link" onPress={() => void WebBrowser.openBrowserAsync(`${API_URL}/how-matching-works`)} />
 
-      <Button label={strings.eventsOpen} variant="outline" onPress={() => router.push('/events')} />
-      <Button label={strings.safetyOpen} variant="outline" onPress={() => router.push('/safety')} />
-      <Button label={strings.prefsOpen} variant="outline" onPress={() => router.push('/preferences')} />
-      <Button label={strings.privacyOpen} variant="outline" onPress={() => router.push('/privacy')} />
-      <Button label={strings.matchesOpen} variant="outline" onPress={() => router.push('/matches')} />
-      <Button label={strings.wavesOpen} variant="outline" onPress={() => router.push('/waves')} />
-      <Button label={strings.pocketsOpen} variant="outline" onPress={() => router.push('/pockets')} />
-
-      <Card>
-        {me ? (
-          <>
-            <Body tone="muted">{strings.signedInAs}</Body>
-            <Body>{me.email}</Body>
-          </>
-        ) : null}
-        <Button label={strings.homeVerify} variant="outline" onPress={() => router.push('/verify')} />
-        <Button label={strings.signOut} variant="outline" onPress={() => void authClient.signOut()} />
-      </Card>
     </Screen>
   );
 }

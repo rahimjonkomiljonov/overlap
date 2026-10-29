@@ -94,17 +94,14 @@ function Routes({ signedIn }: { signedIn: boolean }) {
           <Stack.Screen name="profile" />
         </Stack.Protected>
         <Stack.Protected guard={signedIn && profileDone}>
-          <Stack.Screen name="index" />
+          <Stack.Screen name="(tabs)" />
           <Stack.Screen name="pick/[id]" />
-          <Stack.Screen name="waves" />
           <Stack.Screen name="pockets" />
           <Stack.Screen name="pocket/[kind]/[id]" />
-          <Stack.Screen name="events" />
           <Stack.Screen name="event/[eventId]" />
           <Stack.Screen name="safety" />
           <Stack.Screen name="privacy" />
           <Stack.Screen name="preferences" />
-          <Stack.Screen name="matches" />
           <Stack.Screen name="chat/[conversationId]" />
           <Stack.Screen name="meetup/[matchId]" />
           <Stack.Screen name="verify" />

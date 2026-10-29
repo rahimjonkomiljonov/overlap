@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { tapFeedback } from '@/lib/haptics';
+
 export const colors = {
   background: '#faf8f3',
   card: '#ffffff',
@@ -60,7 +62,10 @@ export function Button({ label, onPress, disabled, variant = 'solid' }: { label:
       accessibilityRole="button"
       accessibilityState={{ disabled: !!disabled }}
       disabled={disabled}
-      onPress={onPress}
+      onPress={() => {
+        tapFeedback();
+        onPress();
+      }}
       style={[styles.button, variant === 'outline' && styles.outline, variant === 'link' && styles.link, disabled && styles.disabled]}
     >
       <Text style={[styles.buttonText, variant !== 'solid' && styles.buttonTextAlt]}>{label}</Text>

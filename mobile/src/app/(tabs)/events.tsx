@@ -91,7 +91,6 @@ export default function EventsScreen() {
         ? state.events.map((event) => <EventRow key={event.id} event={event} onOpen={() => router.push({ pathname: '/event/[eventId]', params: { eventId: event.id } })} />)
         : null}
 
-      <Button label={strings.back} variant="outline" onPress={() => router.back()} />
     </Screen>
   );
 }

@@ -87,7 +87,6 @@ const POLL_INTERVAL_MS = 15_000;
 
 /** Every active match, most recent first — the chat entry point. */
 export default function MatchesScreen() {
-  const router = useRouter();
   const [state, setState] = useState<State>({ phase: 'loading' });
   const [refreshing, setRefreshing] = useState(false);
 
@@ -156,7 +155,6 @@ export default function MatchesScreen() {
 
       {state.phase === 'ready' ? state.matches.map((match) => <MatchRow key={match.matchId} match={match} onUnmatched={removeLocally} />) : null}
 
-      <Button label={strings.back} variant="outline" onPress={() => router.back()} />
     </Screen>
   );
 }

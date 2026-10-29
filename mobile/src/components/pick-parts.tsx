@@ -5,6 +5,7 @@ import { Alert, StyleSheet, Text, View } from 'react-native';
 import { imageSource } from '@/lib/api';
 import { reasonText, usePicks, type PickCard } from '@/lib/picks';
 import { strings } from '@/lib/strings';
+import { successFeedback } from '@/lib/haptics';
 import { useCookie } from '@/lib/use-cookie';
 import { Field } from './form';
 import { Body, Button, colors } from './ui';
@@ -63,6 +64,7 @@ export function WaveComposer({ cardId, onSettled }: { cardId: string; onSettled?
     }
     // The card is already gone from the list by now (removed by the provider on any settled outcome);
     // an alert works regardless of whether this row is still mounted to show it in place.
+    successFeedback();
     if (result.matched) Alert.alert(strings.waveMatchedNow);
     onSettled?.();
   }

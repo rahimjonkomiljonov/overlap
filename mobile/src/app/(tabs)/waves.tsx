@@ -1,5 +1,4 @@
 import { randomUUID } from 'expo-crypto';
-import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
@@ -7,6 +6,7 @@ import { Image } from 'expo-image';
 import { Field } from '@/components/form';
 import { Body, Button, Card, Loading, Screen, Title, colors } from '@/components/ui';
 import { imageSource, type ApiResult } from '@/lib/api';
+import { successFeedback } from '@/lib/haptics';
 import { useCookie } from '@/lib/use-cookie';
 import { declineWave, fetchWaves, waveBack, type IncomingWave } from '@/lib/waves';
 import { strings } from '@/lib/strings';
@@ -50,6 +50,7 @@ function WaveInboxRow({ wave, onDecided }: { wave: IncomingWave; onDecided: (id:
     const result = await waveBack(wave.id, key.current, note.trim() || undefined);
     setBusy(false);
     if (result.ok) {
+      successFeedback();
       Alert.alert(strings.waveMatchedNow);
       onDecided(wave.id);
       return;
@@ -110,7 +111,6 @@ function WaveInboxRow({ wave, onDecided }: { wave: IncomingWave; onDecided: (id:
 
 /** "Waved at you": everyone currently waiting on an answer from the caller, most recent first. */
 export default function WavesScreen() {
-  const router = useRouter();
   const [state, setState] = useState<State>({ phase: 'loading' });
   const [refreshing, setRefreshing] = useState(false);
 
@@ -166,7 +166,6 @@ export default function WavesScreen() {
 
       {state.phase === 'ready' ? state.waves.map((wave) => <WaveInboxRow key={wave.id} wave={wave} onDecided={removeLocally} />) : null}
 
-      <Button label={strings.back} variant="outline" onPress={() => router.back()} />
     </Screen>
   );
 }
