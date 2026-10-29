@@ -23,6 +23,30 @@ Installed on 2026-10-23 without administrator rights, under the user profile: JD
 4. In this folder: `EXPO_PUBLIC_API_URL=http://10.0.2.2:3000 npx expo start --android`. The first run installs Expo Go on the phone by itself.
 5. Drive it from a script with `adb shell input tap X Y`, `adb shell input text ...`, `adb exec-out screencap -p > shot.png` and `adb shell uiautomator dump` (in Git Bash set `MSYS_NO_PATHCONV=1` or it rewrites `/sdcard` paths).
 
+## Test push notifications on a real phone (BUILD_PLAN M14)
+
+Expo Go cannot receive remote push (it has no native notification module), so push needs a **development build**. Android is free to test; an iPhone needs a paid Apple Developer membership and waits until the owner decides to pay.
+
+**Once, on your accounts (nothing here is committed):**
+1. Make a free Expo account, then in this folder run `npx eas-cli login` and `npx eas-cli init`. It writes the project id into `app.json` (`extra.eas.projectId`); the app cannot get a push token without it. Commit that change.
+2. Make a free Firebase project, add an Android app with the package name **tech.overlaps.app**, and download `google-services.json` into this folder (it is git-ignored). Then add `"googleServicesFile": "./google-services.json"` under `android` in `app.json`.
+3. In Firebase, create a service-account key (Project settings, Service accounts, Generate new private key) and upload it to Expo with `npx eas-cli credentials` (Android, Google Service Account, FCM V1). Keep the key file out of the repo.
+4. On the phone: Settings, About phone, tap Build number 7 times, then turn on USB debugging and plug it in (`adb devices` must list it).
+
+**Build and install the app on the phone:** `EXPO_PUBLIC_API_URL=http://<your PC's network address>:3000 npx expo run:android --device` (the phone cannot use `localhost` or `10.0.2.2`; the PC and the phone must be on the same Wi-Fi). The first build takes several minutes.
+
+**Stage 1, the phone to Expo:** open the app, sign in, go to Privacy and account, tap "Turn on push notifications" and allow the prompt. Copy the token (it starts with `ExponentPushToken[`) from the `push_subscriptions` table, paste it into https://expo.dev/notifications and send a test. It should arrive.
+
+**Stage 2, our own pipeline** (use test accounts, outside 21:00 to 08:00 Seoul time):
+1. Start the website locally with `EXPO_PUSH_ENABLED=on` and the local database (see "Local test stack" in CLAUDE.md; storage stays local).
+2. Sign in on the phone as account A. Make a second account B with `scripts/check-mobile-push.mjs`'s helpers or the website, and make A and B match (wave, wave back).
+3. Put the app in the background, then run the job: `curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/notifications`.
+4. The phone should show a generic notification ("new match", no names or message text); tapping it opens Matches. Repeat for a wave and for a message left unread for an hour.
+
+**Stage 3, quiet hours:** make a match after 21:00 Seoul time and run the job: nothing should arrive. Run it again after 08:00: it should arrive then.
+
+Tick M14 in `docs/BUILD_PLAN.md` only when Android and iPhone have both passed, and say in its Progress Log line what was actually received on which phone.
+
 ## Server-side sign-in checks
 
 `node scripts/check-mobile-auth.mjs` runs 12 checks against a running **local** website and its throwaway database (sign-in, own-account-only, expired, deleted, revoked and brute-forced sessions, Gmail refused on the raw route). It refuses to run against anything that is not localhost. Run the website with `MIN_APP_VERSION=9.0.0` to see the app's update screen.

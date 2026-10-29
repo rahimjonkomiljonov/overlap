@@ -481,7 +481,7 @@ export const strings = {
   pushErrors: {
     unsupported: 'Push needs the installed Overlap app. This version (Expo Go) cannot receive it.',
     denied: 'Notifications are blocked for Overlap. Turn them on in your phone settings, then come back.',
-    no_project: 'This build of the app cannot receive push yet. It needs the installed app, not Expo Go.',
+    no_project: 'Push is not set up for this build yet: it needs an Expo project id.',
     no_token: 'This phone could not get a push address. Push works in the installed app, not in Expo Go, and needs a connection.',
     server: 'We could not save that. Please try again.',
     offline: 'No connection. Please try again.',
