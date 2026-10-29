@@ -329,6 +329,31 @@ Body: `{ "moderationActionId": "…", "appealNote": "…" }` (1 to 1000 characte
 #### `POST /api/mobile/v1/safety/trust-appeals`
 Body: `{ "note": "…" }`. `{ "status": "submitted" }`. Appeals a limit on how widely you are shown: `422` `reason: NOT_LIMITED` when there is none, `reason: ALREADY_OPEN` while one is waiting.
 
+### Privacy and account
+
+**The `/privacy` routes are open to a paused, suspended or banned account, and before account setup is finished**: privacy rights do not depend on standing or on how far someone got. A deleted account is a signed-out one (`401`).
+
+#### `GET /api/mobile/v1/privacy`
+Same data as the website's `/me/privacy`. Limited to 120 calls an hour.
+```json
+{ "consents": [ { "type": "TERMS", "active": true, "withdrawable": false, "grantedAt": "2026-…", "withdrawnAt": null },
+                { "type": "SENSITIVE_PREFERENCE", "active": true, "withdrawable": true, "grantedAt": "2026-…", "withdrawnAt": null } ],
+  "dataRequests": [ { "id": "…", "type": "ACCESS", "status": "COMPLETED", "createdAt": "2026-…", "dueAt": "2026-…", "completedAt": "2026-…" } ] }
+```
+Only consent types that were ever recorded are listed. `withdrawable` is true for `SENSITIVE_PREFERENCE`, `MARKETING`, `MARKETING_NIGHT` and `OVERSEAS_TRANSFER`; the required `TERMS` and `PRIVACY_POLICY` end only with the account. `dataRequests` is the person's own request history (`ACCESS`, `WITHDRAWAL`, `DELETION`, `CORRECTION`; `dueAt` is the 10-day statutory deadline, and every self-service request completes in the call that makes it).
+
+#### `GET /api/mobile/v1/privacy/export`
+"Download my data": `{ "data": { "exportedAt": "2026-…", "account": { … }, "profile": { … }, … } }`. Only the caller's own data and nobody else's (the website's `buildUserDataExport`): the profile, preferences, consents, waves and matches without the other person's id, and only the chat messages the caller wrote. The sensitive "who I would like to meet" field comes back in clear text, since an access request is the one place its owner may read it. A completed `ACCESS` request is recorded. Limited to 5 an hour. The app hands the JSON to the phone's share sheet; it is never stored by the app.
+
+#### `POST /api/mobile/v1/privacy/consents/withdraw`
+Body: `{ "type": "SENSITIVE_PREFERENCE" | "MARKETING" | "MARKETING_NIGHT" | "OVERSEAS_TRANSFER" }`. `{ "status": "withdrawn", "type": "…" }`. Withdrawing `SENSITIVE_PREFERENCE` also deletes the stored "who I would like to meet" field immediately, and Dating closes for that person until they consent again. A `WITHDRAWAL` request is recorded. Nothing to withdraw (never granted, or already withdrawn) is `422 RULE_VIOLATION` with `reason: NOT_ACTIVE`. Any other type, including `TERMS`, is `400 INVALID_INPUT`. Limited to 30 an hour.
+
+#### `POST /api/mobile/v1/privacy/delete`
+Body: `{ "confirm": true }` (anything else is `400`, so a stray call cannot delete anything). `{ "status": "deleted", "purgeAfter": "2026-…" }`. **Two phases on purpose.** This call only flips the account to `DELETED`, stamps `deletedAt`, removes device push registrations, records a `DELETION` request and signs every session out; the person disappears from everyone else's picks, matches and lists straight away. It never touches personal data. The scrub (email replaced by a placeholder, name, photos, birth year and profile removed; the `User` row itself stays because waves, matches, messages and reports still reference it) runs 30 days later in the retention job, and `purgeAfter` is that date. After this call the same session answers `401`, and the app signs out. Limited to 5 an hour.
+
+#### `GET /api/mobile/v1/preferences/matching` and `PUT /api/mobile/v1/preferences/matching`
+The three "what matters to me" sliders (needs finished account setup): `{ "classes": 1, "interests": 1, "freeTime": 1, "min": 0.5, "max": 1.5, "step": 0.25 }` for the `GET`. The `PUT` body is `{ "classes": 1.25, "interests": 1, "freeTime": 0.75 }`, each from 0.5 to 1.5 in steps of 0.25 (anything else is `400`); `{ "status": "saved", … }`. They apply from the next daily batch, never to picks already made today. Limited to 30 writes an hour.
+
 ## Adding a route
 
 1. Create `src/app/api/mobile/v1/<path>/route.ts` and export the handler from `mobileRoute("<name>", handler, { idempotent?, allowRestricted? })`.

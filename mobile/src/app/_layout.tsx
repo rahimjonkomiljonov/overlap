@@ -79,6 +79,8 @@ function Routes({ signedIn }: { signedIn: boolean }) {
           <Stack.Screen name="events" />
           <Stack.Screen name="event/[eventId]" />
           <Stack.Screen name="safety" />
+          <Stack.Screen name="privacy" />
+          <Stack.Screen name="preferences" />
           <Stack.Screen name="matches" />
           <Stack.Screen name="chat/[conversationId]" />
           <Stack.Screen name="meetup/[matchId]" />

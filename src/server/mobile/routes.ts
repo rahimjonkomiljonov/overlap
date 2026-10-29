@@ -502,4 +502,48 @@ export const MOBILE_ROUTES: readonly MobileRouteSpec[] = [
     summary:
       "Unhide a person.",
   },
+  {
+    method: "GET",
+    path: "/privacy",
+    access: "user-or-restricted",
+    summary:
+      "Which consents are in force and which can be withdrawn, and your own request history. Open to a restricted account and before account setup is finished.",
+  },
+  {
+    method: "GET",
+    path: "/privacy/export",
+    access: "user-or-restricted",
+    summary:
+      "Download my data: only your own data, and a completed access request on record. Open to a restricted account.",
+  },
+  {
+    method: "POST",
+    path: "/privacy/consents/withdraw",
+    access: "user-or-restricted",
+    summary:
+      "Withdraw an optional consent at any time. Withdrawing the sensitive \"who I'd like to meet\" consent also deletes that stored field at once.",
+  },
+  {
+    method: "POST",
+    path: "/privacy/delete",
+    access: "user-or-restricted",
+    summary:
+      "Delete my account, in two phases: the account is flagged and every session signed out now, the personal data is scrubbed 30 days later. Needs { \"confirm\": true }.",
+  },
+  {
+    method: "GET",
+    path: "/preferences/matching",
+    access: "user",
+    requiresSetup: true,
+    summary:
+      "Your three \"what matters to me\" sliders (classes, interests, free time) and the range they accept.",
+  },
+  {
+    method: "PUT",
+    path: "/preferences/matching",
+    access: "user",
+    requiresSetup: true,
+    summary:
+      "Save the sliders (0.5 to 1.5 in steps of 0.25). They apply from the next daily batch.",
+  },
 ];

@@ -44,6 +44,15 @@ vi.mock("@/server/safety/service", async (importOriginal) => ({
     trust: { limited: false, reasons: [], restoredUntil: null, openAppeal: null, lastDecision: null },
   }),
 }));
+vi.mock("@/server/auth/auth", () => ({ auth: { api: { revokeSessions: async () => ({}) } } }));
+vi.mock("@/server/privacy/queries", () => ({ getMyPrivacyOverview: async () => ({ consents: [], dataRequests: [] }) }));
+vi.mock("@/server/privacy/service", () => ({
+  exportMyDataStep: async () => ({ status: "ready", data: { id: "user-a" } }),
+  withdrawConsentStep: async () => ({ status: "withdrawn" }),
+  requestAccountDeletionStep: async () => ({ status: "deleted", purgeAfter: new Date() }),
+}));
+vi.mock("@/server/preferences/queries", () => ({ getMyWeightSliders: async () => ({ classes: 1, interests: 1, freeTime: 1 }) }));
+vi.mock("@/server/preferences/service", () => ({ setWeightSlidersStep: async () => ({ status: "saved" }) }));
 vi.mock("@/server/events/queries", () => ({
   listEvents: async () => [],
   getEventDetail: async () => ({
@@ -164,6 +173,11 @@ const LOADERS: Record<string, () => Promise<Record<string, unknown>>> = {
   "/hides/course": () => import("@/app/api/mobile/v1/hides/course/route"),
   "/hides/club": () => import("@/app/api/mobile/v1/hides/club/route"),
   "/hides/email": () => import("@/app/api/mobile/v1/hides/email/route"),
+  "/privacy": () => import("@/app/api/mobile/v1/privacy/route"),
+  "/privacy/export": () => import("@/app/api/mobile/v1/privacy/export/route"),
+  "/privacy/consents/withdraw": () => import("@/app/api/mobile/v1/privacy/consents/withdraw/route"),
+  "/privacy/delete": () => import("@/app/api/mobile/v1/privacy/delete/route"),
+  "/preferences/matching": () => import("@/app/api/mobile/v1/preferences/matching/route"),
   "/hides/[userId]": () => import("@/app/api/mobile/v1/hides/[userId]/route"),
 };
 

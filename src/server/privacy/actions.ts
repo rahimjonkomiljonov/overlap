@@ -1,12 +1,10 @@
 "use server";
 
-import { ConsentType, DataRequestType, UserStatus } from "@/generated/prisma/enums";
 import { signOutEverywhere } from "@/server/auth/actions";
 import { getActor } from "@/server/auth/session";
-import { withdrawConsent } from "@/server/consent/consent";
 import { prisma } from "@/server/db";
-import { createDataRequest } from "@/server/privacy/data-requests";
 import { withdrawConsentSchema } from "@/server/privacy/schema";
+import { requestAccountDeletionStep, withdrawConsentStep } from "@/server/privacy/service";
 
 export type WithdrawConsentState = { status: "idle" } | { status: "success" } | { status: "error"; code: string };
 
@@ -27,15 +25,8 @@ export async function withdrawConsentAction(
   const parsed = withdrawConsentSchema.safeParse({ type: formData.get("type") });
   if (!parsed.success) return { status: "error", code: "INVALID_INPUT" };
 
-  const type = ConsentType[parsed.data.type];
-  const withdrew = await withdrawConsent(prisma, actor.userId, type);
-  if (!withdrew) return { status: "error", code: "NOT_ACTIVE" };
-
-  if (type === ConsentType.SENSITIVE_PREFERENCE) {
-    await prisma.profile.updateMany({ where: { userId: actor.userId }, data: { interestedIn: null } });
-  }
-
-  await createDataRequest(prisma, actor.userId, DataRequestType.WITHDRAWAL);
+  const result = await withdrawConsentStep(prisma, { userId: actor.userId }, parsed.data.type);
+  if (result.status === "error") return { status: "error", code: result.code };
   return { status: "success" };
 }
 
@@ -63,14 +54,6 @@ export async function requestAccountDeletion(
   const actor = await getActor();
   if (!actor) return { status: "error", code: "UNAUTHENTICATED" };
 
-  const now = new Date();
-  await prisma.user.update({
-    where: { id: actor.userId },
-    data: { status: UserStatus.DELETED, deletedAt: now },
-  });
-  // Stop device pushes right away; the rest of the scrub waits for the 30-day grace.
-  await prisma.pushSubscription.deleteMany({ where: { userId: actor.userId } });
-  await createDataRequest(prisma, actor.userId, DataRequestType.DELETION, { now });
-  await signOutEverywhere();
+  await requestAccountDeletionStep(prisma, { userId: actor.userId }, { signOut: signOutEverywhere });
   return { status: "success" };
 }

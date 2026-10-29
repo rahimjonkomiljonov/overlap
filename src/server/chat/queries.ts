@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@/generated/prisma/client";
+import { UserStatus } from "@/generated/prisma/enums";
 import { buildLabelMaps, resolveReasons, type ResolvedReason } from "@/server/picks/reasons";
 import { resolvePhotoUrl } from "@/server/storage/photos";
 import { isBlockedEitherWay } from "@/server/waves/blocks";
@@ -42,6 +43,7 @@ export async function getConversationForActor(db: ChatDb, conversationId: string
           userBId: true,
           userA: {
             select: {
+              status: true,
               profile: {
                 select: { firstName: true, photos: { orderBy: { sortOrder: "asc" }, take: 1, select: { storageKey: true } } },
               },
@@ -49,6 +51,7 @@ export async function getConversationForActor(db: ChatDb, conversationId: string
           },
           userB: {
             select: {
+              status: true,
               profile: {
                 select: { firstName: true, photos: { orderBy: { sortOrder: "asc" }, take: 1, select: { storageKey: true } } },
               },
@@ -67,6 +70,7 @@ export async function getConversationForActor(db: ChatDb, conversationId: string
   const other = isUserA ? match.userB : match.userA;
   const otherUserId = isUserA ? match.userBId : match.userAId;
 
+  if (other.status === UserStatus.DELETED) return null;
   if (await isBlockedEitherWay(db, actorUserId, otherUserId)) return null;
   const photo = other.profile?.photos[0];
 

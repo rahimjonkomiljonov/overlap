@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@/generated/prisma/client";
+import { UserStatus } from "@/generated/prisma/enums";
 import { resolvePhotoUrl } from "@/server/storage/photos";
 import type { TargetElement } from "@/server/picks/schema";
 import { getActiveMeetups, type ActiveMeetupSummary } from "@/server/meetup/summary";
@@ -24,7 +25,7 @@ export interface IncomingWave {
 export async function getIncomingWaves(db: WavesDb, userId: string): Promise<IncomingWave[]> {
   const blocked = await getBlockedUserIdSet(db, userId);
   const waves = await db.wave.findMany({
-    where: { toUserId: userId, status: "PENDING", fromUserId: { notIn: [...blocked] } },
+    where: { toUserId: userId, status: "PENDING", fromUserId: { notIn: [...blocked] }, fromUser: { status: { not: UserStatus.DELETED } } },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
@@ -80,6 +81,9 @@ export async function getMatches(db: WavesDb, userId: string): Promise<MatchSumm
   const matches = await db.match.findMany({
     where: {
       status: "ACTIVE",
+      // A deleted account stops appearing to anyone the moment it is flagged, not 30 days later when it is scrubbed.
+      userA: { status: { not: UserStatus.DELETED } },
+      userB: { status: { not: UserStatus.DELETED } },
       OR: [
         { userAId: userId, userBId: { notIn: [...blocked] } },
         { userBId: userId, userAId: { notIn: [...blocked] } },

@@ -106,6 +106,8 @@ export default function HomeScreen() {
 
       <Button label={strings.eventsOpen} variant="outline" onPress={() => router.push('/events')} />
       <Button label={strings.safetyOpen} variant="outline" onPress={() => router.push('/safety')} />
+      <Button label={strings.prefsOpen} variant="outline" onPress={() => router.push('/preferences')} />
+      <Button label={strings.privacyOpen} variant="outline" onPress={() => router.push('/privacy')} />
       <Button label={strings.matchesOpen} variant="outline" onPress={() => router.push('/matches')} />
       <Button label={strings.wavesOpen} variant="outline" onPress={() => router.push('/waves')} />
       <Button label={strings.pocketsOpen} variant="outline" onPress={() => router.push('/pockets')} />
