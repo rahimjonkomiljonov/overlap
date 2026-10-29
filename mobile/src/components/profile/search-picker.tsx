@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { Body, colors } from '@/components/ui';
+import { Body } from '@/components/ui';
 import { apiGet } from '@/lib/api';
 import { strings } from '@/lib/strings';
+import { useColors, useStyles, type Palette } from '@/lib/theme';
 
 export type PickKind = 'course' | 'club' | 'spot';
 export type Pick = { id: string; label: string };
@@ -22,6 +23,8 @@ function labelOf(kind: PickKind, r: RawResult): string {
  * What is chosen is kept as a list with a remove button, up to `max`.
  */
 export function SearchPicker({ kind, max, picks, onChange }: { kind: PickKind; max: number; picks: Pick[]; onChange: (next: Pick[]) => void }) {
+  const styles = useStyles(makeStyles);
+  const colors = useColors();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Pick[]>([]);
   const [searching, setSearching] = useState(false);
@@ -80,14 +83,14 @@ export function SearchPicker({ kind, max, picks, onChange }: { kind: PickKind; m
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   wrap: { gap: 8 },
-  selected: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#d8f3ef', borderRadius: 14, paddingLeft: 14, minHeight: 48 },
+  selected: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.tag, borderRadius: 14, paddingLeft: 14, minHeight: 48 },
   selectedText: { flex: 1, fontSize: 15, fontWeight: '600', color: colors.ink },
   remove: { minHeight: 48, paddingHorizontal: 14, justifyContent: 'center' },
   removeText: { color: colors.bad, fontWeight: '700', fontSize: 14 },
-  input: { fontSize: 18, minHeight: 52, borderRadius: 14, borderWidth: 1, borderColor: '#cfd6dc', paddingHorizontal: 14, color: colors.ink, backgroundColor: '#fff' },
-  result: { flexDirection: 'row', alignItems: 'center', minHeight: 48, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, borderColor: colors.border, backgroundColor: '#fff' },
+  input: { fontSize: 18, minHeight: 52, borderRadius: 14, borderWidth: 1, borderColor: colors.inputBorder, paddingHorizontal: 14, color: colors.ink, backgroundColor: colors.onBrand },
+  result: { flexDirection: 'row', alignItems: 'center', minHeight: 48, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.onBrand },
   resultText: { flex: 1, fontSize: 15, color: colors.ink },
   add: { color: colors.brand, fontWeight: '800', fontSize: 14 },
 });

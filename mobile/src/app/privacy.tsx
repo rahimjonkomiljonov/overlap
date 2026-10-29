@@ -3,12 +3,13 @@ import { useCallback, useEffect, useState } from 'react';
 import { Alert, Share, StyleSheet, Text, View } from 'react-native';
 
 import { PushCard } from '@/components/push-card';
-import { Body, Button, Card, Loading, Screen, Title, colors } from '@/components/ui';
+import { Body, Button, Card, Loading, Screen, Title } from '@/components/ui';
 import type { ApiResult } from '@/lib/api';
 import { authClient } from '@/lib/auth-client';
 import { dayLabel } from '@/lib/meetup';
 import { deleteAccount, fetchExport, fetchPrivacy, withdrawConsent, type ConsentEntry, type PrivacyOverview } from '@/lib/privacy';
 import { strings } from '@/lib/strings';
+import { useStyles, type Palette } from '@/lib/theme';
 
 type State = { phase: 'loading' } | { phase: 'failed' } | { phase: 'ready'; data: PrivacyOverview };
 
@@ -21,6 +22,7 @@ function problemText(result: Extract<ApiResult<unknown>, { ok: false }>): string
 }
 
 function ConsentRow({ entry, onChanged }: { entry: ConsentEntry; onChanged: () => void }) {
+  const styles = useStyles(makeStyles);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -130,6 +132,7 @@ function DeleteCard() {
 
 /** Privacy and account: download my data, the consents I can withdraw, what notifications I get, my request history, and deleting my account. */
 export default function PrivacyScreen() {
+  const styles = useStyles(makeStyles);
   const router = useRouter();
   const [state, setState] = useState<State>({ phase: 'loading' });
 
@@ -203,7 +206,7 @@ export default function PrivacyScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   consentRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   consentName: { fontSize: 16, fontWeight: '700', color: colors.ink },
   requestRow: { gap: 2, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 8 },

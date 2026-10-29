@@ -3,10 +3,11 @@ import { useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Chip, Field } from '@/components/form';
-import { Body, Button, colors } from '@/components/ui';
+import { Body, Button } from '@/components/ui';
 import type { ApiResult } from '@/lib/api';
 import { blockUser, fileReport, REPORT_CATEGORIES, type ReportCategory } from '@/lib/safety';
 import { strings } from '@/lib/strings';
+import { useStyles, type Palette } from '@/lib/theme';
 
 type Mode = 'idle' | 'report' | 'block' | 'reported';
 
@@ -24,6 +25,7 @@ function problemText(result: Extract<ApiResult<unknown>, { ok: false }>): string
  * with a confirm step, never a destructive one-tap button).
  */
 export function SafetyActions({ targetUserId, conversationId, onBlocked }: { targetUserId: string; conversationId?: string; onBlocked: () => void }) {
+  const styles = useStyles(makeStyles);
   const [mode, setMode] = useState<Mode>('idle');
   const [category, setCategory] = useState<ReportCategory | null>(null);
   const [description, setDescription] = useState('');
@@ -104,7 +106,7 @@ export function SafetyActions({ targetUserId, conversationId, onBlocked }: { tar
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   panel: { gap: 10, borderRadius: 16, borderWidth: 1, borderColor: colors.border, padding: 14 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
 });

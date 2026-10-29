@@ -3,13 +3,14 @@ import { useState } from 'react';
 import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Body, Button, colors, Title } from '@/components/ui';
+import { Body, Button, Title } from '@/components/ui';
 import { apiDelete, apiUpload, imageSource } from '@/lib/api';
 import { PHOTO_MAX_SIDE, shrinkImage } from '@/lib/image';
 import { problemText } from '@/lib/profile';
 import { strings } from '@/lib/strings';
 import { useCookie } from '@/lib/use-cookie';
 import { StepFooter, type StepProps } from './common';
+import { useStyles, type Palette } from '@/lib/theme';
 
 /**
  * Three to six photos. Each one is shrunk on the phone first (a camera picture can be 10 MB, the server takes
@@ -17,6 +18,7 @@ import { StepFooter, type StepProps } from './common';
  * the server has, read again after every change.
  */
 export function PhotosStep({ profile, options, reload, onNext }: StepProps) {
+  const styles = useStyles(makeStyles);
   const cookie = useCookie();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -86,7 +88,7 @@ export function PhotosStep({ profile, options, reload, onNext }: StepProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   cell: { width: '31%', gap: 4 },
   image: { width: '100%', aspectRatio: 3 / 4, borderRadius: 12, backgroundColor: colors.border },

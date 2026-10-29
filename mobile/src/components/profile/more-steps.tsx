@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Field } from '@/components/form';
-import { Body, colors, Title } from '@/components/ui';
+import { Body, Title } from '@/components/ui';
 import { strings } from '@/lib/strings';
 import { Chip, ChipRow, PickerField, StepFooter, useStepSave, type StepProps } from './common';
+import { useColors, useStyles, type Palette } from '@/lib/theme';
 
 /** Day (0 = Monday) times twelve two-hour blocks (0 = 12 to 2 am): the slot numbers the server stores. */
 const BLOCKS_PER_DAY = 12;
@@ -46,6 +47,8 @@ export function FreeTimeStep(props: StepProps) {
 
 /** Interest tags from the list, plus a few of their own. Optional. */
 export function InterestsStep(props: StepProps) {
+  const styles = useStyles(makeStyles);
+  const colors = useColors();
   const { profile, options } = props;
   const [tagIds, setTagIds] = useState<string[]>(profile.interestTags.map((t) => t.id));
   const [freeText, setFreeText] = useState<string[]>(profile.freeText);
@@ -123,6 +126,7 @@ export function PromptsStep(props: StepProps) {
 
 /** Eight statements, each rated from 1 to 5. */
 export function ValuesStep(props: StepProps) {
+  const styles = useStyles(makeStyles);
   const { profile, options } = props;
   const [answers, setAnswers] = useState<number[]>(Array.from({ length: options.limits.valuesQuizLength }, (_, i) => profile.valuesAnswers[i] ?? 0));
   const { save, busy, error } = useStepSave('values', props);
@@ -159,16 +163,16 @@ export function ValuesStep(props: StepProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   addRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
-  input: { flex: 1, fontSize: 18, minHeight: 52, borderRadius: 14, borderWidth: 1, borderColor: '#cfd6dc', paddingHorizontal: 14, color: colors.ink, backgroundColor: '#fff' },
+  input: { flex: 1, fontSize: 18, minHeight: 52, borderRadius: 14, borderWidth: 1, borderColor: colors.inputBorder, paddingHorizontal: 14, color: colors.ink, backgroundColor: colors.onBrand },
   addButton: { minHeight: 52, minWidth: 64, borderRadius: 26, borderWidth: 2, borderColor: colors.brand, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14 },
   addText: { color: colors.brand, fontWeight: '800', fontSize: 16 },
   scale: { flexDirection: 'row', gap: 8 },
-  scaleButton: { flex: 1, minHeight: 48, borderRadius: 14, borderWidth: 1.5, borderColor: '#cfd6dc', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' },
+  scaleButton: { flex: 1, minHeight: 48, borderRadius: 14, borderWidth: 1.5, borderColor: colors.inputBorder, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.onBrand },
   scaleButtonOn: { backgroundColor: colors.brand, borderColor: colors.brand },
   scaleText: { fontSize: 18, fontWeight: '700', color: colors.ink },
-  scaleTextOn: { color: '#fff' },
+  scaleTextOn: { color: colors.onBrand },
   scaleEnds: { flexDirection: 'row', justifyContent: 'space-between' },
   scaleEnd: { fontSize: 12, color: colors.muted },
 });

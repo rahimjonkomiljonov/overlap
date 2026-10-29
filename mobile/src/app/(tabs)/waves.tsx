@@ -4,12 +4,13 @@ import { Alert, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 
 import { Field } from '@/components/form';
-import { Body, Button, Card, Loading, Screen, Title, colors } from '@/components/ui';
+import { Body, Button, Card, Loading, Screen, Title } from '@/components/ui';
 import { imageSource, type ApiResult } from '@/lib/api';
 import { successFeedback } from '@/lib/haptics';
 import { useCookie } from '@/lib/use-cookie';
 import { declineWave, fetchWaves, waveBack, type IncomingWave } from '@/lib/waves';
 import { strings } from '@/lib/strings';
+import { useStyles, type Palette } from '@/lib/theme';
 
 type State = { phase: 'loading' } | { phase: 'failed'; text: string } | { phase: 'ready'; waves: IncomingWave[] };
 
@@ -26,6 +27,7 @@ function targetLabel(target: IncomingWave['targetElement']): string {
 }
 
 function WaveAvatar({ url, label }: { url: string | null; label: string }) {
+  const styles = useStyles(makeStyles);
   const cookie = useCookie();
   if (!url || !cookie) {
     return (
@@ -38,6 +40,7 @@ function WaveAvatar({ url, label }: { url: string | null; label: string }) {
 }
 
 function WaveInboxRow({ wave, onDecided }: { wave: IncomingWave; onDecided: (id: string) => void }) {
+  const styles = useStyles(makeStyles);
   const [composerOpen, setComposerOpen] = useState(false);
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
@@ -170,7 +173,7 @@ export default function WavesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   name: { fontSize: 16, fontWeight: '700', color: colors.ink },
   photo: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.border },
   photoFallback: { alignItems: 'center', justifyContent: 'center' },

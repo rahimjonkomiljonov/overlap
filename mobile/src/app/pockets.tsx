@@ -2,14 +2,16 @@ import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Body, Button, Card, Loading, Screen, Title, colors } from '@/components/ui';
+import { Body, Button, Card, Loading, Screen, Title } from '@/components/ui';
 import { fetchMyPockets, pocketsProblemText, setPocketsVisible, type MyPockets } from '@/lib/pockets';
 import { strings } from '@/lib/strings';
+import { useStyles, type Palette } from '@/lib/theme';
 
 type State = { phase: 'loading' } | { phase: 'failed'; text: string } | { phase: 'ready'; data: MyPockets };
 
 /** C7's opt-in switch: off by default, and only a visible, verified person with a pocket intent can browse. */
 function VisibilityToggle({ data, onChanged }: { data: MyPockets; onChanged: (next: MyPockets) => void }) {
+  const styles = useStyles(makeStyles);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,6 +49,7 @@ function VisibilityToggle({ data, onChanged }: { data: MyPockets; onChanged: (ne
 
 /** Your own courses and clubs: everyone who could meet you there, as a plain list (no algorithm). */
 export default function PocketsScreen() {
+  const styles = useStyles(makeStyles);
   const router = useRouter();
   const [state, setState] = useState<State>({ phase: 'loading' });
   const [refreshing, setRefreshing] = useState(false);
@@ -131,7 +134,7 @@ export default function PocketsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   toggleLabel: { fontSize: 16, fontWeight: '700', color: colors.ink },
   kindBadge: { fontSize: 12, fontWeight: '700', color: colors.brand, textTransform: 'uppercase' },
   pocketLabel: { fontSize: 16, fontWeight: '700', color: colors.ink },

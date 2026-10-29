@@ -6,12 +6,13 @@ import { Image } from 'expo-image';
 
 import { Field } from '@/components/form';
 import { SafetyActions } from '@/components/safety-actions';
-import { Body, Button, Card, Loading, Notice, Screen, Title, colors } from '@/components/ui';
+import { Body, Button, Card, Loading, Notice, Screen, Title } from '@/components/ui';
 import { imageSource, type ApiResult } from '@/lib/api';
 import { fetchChatDetail, icebreakerSuggestions, reviveConversation, sendMessage, type ChatDetail } from '@/lib/chat';
 import { useCookie } from '@/lib/use-cookie';
 import { useMe } from '@/lib/me';
 import { strings } from '@/lib/strings';
+import { useStyles, type Palette } from '@/lib/theme';
 
 const POLL_INTERVAL_MS = 3_000;
 
@@ -32,6 +33,7 @@ function sendProblemText(result: Extract<ApiResult<unknown>, { ok: false }>): st
 }
 
 function OtherPhoto({ url, label }: { url: string | null; label: string }) {
+  const styles = useStyles(makeStyles);
   const cookie = useCookie();
   if (!url || !cookie) {
     return (
@@ -45,6 +47,7 @@ function OtherPhoto({ url, label }: { url: string | null; label: string }) {
 
 /** One chat thread: messages, icebreakers while it is still empty, and the composer. Polls every 3s while open, same cadence as the website. */
 export default function ChatScreen() {
+  const styles = useStyles(makeStyles);
   const router = useRouter();
   const { conversationId } = useLocalSearchParams<{ conversationId: string }>();
   const id = String(conversationId);
@@ -186,7 +189,7 @@ export default function ChatScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   photo: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.border },
   photoFallback: { alignItems: 'center', justifyContent: 'center' },
   photoInitial: { fontSize: 16, fontWeight: '800', color: colors.muted },
@@ -197,6 +200,6 @@ const styles = StyleSheet.create({
   bubble: { maxWidth: '80%', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 10 },
   bubbleMine: { backgroundColor: colors.brand },
   bubbleTheirs: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
-  bubbleTextMine: { color: '#fff', fontSize: 16, lineHeight: 22 },
+  bubbleTextMine: { color: colors.onBrand, fontSize: 16, lineHeight: 22 },
   bubbleTextTheirs: { color: colors.ink, fontSize: 16, lineHeight: 22 },
 });

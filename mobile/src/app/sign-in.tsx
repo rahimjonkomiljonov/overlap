@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { StyleSheet, TextInput } from 'react-native';
 
-import { Body, Button, Card, colors, Screen, Title } from '@/components/ui';
+import { Body, Button, Card, Screen, Title } from '@/components/ui';
 import { authClient } from '@/lib/auth-client';
 import { strings } from '@/lib/strings';
+import { useColors, useStyles, type Palette } from '@/lib/theme';
 
 /** Sign in with a school email and a 6-digit code, the same flow as the website. */
 export default function SignInScreen() {
+  const styles = useStyles(makeStyles);
+  const colors = useColors();
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [step, setStep] = useState<'email' | 'code'>('email');
@@ -91,6 +94,6 @@ export default function SignInScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  input: { fontSize: 18, minHeight: 52, borderRadius: 14, borderWidth: 1, borderColor: '#cfd6dc', paddingHorizontal: 14, color: colors.ink, backgroundColor: '#fff' },
+const makeStyles = (colors: Palette) => StyleSheet.create({
+  input: { fontSize: 18, minHeight: 52, borderRadius: 14, borderWidth: 1, borderColor: colors.inputBorder, paddingHorizontal: 14, color: colors.ink, backgroundColor: colors.onBrand },
 });

@@ -2,10 +2,11 @@ import { useCallback, useState } from 'react';
 import { Modal, Pressable, SectionList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Body, Button, colors } from '@/components/ui';
+import { Body, Button } from '@/components/ui';
 import { apiPut } from '@/lib/api';
 import { problemText, type Options, type Profile } from '@/lib/profile';
 import { strings } from '@/lib/strings';
+import { useStyles, type Palette } from '@/lib/theme';
 
 /** What every wizard step receives. */
 export type StepProps = {
@@ -45,6 +46,7 @@ export function useStepSave(route: string, props: Pick<StepProps, 'reload' | 'on
 
 /** A choice you can tap on and off. 44 pt tall. */
 export function Chip({ label, selected, onPress, disabled, radio }: { label: string; selected: boolean; onPress: () => void; disabled?: boolean; radio?: boolean }) {
+  const styles = useStyles(makeStyles);
   return (
     <Pressable
       accessibilityRole={radio ? 'radio' : 'checkbox'}
@@ -60,6 +62,7 @@ export function Chip({ label, selected, onPress, disabled, radio }: { label: str
 }
 
 export function ChipRow({ children }: { children: React.ReactNode }) {
+  const styles = useStyles(makeStyles);
   return <View style={styles.chipRow}>{children}</View>;
 }
 
@@ -67,6 +70,7 @@ export function ChipRow({ children }: { children: React.ReactNode }) {
 export type PickerSection = { title?: string; data: { value: string; label: string }[] };
 
 export function PickerField({ label, value, placeholder, sections, onSelect }: { label: string; value: string | null; placeholder?: string; sections: PickerSection[]; onSelect: (value: string) => void }) {
+  const styles = useStyles(makeStyles);
   const [open, setOpen] = useState(false);
   const shown = sections.flatMap((s) => s.data).find((item) => item.value === value)?.label;
   return (
@@ -107,6 +111,7 @@ export function PickerField({ label, value, placeholder, sections, onSelect }: {
 
 /** Next, Skip and the error line every step ends with. */
 export function StepFooter({ onNext, nextLabel, disabled, busy, error, onSkip }: { onNext: () => void; nextLabel?: string; disabled?: boolean; busy?: boolean; error?: string | null; onSkip?: () => void }) {
+  const styles = useStyles(makeStyles);
   return (
     <View style={styles.footer}>
       {error ? <Body tone="bad">{error}</Body> : null}
@@ -116,23 +121,23 @@ export function StepFooter({ onNext, nextLabel, disabled, busy, error, onSkip }:
   );
 }
 
-const styles = StyleSheet.create({
-  chip: { minHeight: 44, borderRadius: 22, borderWidth: 1.5, borderColor: '#cfd6dc', paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' },
+const makeStyles = (colors: Palette) => StyleSheet.create({
+  chip: { minHeight: 44, borderRadius: 22, borderWidth: 1.5, borderColor: colors.inputBorder, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.onBrand },
   chipOn: { backgroundColor: colors.brand, borderColor: colors.brand },
   chipDisabled: { opacity: 0.45 },
   chipText: { fontSize: 15, fontWeight: '600', color: colors.ink },
-  chipTextOn: { color: '#fff' },
+  chipTextOn: { color: colors.onBrand },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   field: { gap: 6 },
   label: { fontSize: 13, fontWeight: '700', color: colors.muted },
-  fieldBox: { minHeight: 52, borderRadius: 14, borderWidth: 1, borderColor: '#cfd6dc', paddingHorizontal: 14, justifyContent: 'center', backgroundColor: '#fff' },
+  fieldBox: { minHeight: 52, borderRadius: 14, borderWidth: 1, borderColor: colors.inputBorder, paddingHorizontal: 14, justifyContent: 'center', backgroundColor: colors.onBrand },
   fieldText: { fontSize: 18, color: colors.ink },
   placeholder: { color: colors.muted },
   modal: { flex: 1, backgroundColor: colors.background, padding: 20 },
   modalTitle: { fontSize: 22, fontWeight: '800', color: colors.ink, marginBottom: 12 },
   sectionTitle: { fontSize: 13, fontWeight: '800', color: colors.brand, marginTop: 16, marginBottom: 4, textTransform: 'uppercase' },
   row: { minHeight: 52, justifyContent: 'center', paddingHorizontal: 12, borderRadius: 12 },
-  rowOn: { backgroundColor: '#d8f3ef' },
+  rowOn: { backgroundColor: colors.tag },
   rowText: { fontSize: 17, color: colors.ink },
   modalClose: { paddingTop: 12 },
   footer: { gap: 8, marginTop: 8 },

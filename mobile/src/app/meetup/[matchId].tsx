@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Linking, Share, StyleSheet, Text, View } from 'react-native';
 
 import { Chip } from '@/components/form';
-import { Body, Button, Card, Loading, Screen, Title, colors } from '@/components/ui';
+import { Body, Button, Card, Loading, Screen, Title } from '@/components/ui';
 import type { ApiResult } from '@/lib/api';
 import {
   blockLabel,
@@ -27,6 +27,7 @@ import {
   type MeetupScreen,
 } from '@/lib/meetup';
 import { strings } from '@/lib/strings';
+import { useStyles, type Palette } from '@/lib/theme';
 
 type State = { phase: 'loading' } | { phase: 'failed' } | { phase: 'ready'; data: MeetupScreen };
 
@@ -39,6 +40,7 @@ function problemText(result: Extract<ApiResult<unknown>, { ok: false }>): string
 
 /** G6: one tap from the meetup screen. A contact with no verified number shows its note instead, never an invented number. */
 function EmergencyCard({ contacts }: { contacts: EmergencyContact[] }) {
+  const styles = useStyles(makeStyles);
   const [open, setOpen] = useState(false);
   if (!open) return <Button label={strings.emergencyButton} variant="outline" onPress={() => setOpen(true)} />;
   return (
@@ -94,6 +96,7 @@ function OptionsPicker({ data, onDone }: { data: MeetupScreen; onDone: () => voi
 }
 
 function CustomTimeCard({ data, noOverlap, onDone }: { data: MeetupScreen; noOverlap: boolean; onDone: () => void }) {
+  const styles = useStyles(makeStyles);
   const [dayIndex, setDayIndex] = useState<number | null>(null);
   const [block, setBlock] = useState<number | null>(null);
   const [spotId, setSpotId] = useState<string | null>(null);
@@ -168,6 +171,7 @@ function CustomTimeCard({ data, noOverlap, onDone }: { data: MeetupScreen; noOve
 }
 
 function ProposalCard({ data, proposal, onChanged }: { data: MeetupScreen; proposal: MeetupProposal; onChanged: () => void }) {
+  const styles = useStyles(makeStyles);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [shared, setShared] = useState<{ url: string; expiresAt: string } | null>(null);
@@ -345,12 +349,12 @@ export default function MeetupScreenRoute() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   when: { fontSize: 18, fontWeight: '700', color: colors.ink },
   groupLabel: { fontSize: 13, fontWeight: '700', color: colors.muted },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   contactLabel: { fontSize: 14, fontWeight: '700', color: colors.ink },
-  emergency: { gap: 10, borderRadius: 20, borderWidth: 1, borderColor: colors.bad, backgroundColor: '#fdecea', padding: 16 },
+  emergency: { gap: 10, borderRadius: 20, borderWidth: 1, borderColor: colors.bad, backgroundColor: colors.badBackground, padding: 16 },
   emergencyTitle: { fontSize: 16, fontWeight: '800', color: colors.bad },
   shareBox: { gap: 6, borderRadius: 14, borderWidth: 1, borderColor: colors.border, padding: 12 },
 });

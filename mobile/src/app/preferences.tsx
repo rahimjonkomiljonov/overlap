@@ -3,10 +3,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Chip } from '@/components/form';
-import { Body, Button, Card, Loading, Screen, Title, colors } from '@/components/ui';
+import { Body, Button, Card, Loading, Screen, Title } from '@/components/ui';
 import type { ApiResult } from '@/lib/api';
 import { fetchMatchingPreferences, saveMatchingPreferences, sliderSteps, type MatchingPreferences } from '@/lib/privacy';
 import { strings } from '@/lib/strings';
+import { useStyles, type Palette } from '@/lib/theme';
 
 type State = { phase: 'loading' } | { phase: 'failed' } | { phase: 'ready'; prefs: MatchingPreferences };
 type Values = { classes: number; interests: number; freeTime: number };
@@ -18,6 +19,7 @@ function problemText(result: Extract<ApiResult<unknown>, { ok: false }>): string
 }
 
 function Row({ label, value, steps, onChange }: { label: string; value: number; steps: number[]; onChange: (v: number) => void }) {
+  const styles = useStyles(makeStyles);
   return (
     <View style={{ gap: 8 }}>
       <Text style={styles.label}>{label}</Text>
@@ -103,7 +105,7 @@ export default function PreferencesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   label: { fontSize: 14, fontWeight: '700', color: colors.ink },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
 });

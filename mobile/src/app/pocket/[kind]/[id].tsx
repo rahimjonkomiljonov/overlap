@@ -4,15 +4,17 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 
-import { Body, Button, Card, Loading, Screen, Title, colors } from '@/components/ui';
+import { Body, Button, Card, Loading, Screen, Title } from '@/components/ui';
 import { useCookie } from '@/lib/use-cookie';
 import { imageSource } from '@/lib/api';
 import { fetchPocketDetail, pocketsProblemText, waveInPocket, type PocketDetail, type PocketKind, type PocketMember } from '@/lib/pockets';
 import { strings } from '@/lib/strings';
+import { useStyles, type Palette } from '@/lib/theme';
 
 type State = { phase: 'loading' } | { phase: 'failed'; text: string } | { phase: 'ready'; data: PocketDetail };
 
 function MemberPhoto({ url, label }: { url: string | null; label: string }) {
+  const styles = useStyles(makeStyles);
   const cookie = useCookie();
   if (!url || !cookie) {
     return (
@@ -25,6 +27,7 @@ function MemberPhoto({ url, label }: { url: string | null; label: string }) {
 }
 
 function MemberRow({ kind, pocketId, member, onChanged }: { kind: PocketKind; pocketId: string; member: PocketMember; onChanged: (next: PocketMember) => void }) {
+  const styles = useStyles(makeStyles);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [justMatched, setJustMatched] = useState(false);
@@ -76,6 +79,7 @@ function MemberRow({ kind, pocketId, member, onChanged }: { kind: PocketKind; po
 
 /** One pocket in full: everyone the person could meet there, each with a plain profile-level wave. */
 export default function PocketDetailScreen() {
+  const styles = useStyles(makeStyles);
   const router = useRouter();
   const { kind, id } = useLocalSearchParams<{ kind: string; id: string }>();
   const pocketKind = kind === 'club' ? 'club' : 'course';
@@ -154,7 +158,7 @@ export default function PocketDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   kindBadge: { fontSize: 12, fontWeight: '700', color: colors.brand, textTransform: 'uppercase' },
   name: { fontSize: 16, fontWeight: '700', color: colors.ink },
   yearSuffix: { fontSize: 12, fontWeight: '400', color: colors.muted },

@@ -4,11 +4,12 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 
 import { SafetyActions } from '@/components/safety-actions';
-import { Body, Button, Card, Loading, Screen, Title, colors } from '@/components/ui';
+import { Body, Button, Card, Loading, Screen, Title } from '@/components/ui';
 import { imageSource, type ApiResult } from '@/lib/api';
 import { fetchMatches, unmatch, type MatchSummary } from '@/lib/matches';
 import { useCookie } from '@/lib/use-cookie';
 import { strings } from '@/lib/strings';
+import { useStyles, type Palette } from '@/lib/theme';
 
 type State = { phase: 'loading' } | { phase: 'failed'; text: string } | { phase: 'ready'; matches: MatchSummary[] };
 
@@ -19,6 +20,7 @@ function matchesProblemText(result: Extract<ApiResult<unknown>, { ok: false }>):
 }
 
 function MatchPhoto({ url, label }: { url: string | null; label: string }) {
+  const styles = useStyles(makeStyles);
   const cookie = useCookie();
   if (!url || !cookie) {
     return (
@@ -31,6 +33,7 @@ function MatchPhoto({ url, label }: { url: string | null; label: string }) {
 }
 
 function MatchRow({ match, onUnmatched }: { match: MatchSummary; onUnmatched: (matchId: string) => void }) {
+  const styles = useStyles(makeStyles);
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -159,7 +162,7 @@ export default function MatchesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   name: { fontSize: 16, fontWeight: '700', color: colors.ink, flex: 1 },
   photo: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.border },
   photoFallback: { alignItems: 'center', justifyContent: 'center' },

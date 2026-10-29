@@ -2,17 +2,19 @@ import { useState } from 'react';
 import { Image } from 'expo-image';
 import { StyleSheet, View } from 'react-native';
 
-import { Body, colors, Title } from '@/components/ui';
+import { Body, Title } from '@/components/ui';
 import { apiPost, imageSource } from '@/lib/api';
 import { problemText } from '@/lib/profile';
 import { strings } from '@/lib/strings';
 import { useCookie } from '@/lib/use-cookie';
 import { StepFooter, type StepProps } from './common';
+import { useStyles, type Palette } from '@/lib/theme';
 
 type FinishResult = { status: 'complete' } | { status: 'incomplete'; missing: string[] };
 
 /** The last step: how others will see the profile, what is still missing, and the Finish button. */
 export function PreviewStep({ profile, options, reload, onNext }: StepProps) {
+  const styles = useStyles(makeStyles);
   const cookie = useCookie();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,6 +78,6 @@ export function PreviewStep({ profile, options, reload, onNext }: StepProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   photo: { width: '100%', aspectRatio: 3 / 4, borderRadius: 16, backgroundColor: colors.border },
 });

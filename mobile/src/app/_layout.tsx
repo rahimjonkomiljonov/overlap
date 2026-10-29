@@ -7,6 +7,7 @@ import { authClient } from '@/lib/auth-client';
 import { fetchHealth } from '@/lib/health';
 import { MeProvider, useMe } from '@/lib/me';
 import { PicksProvider } from '@/lib/picks';
+import { useColors } from '@/lib/theme';
 import { configureForeground, listenForNotificationTaps, screenForNotificationPath } from '@/lib/push';
 import { strings } from '@/lib/strings';
 
@@ -78,6 +79,7 @@ function Offline({ onRetry }: { onRetry: () => void }) {
  * guard turns false, so nobody can open one that is not theirs.
  */
 function Routes({ signedIn }: { signedIn: boolean }) {
+  const colors = useColors();
   const { state, refresh } = useMe();
 
   if (signedIn && state.phase === 'loading') return <Loading label={strings.loading} />;
@@ -87,9 +89,9 @@ function Routes({ signedIn }: { signedIn: boolean }) {
   const profileDone = setUp && state.phase === 'ready' && state.me.profileComplete;
   return (
     <PicksProvider enabled={signedIn && profileDone}>
-      <StatusBar style="dark" />
+      <StatusBar style="auto" />
       {signedIn && profileDone ? <NotificationTaps /> : null}
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#faf8f3' } }}>
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
         <Stack.Protected guard={signedIn && setUp && !profileDone}>
           <Stack.Screen name="profile" />
         </Stack.Protected>

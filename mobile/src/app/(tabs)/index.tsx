@@ -4,11 +4,12 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { PickHeading, PickPhoto, ReasonTags, WaveComposer } from '@/components/pick-parts';
-import { Body, Button, Card, Loading, Notice, Screen, Title, colors } from '@/components/ui';
+import { Body, Button, Card, Loading, Notice, Screen, Title } from '@/components/ui';
 import { API_URL } from '@/lib/config';
 import { useMe } from '@/lib/me';
 import { picksProblemText, usePicks, type PickCard } from '@/lib/picks';
 import { strings } from '@/lib/strings';
+import { useStyles, type Palette } from '@/lib/theme';
 
 const STATUS_NOTICE: Record<string, string> = {
   PAUSED: strings.statusPaused,
@@ -50,6 +51,7 @@ function PickRow({ card }: { card: PickCard }) {
 
 /** The signed-in home: today's picks for every mode the person chose, then the way to verify and to sign out. */
 export default function HomeScreen() {
+  const styles = useStyles(makeStyles);
   const { state: meState } = useMe();
   const { state, refreshing, reload } = usePicks();
   const me = meState.phase === 'ready' ? meState.me : null;
@@ -106,6 +108,6 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   groupTitle: { fontSize: 18, fontWeight: '800', color: colors.brand },
 });

@@ -47,6 +47,20 @@ Expo Go cannot receive remote push (it has no native notification module), so pu
 
 Tick M14 in `docs/BUILD_PLAN.md` only when Android and iPhone have both passed, and say in its Progress Log line what was actually received on which phone.
 
+## Screen-reader checklist (BUILD_PLAN M15b, by hand)
+
+A script cannot do this: TalkBack ignores swipes sent with `adb`, so the spoken output has to be heard. Do it once on a real Android phone (Settings, Accessibility, TalkBack) and once on an iPhone (VoiceOver) when one is available, signed in with a test account that has a match.
+
+1. Sign in with TalkBack on. The email field is announced as "School email" and the button as a button; the 6-digit code field is announced by its label.
+2. Swipe through the bottom bar. Each tab is announced with its name, "tab" and its position ("Matches, tab, 2 of 5"), and the selected one says so.
+3. On Picks, Matches, Waves and Events: every card reads as one sensible sentence, every button says what it does ("Wave", "Pass", "Chat", "Unmatch"), and nothing is read as "unlabelled" or "button" alone.
+4. Open a chat: messages are read in order with who sent them; the text box and Send are announced.
+5. Privacy and account: each switch says its name and whether it is on or off; "Delete my account" asks for confirmation before anything happens.
+6. Turn the phone's text size to the largest (and the display size up too): no button is cut off, the tab bar still shows whole icons and words, and every screen can still be scrolled to its end.
+7. Turn on dark mode: every screen is readable (nothing dark on dark).
+
+Write in the Progress Log which phone, TalkBack or VoiceOver version and what was heard. The automatic part is already done: `src/server/mobile/palette-contrast.test.ts` (contrast of every text colour in both themes) and the 43-check emulator audit of names, 44 dp targets, dark mode and large text.
+
 ## Server-side sign-in checks
 
 `node scripts/check-mobile-auth.mjs` runs 12 checks against a running **local** website and its throwaway database (sign-in, own-account-only, expired, deleted, revoked and brute-forced sessions, Gmail refused on the raw route). It refuses to run against anything that is not localhost. Run the website with `MIN_APP_VERSION=9.0.0` to see the app's update screen.

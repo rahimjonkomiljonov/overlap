@@ -9,6 +9,7 @@ import { authClient } from '@/lib/auth-client';
 import { API_URL } from '@/lib/config';
 import { useMe } from '@/lib/me';
 import { strings } from '@/lib/strings';
+import { useStyles, type Palette } from '@/lib/theme';
 
 type Step = 'age' | 'terms' | 'sensitive' | 'invite';
 type Info = { accountSetupComplete: boolean; inviteCodeRequired: boolean; minimumAge: number };
@@ -30,6 +31,7 @@ const digitsOnly = (text: string) => text.replace(/\D/g, '');
  * separate choice and "no" is a normal answer: the account is still created.
  */
 export default function OnboardingScreen() {
+  const styles = useStyles(makeStyles);
   const { refresh } = useMe();
   const [info, setInfo] = useState<Info | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
@@ -159,6 +161,6 @@ export default function OnboardingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   dateRow: { flexDirection: 'row', gap: 10 },
 });

@@ -5,11 +5,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Chip, SwitchRow } from '@/components/form';
-import { Body, Button, Card, Loading, Screen, Title, colors } from '@/components/ui';
+import { Body, Button, Card, Loading, Screen, Title } from '@/components/ui';
 import { imageSource, type ApiResult } from '@/lib/api';
 import { connectAtEvent, eventTimeLabel, fetchEvent, setRsvp, type EventDetail, type Guest } from '@/lib/events';
 import { strings } from '@/lib/strings';
 import { useCookie } from '@/lib/use-cookie';
+import { useStyles, type Palette } from '@/lib/theme';
 
 type State = { phase: 'loading' } | { phase: 'failed' } | { phase: 'ready'; event: EventDetail };
 
@@ -22,6 +23,7 @@ function problemText(result: Extract<ApiResult<unknown>, { ok: false }>): string
 }
 
 function GuestPhoto({ url, label }: { url: string | null; label: string }) {
+  const styles = useStyles(makeStyles);
   const cookie = useCookie();
   if (!url || !cookie) {
     return (
@@ -34,6 +36,7 @@ function GuestPhoto({ url, label }: { url: string | null; label: string }) {
 }
 
 function RsvpCard({ event, onSaved }: { event: EventDetail; onSaved: () => void }) {
+  const styles = useStyles(makeStyles);
   const [going, setGoing] = useState(event.myRsvp !== null);
   const [showMe, setShowMe] = useState(event.myRsvp?.showInGuestList ?? false);
   const [busy, setBusy] = useState(false);
@@ -72,6 +75,7 @@ function RsvpCard({ event, onSaved }: { event: EventDetail; onSaved: () => void 
 }
 
 function GuestRow({ eventId, guest, canConnect, onChanged }: { eventId: string; guest: Guest; canConnect: boolean; onChanged: (next: Guest) => void }) {
+  const styles = useStyles(makeStyles);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [matchedNow, setMatchedNow] = useState(false);
@@ -114,6 +118,7 @@ function GuestRow({ eventId, guest, canConnect, onChanged }: { eventId: string; 
 
 /** One event: details, RSVP with the opt-in "show me", who is going, and the 48-hour "we met" window. */
 export default function EventScreen() {
+  const styles = useStyles(makeStyles);
   const router = useRouter();
   const { eventId } = useLocalSearchParams<{ eventId: string }>();
   const id = String(eventId);
@@ -207,10 +212,10 @@ export default function EventScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   badge: { fontSize: 12, fontWeight: '700', color: colors.muted, backgroundColor: colors.card, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4, overflow: 'hidden' },
-  badgeAccent: { color: '#fff', backgroundColor: colors.brand },
+  badgeAccent: { color: colors.onBrand, backgroundColor: colors.brand },
   badgeOutline: { fontSize: 12, fontWeight: '700', color: colors.brand, borderWidth: 1, borderColor: colors.brand, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 3, overflow: 'hidden' },
   guestRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   guestName: { fontSize: 16, fontWeight: '700', color: colors.ink },

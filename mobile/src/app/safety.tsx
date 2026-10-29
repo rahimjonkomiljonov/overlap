@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Chip, Field, SwitchRow } from '@/components/form';
-import { Body, Button, Card, Loading, Notice, Screen, Title, colors } from '@/components/ui';
+import { Body, Button, Card, Loading, Notice, Screen, Title } from '@/components/ui';
 import type { ApiResult } from '@/lib/api';
 import { dayLabel } from '@/lib/meetup';
 import {
@@ -21,6 +21,7 @@ import {
   type SafetyScreen,
 } from '@/lib/safety';
 import { strings } from '@/lib/strings';
+import { useStyles, type Palette } from '@/lib/theme';
 
 type State = { phase: 'loading' } | { phase: 'failed' } | { phase: 'ready'; data: SafetyScreen };
 
@@ -34,6 +35,7 @@ function problemText(result: Extract<ApiResult<unknown>, { ok: false }>): string
 
 /** A person in the blocked or hidden list, with the button that undoes it. */
 function PersonRow({ name, label, onUndo }: { name: string; label: string; onUndo: () => Promise<ApiResult<unknown>> }) {
+  const styles = useStyles(makeStyles);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   async function press() {
@@ -55,6 +57,7 @@ function PersonRow({ name, label, onUndo }: { name: string; label: string; onUnd
 }
 
 function ActionRow({ action, onChanged }: { action: ModerationAction; onChanged: () => void }) {
+  const styles = useStyles(makeStyles);
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
@@ -143,6 +146,7 @@ function TrustCard({ data, onChanged }: { data: SafetyScreen; onChanged: () => v
 }
 
 function HideCard({ data, onChanged }: { data: SafetyScreen; onChanged: () => void }) {
+  const styles = useStyles(makeStyles);
   const [courseId, setCourseId] = useState<string | null>(null);
   const [clubId, setClubId] = useState<string | null>(null);
   const [email, setEmail] = useState('');
@@ -307,7 +311,7 @@ export default function SafetyScreenRoute() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   groupLabel: { fontSize: 13, fontWeight: '700', color: colors.muted },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   personRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },

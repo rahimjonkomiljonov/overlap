@@ -2,10 +2,11 @@ import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Body, Button, Card, Loading, Screen, Title, colors } from '@/components/ui';
+import { Body, Button, Card, Loading, Screen, Title } from '@/components/ui';
 import type { ApiResult } from '@/lib/api';
 import { eventTimeLabel, fetchEvents, type EventListItem } from '@/lib/events';
 import { strings } from '@/lib/strings';
+import { useStyles, type Palette } from '@/lib/theme';
 
 type State = { phase: 'loading' } | { phase: 'failed'; text: string } | { phase: 'ready'; events: EventListItem[] };
 
@@ -16,6 +17,7 @@ function problemText(result: Extract<ApiResult<unknown>, { ok: false }>): string
 }
 
 function EventRow({ event, onOpen }: { event: EventListItem; onOpen: () => void }) {
+  const styles = useStyles(makeStyles);
   const goingText = event.capacity ? strings.eventsGoingOfCapacity(event.goingCount, event.capacity) : strings.eventsGoing(event.goingCount);
   return (
     <Card>
@@ -95,9 +97,9 @@ export default function EventsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   title: { fontSize: 20, fontWeight: '800', color: colors.ink },
   badge: { fontSize: 12, fontWeight: '700', color: colors.muted, backgroundColor: colors.background, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4, overflow: 'hidden' },
-  badgeAccent: { color: '#fff', backgroundColor: colors.brand },
+  badgeAccent: { color: colors.onBrand, backgroundColor: colors.brand },
   badgeOutline: { fontSize: 12, fontWeight: '700', color: colors.brand, borderWidth: 1, borderColor: colors.brand, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 3, overflow: 'hidden' },
 });

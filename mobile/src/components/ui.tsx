@@ -3,22 +3,12 @@ import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, T
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { tapFeedback } from '@/lib/haptics';
-
-export const colors = {
-  background: '#faf8f3',
-  card: '#ffffff',
-  border: '#e8e4da',
-  ink: '#12202b',
-  muted: '#5b6b78',
-  brand: '#0a8a82',
-  good: '#0a7a52',
-  bad: '#b3261e',
-  warn: '#8a5a00',
-  warnBackground: '#fff1cf',
-};
+import { useColors, useStyles, type Palette } from '../lib/theme';
 
 /** Page frame: safe area, scrolling, the brand wordmark on top. */
 export function Screen({ children, onRefresh, refreshing }: { children: ReactNode; /** Pull down to refresh. */ onRefresh?: () => void; refreshing?: boolean }) {
+  const styles = useStyles(makeStyles);
+  const colors = useColors();
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView
@@ -36,18 +26,22 @@ export function Screen({ children, onRefresh, refreshing }: { children: ReactNod
 }
 
 export function Card({ children }: { children: ReactNode }) {
+  const styles = useStyles(makeStyles);
   return <View style={styles.card}>{children}</View>;
 }
 
 export function Title({ children }: { children: ReactNode }) {
+  const styles = useStyles(makeStyles);
   return <Text style={styles.title}>{children}</Text>;
 }
 
 export function Body({ children, tone }: { children: ReactNode; tone?: 'muted' | 'bad' | 'good' }) {
+  const styles = useStyles(makeStyles);
   return <Text style={[styles.body, tone === 'muted' && styles.muted, tone === 'bad' && styles.bad, tone === 'good' && styles.good]}>{children}</Text>;
 }
 
 export function Notice({ children }: { children: ReactNode }) {
+  const styles = useStyles(makeStyles);
   return (
     <View style={styles.notice}>
       <Text style={styles.noticeText}>{children}</Text>
@@ -57,6 +51,7 @@ export function Notice({ children }: { children: ReactNode }) {
 
 /** 52 pt tall, above the 44 pt minimum for a comfortable tap. */
 export function Button({ label, onPress, disabled, variant = 'solid' }: { label: string; onPress: () => void; disabled?: boolean; variant?: 'solid' | 'outline' | 'link' }) {
+  const styles = useStyles(makeStyles);
   return (
     <Pressable
       accessibilityRole="button"
@@ -74,6 +69,8 @@ export function Button({ label, onPress, disabled, variant = 'solid' }: { label:
 }
 
 export function Loading({ label }: { label: string }) {
+  const styles = useStyles(makeStyles);
+  const colors = useColors();
   return (
     <View style={styles.center} accessibilityLabel={label}>
       <ActivityIndicator size="large" color={colors.brand} />
@@ -81,7 +78,7 @@ export function Loading({ label }: { label: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   content: { padding: 24, gap: 16 },
   brand: { fontFamily: 'serif', fontSize: 44, fontWeight: '800', color: colors.brand },
@@ -97,7 +94,7 @@ const styles = StyleSheet.create({
   outline: { backgroundColor: colors.card, borderWidth: 2, borderColor: colors.brand },
   link: { backgroundColor: 'transparent', minHeight: 44 },
   disabled: { opacity: 0.5 },
-  buttonText: { color: '#fff', fontSize: 17, fontWeight: '800' },
+  buttonText: { color: colors.onBrand, fontSize: 17, fontWeight: '800' },
   buttonTextAlt: { color: colors.brand },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
 });
