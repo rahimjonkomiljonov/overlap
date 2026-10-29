@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { Body, Title } from '@/components/ui';
 import { apiPost, imageSource } from '@/lib/api';
 import { problemText } from '@/lib/profile';
+import { localized } from '@/lib/locale';
 import { strings } from '@/lib/strings';
 import { useCookie } from '@/lib/use-cookie';
 import { StepFooter, type StepProps } from './common';
@@ -47,7 +48,7 @@ export function PreviewStep({ profile, options, reload, onNext }: StepProps) {
     [strings.previewField.major, profile.major],
     [strings.previewField.year, profile.year === null ? '' : strings.yearName(profile.year, maxYear)],
     [strings.previewField.intents, profile.intents.map((i) => strings.intentNames[i] ?? i).join(', ')],
-    [strings.previewField.interests, [...profile.interestTags.map((t) => t.labelEn), ...profile.freeText].join(', ')],
+    [strings.previewField.interests, [...profile.interestTags.map((t) => localized(t.labelKo, t.labelEn)), ...profile.freeText].join(', ')],
     [strings.previewField.courses, profile.courses.map((c) => `${c.code} ${c.title}`).join(', ')],
     [strings.previewField.clubs, profile.clubs.map((c) => c.name).join(', ')],
   ];

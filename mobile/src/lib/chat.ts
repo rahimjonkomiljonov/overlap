@@ -1,9 +1,8 @@
 import { apiGet, apiPost, apiPostOnce } from './api';
 import type { Reason } from './picks';
 import { strings } from './strings';
+import { getLocale } from './locale';
 
-/** The language the server writes icebreaker reason labels in. Korean comes with M15. */
-const APP_LOCALE = 'en';
 
 export type ChatMessage = { id: string; senderId: string; text: string; createdAt: string };
 
@@ -21,7 +20,7 @@ export type ChatDetail = {
   icebreakers: Reason[];
 };
 
-export const fetchChatDetail = (conversationId: string) => apiGet<ChatDetail>(`/chat/${encodeURIComponent(conversationId)}?locale=${APP_LOCALE}`);
+export const fetchChatDetail = (conversationId: string) => apiGet<ChatDetail>(`/chat/${encodeURIComponent(conversationId)}?locale=${getLocale()}`);
 
 export type SendMessageResult = { status: 'sent'; message: ChatMessage };
 export const sendMessage = (conversationId: string, idempotencyKey: string, text: string) =>

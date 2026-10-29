@@ -3,6 +3,7 @@ import { View } from 'react-native';
 
 import { Field } from '@/components/form';
 import { Body, Title } from '@/components/ui';
+import { localized } from '@/lib/locale';
 import { strings } from '@/lib/strings';
 import { Chip, ChipRow, PickerField, StepFooter, useStepSave, type StepProps } from './common';
 import { SearchPicker, type Pick, type PickKind } from './search-picker';
@@ -20,7 +21,7 @@ export function BasicsStep(props: StepProps) {
 
   // "Who I'd like to meet" only exists for people who agreed to share it. Everyone else is never asked.
   const consented = profile.datingStatus !== 'needs_consent';
-  const majorSections = options.majorGroups.map((g) => ({ title: g.college.en, data: g.majors.map((m) => ({ value: m.ko, label: m.en })) }));
+  const majorSections = options.majorGroups.map((g) => ({ title: localized(g.college.ko, g.college.en), data: g.majors.map((m) => ({ value: m.ko, label: localized(m.ko, m.en) })) }));
   const maxYear = Math.max(...options.studyYears);
   const yearSections = [{ data: options.studyYears.map((y) => ({ value: String(y), label: strings.yearName(y, maxYear) })) }];
   const ready = firstName.trim().length > 0 && gender !== null && year !== null && major !== null;

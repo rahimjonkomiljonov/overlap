@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Field } from '@/components/form';
 import { Body, Title } from '@/components/ui';
+import { localized } from '@/lib/locale';
 import { strings } from '@/lib/strings';
 import { Chip, ChipRow, PickerField, StepFooter, useStepSave, type StepProps } from './common';
 import { useColors, useStyles, type Palette } from '@/lib/theme';
@@ -71,7 +72,7 @@ export function InterestsStep(props: StepProps) {
       <ChipRow>
         {options.interests.map((tag) => {
           const on = tagIds.includes(tag.id);
-          return <Chip key={tag.id} label={tag.labelEn} selected={on} disabled={!on && !canAddMore} onPress={() => setTagIds(on ? tagIds.filter((x) => x !== tag.id) : [...tagIds, tag.id])} />;
+          return <Chip key={tag.id} label={localized(tag.labelKo, tag.labelEn)} selected={on} disabled={!on && !canAddMore} onPress={() => setTagIds(on ? tagIds.filter((x) => x !== tag.id) : [...tagIds, tag.id])} />;
         })}
       </ChipRow>
       <Body tone="muted">{strings.freeTextLabel}</Body>

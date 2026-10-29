@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Body } from '@/components/ui';
 import { apiGet } from '@/lib/api';
+import { localized } from '@/lib/locale';
 import { strings } from '@/lib/strings';
 import { useColors, useStyles, type Palette } from '@/lib/theme';
 
@@ -11,10 +12,10 @@ export type Pick = { id: string; label: string };
 
 type RawResult = { id: string; code?: string; title?: string; titleEn?: string | null; name?: string; nameEn?: string | null };
 
-/** One search result as a line of text. English names where there are any. */
+/** One search result as a line of text, in the language in use (English names where there are any, Korean otherwise). */
 function labelOf(kind: PickKind, r: RawResult): string {
-  if (kind === 'course') return `${r.code ?? ''} ${r.titleEn ?? r.title ?? ''}`.trim();
-  return r.nameEn ?? r.name ?? '';
+  if (kind === 'course') return `${r.code ?? ''} ${localized(r.title, r.titleEn)}`.trim();
+  return localized(r.name, r.nameEn);
 }
 
 /**

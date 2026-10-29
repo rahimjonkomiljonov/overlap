@@ -101,7 +101,7 @@ function DeleteCard() {
     const result = await deleteAccount();
     if (result.ok) {
       // The server has already closed the account and ended every session; this tells the person and clears the phone.
-      Alert.alert(strings.privacyDeleteDoneTitle, strings.privacyDeleteDoneBody(dayLabel(result.data.purgeAfter)), [{ text: 'OK', onPress: () => void authClient.signOut() }], {
+      Alert.alert(strings.privacyDeleteDoneTitle, strings.privacyDeleteDoneBody(dayLabel(result.data.purgeAfter)), [{ text: strings.ok, onPress: () => void authClient.signOut() }], {
         cancelable: false,
       });
       return;

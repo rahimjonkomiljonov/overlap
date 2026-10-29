@@ -1,4 +1,5 @@
 import { apiGet, apiPost, apiPostOnce } from './api';
+import { localized } from './locale';
 import { strings } from './strings';
 
 export type MeetupStatus = 'PROPOSED' | 'ACCEPTED';
@@ -55,16 +56,15 @@ export const createShareLink = (proposalId: string, key: string) =>
 
 /** Times are always shown in Seoul time (the campus's own), whatever the phone's zone. Korea has no daylight saving. */
 const SEOUL_OFFSET_MS = 9 * 60 * 60 * 1000;
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
 
 function seoul(iso: string): Date {
   return new Date(new Date(iso).getTime() + SEOUL_OFFSET_MS);
 }
 
-/** "Wed, Oct 28" for a Seoul calendar day. */
+/** "Wed, Oct 28" (or "10월 28일 (수)") for a Seoul calendar day. */
 export function dayLabel(iso: string): string {
   const d = seoul(iso);
-  return `${strings.days[(d.getUTCDay() + 6) % 7]}, ${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}`;
+  return strings.dateLabel((d.getUTCDay() + 6) % 7, d.getUTCMonth(), d.getUTCDate());
 }
 
 /** The two-hour block a start time sits in, as in the free-time grid ("12–2pm"). */
@@ -84,13 +84,11 @@ export function whenLabel(startIso: string): string {
 /** "Wed, Oct 28 · 8:00pm" — an exact moment, for things like when a link stops working. */
 export function momentLabel(iso: string): string {
   const d = seoul(iso);
-  const h = d.getUTCHours();
-  const hour12 = h % 12 === 0 ? 12 : h % 12;
-  return `${dayLabel(iso)} · ${hour12}:${String(d.getUTCMinutes()).padStart(2, '0')}${h < 12 ? 'am' : 'pm'}`;
+  return `${dayLabel(iso)} · ${strings.clockLabel(d.getUTCHours(), d.getUTCMinutes())}`;
 }
 
 export function spotLabel(spot: { name: string; nameEn: string | null }): string {
-  return spot.nameEn ?? spot.name;
+  return localized(spot.name, spot.nameEn);
 }
 
 /** The earliest a custom time can start from now, so the other person has time to answer (mirrors the server). */

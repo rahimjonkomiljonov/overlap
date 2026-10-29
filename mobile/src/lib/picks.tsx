@@ -3,9 +3,8 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 
 import { apiGet, apiPostOnce, type ApiErrorCode, type ApiResult } from './api';
 import { strings } from './strings';
+import { getLocale } from './locale';
 
-/** The language the server writes reason labels and prompt questions in. Korean comes with M15. */
-const APP_LOCALE = 'en';
 
 /** "Why you overlap", in the website's own encoding: a named course, club or interest, a shared free time, or similar values. */
 export type Reason =
@@ -83,7 +82,7 @@ export function PicksProvider({ enabled, children }: { enabled: boolean; childre
   useEffect(() => {
     if (!enabled) return;
     let active = true;
-    apiGet<{ intents: IntentPicks[] }>(`/picks?locale=${APP_LOCALE}`).then((result) => {
+    apiGet<{ intents: IntentPicks[] }>(`/picks?locale=${getLocale()}`).then((result) => {
       if (!active) return;
       setRefreshing(false);
       if (result.ok) setState({ phase: 'ready', intents: result.data.intents });

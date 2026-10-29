@@ -15,13 +15,13 @@ type Step = 'age' | 'terms' | 'sensitive' | 'invite';
 type Info = { accountSetupComplete: boolean; inviteCodeRequired: boolean; minimumAge: number };
 
 /** What each reason the server can give for a refused setup means to a person, and which step to send them back to. */
-const REASONS: Record<string, { message: string; step: Step }> = {
+const reasons = (): Record<string, { message: string; step: Step }> => ({
   TOO_YOUNG: { message: strings.errorTooYoung, step: 'age' },
   INVALID_DATE: { message: strings.errorInvalidDate, step: 'age' },
   IMPLAUSIBLE_YEAR: { message: strings.errorImplausibleYear, step: 'age' },
   NOT_ATTESTED: { message: strings.errorCheckInput, step: 'age' },
   INVALID_INVITE: { message: strings.errorInvalidInvite, step: 'invite' },
-};
+});
 
 const digitsOnly = (text: string) => text.replace(/\D/g, '');
 
@@ -87,7 +87,7 @@ export default function OnboardingScreen() {
     setBusy(false);
     // On success the layout notices the account is set up and shows the home screen.
     if (result.ok) return refresh();
-    const known = result.code === 'RULE_VIOLATION' && result.reason ? REASONS[result.reason] : undefined;
+    const known = result.code === 'RULE_VIOLATION' && result.reason ? reasons()[result.reason] : undefined;
     if (known) {
       setError(known.message);
       setStepIndex(steps.indexOf(known.step));

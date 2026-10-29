@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Body, Button, Card, Loading, Screen, Title } from '@/components/ui';
 import { authClient } from '@/lib/auth-client';
 import { fetchHealth } from '@/lib/health';
+import { loadChoice, takeReturnPath, useLocale } from '@/lib/locale';
 import { MeProvider, useMe } from '@/lib/me';
 import { PicksProvider } from '@/lib/picks';
 import { useColors } from '@/lib/theme';
@@ -19,6 +20,11 @@ configureForeground();
  */
 function NotificationTaps() {
   const router = useRouter();
+  // After a language switch the app was rebuilt: go back to where the person was (the Me tab).
+  useEffect(() => {
+    const back = takeReturnPath();
+    if (back) router.replace(back);
+  }, [router]);
   useEffect(() => {
     let lastId: string | null = null;
     return listenForNotificationTaps((path, id) => {
@@ -119,7 +125,21 @@ function Routes({ signedIn }: { signedIn: boolean }) {
   );
 }
 
+/**
+ * Reads the saved language once, then shows the app keyed by the language in use: switching language rebuilds the whole
+ * tree, so every screen (and every text that was read while it was drawn) is in the new language at once.
+ */
 export default function RootLayout() {
+  const [ready, setReady] = useState(false);
+  const locale = useLocale();
+  useEffect(() => {
+    void loadChoice().finally(() => setReady(true));
+  }, []);
+  if (!ready) return null;
+  return <AppRoot key={locale} />;
+}
+
+function AppRoot() {
   const { gate, retry } = useGate();
   const { data: session, isPending } = authClient.useSession();
 

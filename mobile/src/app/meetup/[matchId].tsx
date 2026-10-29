@@ -26,6 +26,7 @@ import {
   type MeetupProposal,
   type MeetupScreen,
 } from '@/lib/meetup';
+import { localized } from '@/lib/locale';
 import { strings } from '@/lib/strings';
 import { useStyles, type Palette } from '@/lib/theme';
 
@@ -48,11 +49,11 @@ function EmergencyCard({ contacts }: { contacts: EmergencyContact[] }) {
       <Text style={styles.emergencyTitle}>{strings.emergencyTitle}</Text>
       {contacts.map((contact) =>
         contact.phone ? (
-          <Button key={contact.key} label={strings.emergencyCall(contact.labelEn, contact.phone)} variant="outline" onPress={() => void Linking.openURL(`tel:${contact.phone}`)} />
+          <Button key={contact.key} label={strings.emergencyCall(localized(contact.labelKo, contact.labelEn), contact.phone)} variant="outline" onPress={() => void Linking.openURL(`tel:${contact.phone}`)} />
         ) : (
           <View key={contact.key} style={{ gap: 2 }}>
-            <Text style={styles.contactLabel}>{contact.labelEn}</Text>
-            <Body tone="muted">{contact.noteEn ?? ''}</Body>
+            <Text style={styles.contactLabel}>{localized(contact.labelKo, contact.labelEn)}</Text>
+            <Body tone="muted">{localized(contact.noteKo, contact.noteEn)}</Body>
           </View>
         ),
       )}

@@ -11,11 +11,7 @@ import { picksProblemText, usePicks, type PickCard } from '@/lib/picks';
 import { strings } from '@/lib/strings';
 import { useStyles, type Palette } from '@/lib/theme';
 
-const STATUS_NOTICE: Record<string, string> = {
-  PAUSED: strings.statusPaused,
-  SUSPENDED: strings.statusSuspended,
-  BANNED: strings.statusBanned,
-};
+const statusNotice = (status: string): string | undefined => ({ PAUSED: strings.statusPaused, SUSPENDED: strings.statusSuspended, BANNED: strings.statusBanned })[status as 'PAUSED'];
 
 /** One pick in the list: the person (tap to open) and the Pass button. The actions sit inside the card. */
 function PickRow({ card }: { card: PickCard }) {
@@ -68,7 +64,7 @@ export default function HomeScreen() {
         <Body tone="muted">{strings.picksIntro}</Body>
       </View>
 
-      {me && STATUS_NOTICE[me.status] ? <Notice>{STATUS_NOTICE[me.status]}</Notice> : null}
+      {me && statusNotice(me.status) ? <Notice>{statusNotice(me.status)}</Notice> : null}
 
       {state.phase === 'failed' ? (
         <Card>

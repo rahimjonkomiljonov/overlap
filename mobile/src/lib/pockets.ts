@@ -1,8 +1,7 @@
 import { apiGet, apiPostOnce, apiPut, type ApiErrorCode, type ApiResult } from './api';
 import { strings } from './strings';
+import { getLocale } from './locale';
 
-/** The language the server writes pocket labels in. Korean comes with M15. */
-const APP_LOCALE = 'en';
 
 export type PocketKind = 'course' | 'club';
 
@@ -34,11 +33,11 @@ export type PocketDetail = {
   members: PocketMember[];
 };
 
-export const fetchMyPockets = () => apiGet<MyPockets>(`/pockets?locale=${APP_LOCALE}`);
+export const fetchMyPockets = () => apiGet<MyPockets>(`/pockets?locale=${getLocale()}`);
 
 export const setPocketsVisible = (visible: boolean) => apiPut<{ visible: boolean }>('/pockets/visibility', { visible });
 
-export const fetchPocketDetail = (kind: PocketKind, pocketId: string) => apiGet<PocketDetail>(`/pockets/${kind}/${encodeURIComponent(pocketId)}?locale=${APP_LOCALE}`);
+export const fetchPocketDetail = (kind: PocketKind, pocketId: string) => apiGet<PocketDetail>(`/pockets/${kind}/${encodeURIComponent(pocketId)}?locale=${getLocale()}`);
 
 export type WaveResult = { status: 'sent'; matched: boolean };
 
