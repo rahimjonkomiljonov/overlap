@@ -61,6 +61,7 @@ export function SearchPicker({ kind, max, picks, onChange }: { kind: PickKind; m
         </View>
       ))}
       <TextInput
+        testID="search-input"
         style={styles.input}
         value={query}
         onChangeText={setQuery}

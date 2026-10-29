@@ -45,6 +45,7 @@ export default function SignInScreen() {
             <Body tone="muted">{strings.signInIntro}</Body>
             <Body>{strings.emailLabel}</Body>
             <TextInput
+              testID="email-input"
               style={styles.input}
               value={email}
               onChangeText={setEmail}
@@ -63,6 +64,7 @@ export default function SignInScreen() {
           <>
             <Body tone="muted">{strings.codeLabel(email.trim().toLowerCase())}</Body>
             <TextInput
+              testID="code-input"
               style={styles.input}
               value={code}
               onChangeText={(text) => setCode(text.replace(/\D/g, ''))}

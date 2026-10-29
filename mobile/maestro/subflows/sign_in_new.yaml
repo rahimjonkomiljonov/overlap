@@ -1,0 +1,23 @@
+# Signs a brand-new school address in through the app's own screens. Needs EMAIL and HELPER. Leaves the app on account setup.
+appId: tech.overlaps.app
+---
+- tapOn:
+    id: email-input
+- inputText: ${EMAIL}
+- hideKeyboard
+- tapOn: Get verification code
+- extendedWaitUntil:
+    visible: "Enter the 6-digit code.*"
+    timeout: 20000
+- runScript:
+    file: ../scripts/otp.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${EMAIL}
+- tapOn:
+    id: code-input
+- inputText: ${output.code}
+- hideKeyboard
+- tapOn:
+    text: Sign in
+    index: 1

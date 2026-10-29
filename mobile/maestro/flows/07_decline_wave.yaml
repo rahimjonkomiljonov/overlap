@@ -1,0 +1,45 @@
+# F24 declining a wave removes it and makes no match.
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/seed_group.js
+    env:
+      HELPER: ${HELPER}
+      TAG: decline
+      COUNT: "2"
+- runScript:
+    file: ../scripts/wave_from.js
+    env:
+      HELPER: ${HELPER}
+      FROM: ${output.b}
+      TO_NAME: Alice
+      NOTE: Hello from Bobby
+- runFlow:
+    file: ../subflows/sign_in_existing.yaml
+    env:
+      EMAIL: ${output.a}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+- tapOn: Waves
+- extendedWaitUntil:
+    visible: Bobby
+    timeout: 20000
+- tapOn: Decline
+- extendedWaitUntil:
+    visible: No waves yet
+    timeout: 15000
+- runScript:
+    file: ../scripts/expect_state.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      FIELD: matches
+      VALUE: "0"

@@ -1,0 +1,69 @@
+# F26 matches list, F28 icebreakers, F27 chat send and receive, F29 unmatch.
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/seed_pair.js
+    env:
+      HELPER: ${HELPER}
+      TAG: chat
+- runFlow:
+    file: ../subflows/sign_in_existing.yaml
+    env:
+      EMAIL: ${output.a}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+
+# F26: the match is listed, with a Chat button.
+- tapOn: Matches
+- extendedWaitUntil:
+    visible: Bobby
+    timeout: 20000
+- tapOn: Chat
+
+# F28: the chat offers icebreakers to start with.
+- extendedWaitUntil:
+    visible: Need a way to start?
+    timeout: 20000
+
+# F27: sending a message shows it, and the other person's reply arrives on its own.
+- tapOn:
+    id: chat-input
+- inputText: Hello from Maestro
+- hideKeyboard
+- tapOn: Send
+- extendedWaitUntil:
+    visible: Hello from Maestro
+    timeout: 15000
+- runScript:
+    file: ../scripts/send_message.js
+    env:
+      HELPER: ${HELPER}
+      FROM: ${output.b}
+      CONVERSATION: ${output.conversation}
+      TEXT: Reply from Bobby
+- extendedWaitUntil:
+    visible: Reply from Bobby
+    timeout: 40000
+
+# F29: unmatching ends it for good and the list is empty again.
+- scrollUntilVisible:
+    element:
+      text: Back to matches
+- tapOn: Back to matches
+- extendedWaitUntil:
+    visible: Unmatch
+    timeout: 15000
+- tapOn: Unmatch
+- assertVisible: Unmatch this person? This cannot be undone.
+- tapOn: Unmatch
+- extendedWaitUntil:
+    visible: No matches yet
+    timeout: 15000

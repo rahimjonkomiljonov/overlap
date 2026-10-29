@@ -1,0 +1,200 @@
+# F08 basics and intents, F09 course and club pickers, F10 interests, prompts and the values quiz,
+# F14 profile preview and finish. Photos (F12) come from the helper here; the picker itself is M16b.
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/get.js
+    env:
+      HELPER: ${HELPER}
+      PATH: /sample
+- evalScript: ${output.sample = output.result}
+- runScript:
+    file: ../scripts/new_email.js
+    env:
+      TAG: wizard
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../subflows/sign_in_new.yaml
+    env:
+      EMAIL: ${output.email}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Age check
+    timeout: 20000
+- runFlow: ../subflows/account_setup_adult.yaml
+
+# ---- 1 Basics (F08)
+- tapOn:
+    id: first-name
+- inputText: Wizard
+- hideKeyboard
+- tapOn: Woman
+- tapOn:
+    id: year-picker
+- tapOn: "2"
+- tapOn:
+    id: major-picker
+- tapOn: ${output.sample.major}
+- tapOn: Next
+
+# ---- 2 What you are here for (F08)
+- assertVisible: What are you here for?
+- tapOn: Friends
+- tapOn: Next
+
+# ---- 3 Courses (F09)
+- assertVisible: Courses this term
+- tapOn:
+    id: search-input
+- inputText: ${output.sample.course.code}
+- hideKeyboard
+- extendedWaitUntil:
+    visible: ".*${output.sample.course.code}.*"
+    timeout: 10000
+- tapOn: ".*${output.sample.course.code}.*"
+- tapOn: Next
+
+# ---- 4 Clubs (F09)
+- assertVisible: Clubs
+- tapOn:
+    id: search-input
+- inputText: ${output.sample.club}
+- hideKeyboard
+- extendedWaitUntil:
+    visible: ${output.sample.club}
+    timeout: 10000
+- tapOn: ${output.sample.club}
+- tapOn: Next
+
+# ---- 5 Hangout spots, 6 Free time: skipped here (the free-time grid is M16b)
+- assertVisible: Hangout spots
+- tapOn: Skip for now
+- assertVisible: When are you free?
+- tapOn: Skip for now
+
+# ---- 7 Interests (F10)
+- assertVisible: Interests
+- tapOn: ${output.sample.interest}
+- scrollUntilVisible:
+    element:
+      text: Next
+- tapOn: Next
+
+# ---- 8 Prompts (F10)
+- assertVisible: Answer 3 prompts
+- tapOn:
+    id: prompt-picker-0
+- tapOn: ${output.sample.prompts[0]}
+- tapOn:
+    id: prompt-answer-0
+- inputText: First answer
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: prompt-picker-1
+- tapOn:
+    id: prompt-picker-1
+- tapOn: ${output.sample.prompts[1]}
+- tapOn:
+    id: prompt-answer-1
+- inputText: Second answer
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: prompt-picker-2
+- tapOn:
+    id: prompt-picker-2
+- tapOn: ${output.sample.prompts[2]}
+- tapOn:
+    id: prompt-answer-2
+- inputText: Third answer
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: Next
+- tapOn: Next
+
+# ---- 9 Values quiz (F10): every statement answered with 4
+- assertVisible: A few things about how you are
+- tapOn:
+    id: value-0-4
+- scrollUntilVisible:
+    element:
+      id: value-1-4
+- tapOn:
+    id: value-1-4
+- scrollUntilVisible:
+    element:
+      id: value-2-4
+- tapOn:
+    id: value-2-4
+- scrollUntilVisible:
+    element:
+      id: value-3-4
+- tapOn:
+    id: value-3-4
+- scrollUntilVisible:
+    element:
+      id: value-4-4
+- tapOn:
+    id: value-4-4
+- scrollUntilVisible:
+    element:
+      id: value-5-4
+- tapOn:
+    id: value-5-4
+- scrollUntilVisible:
+    element:
+      id: value-6-4
+- tapOn:
+    id: value-6-4
+- scrollUntilVisible:
+    element:
+      id: value-7-4
+- tapOn:
+    id: value-7-4
+- runScript:
+    file: ../scripts/photos.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.email}
+- scrollUntilVisible:
+    element:
+      text: Next
+- tapOn: Next
+
+# ---- 10 Photos: three, added through the helper (the system picker is M16b). The app reloads the profile when the
+# values step is saved, so the helper uploads just before that Next (further up) and the photos are there now.
+- assertVisible: Add your photos
+- assertVisible: 3 of 6 photos
+- tapOn: Next
+
+# ---- 11 Preview and finish (F14)
+- assertVisible: How others see you
+- assertVisible: Wizard
+- scrollUntilVisible:
+    element:
+      text: Finish
+- tapOn: Finish
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+
+# The database agrees.
+- runScript:
+    file: ../scripts/expect_state.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.email}
+      FIELD: photos
+      VALUE: "3"
+- runScript:
+    file: ../scripts/expect_state.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.email}
+      FIELD: firstName
+      VALUE: Wizard

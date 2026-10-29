@@ -1,0 +1,59 @@
+# F16 daily picks with the reason they overlap, F17 pick detail, F18 pass.
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/seed_group.js
+    env:
+      HELPER: ${HELPER}
+      TAG: pass
+      COUNT: "2"
+- runFlow:
+    file: ../subflows/sign_in_existing.yaml
+    env:
+      EMAIL: ${output.a}
+      HELPER: ${HELPER}
+
+# F16: today's picks show the person who shares a course, with the reason.
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+- extendedWaitUntil:
+    visible: Bobby
+    timeout: 30000
+
+# F17: opening a pick shows why you overlap.
+- tapOn: Bobby
+- scrollUntilVisible:
+    element:
+      text: Why you overlap
+- scrollUntilVisible:
+    element:
+      text: Back
+- tapOn: Back
+- assertVisible: Today's picks
+
+# F16 again, lower down the card: the reason the two of you overlap.
+- scrollUntilVisible:
+    element:
+      text: You see things in a similar way
+
+# F18: passing removes the person; the app says everything is seen and the server agrees.
+- scrollUntilVisible:
+    element:
+      text: Pass
+- tapOn: Pass
+- extendedWaitUntil:
+    visible: You're all caught up
+    timeout: 15000
+- runScript:
+    file: ../scripts/expect_picks.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      COUNT: "0"

@@ -1,0 +1,54 @@
+# F21 wave with a note.
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/seed_group.js
+    env:
+      HELPER: ${HELPER}
+      TAG: wave
+      COUNT: "2"
+- runFlow:
+    file: ../subflows/sign_in_existing.yaml
+    env:
+      EMAIL: ${output.a}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+- extendedWaitUntil:
+    visible: Bobby
+    timeout: 30000
+
+- scrollUntilVisible:
+    element:
+      text: Wave
+- tapOn: Wave
+- scrollUntilVisible:
+    element:
+      id: wave-note
+- tapOn:
+    id: wave-note
+- inputText: Hi from Maestro
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: Send
+- tapOn: Send
+
+# The person leaves the picks and the server holds exactly one wave from Alice.
+- extendedWaitUntil:
+    visible: You're all caught up
+    timeout: 15000
+- runScript:
+    file: ../scripts/expect_state.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      FIELD: waves
+      VALUE: "1"

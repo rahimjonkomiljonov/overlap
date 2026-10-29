@@ -29,7 +29,7 @@ export function BasicsStep(props: StepProps) {
   return (
     <View style={{ gap: 14 }}>
       <Title>{strings.basicsTitle}</Title>
-      <Field label={strings.firstNameLabel} value={firstName} onChangeText={setFirstName} maxLength={50} autoCapitalize="words" />
+      <Field testID="first-name" label={strings.firstNameLabel} value={firstName} onChangeText={setFirstName} maxLength={50} autoCapitalize="words" />
       <View style={{ gap: 6 }}>
         <Body tone="muted">{strings.genderLabel}</Body>
         <ChipRow>
@@ -39,8 +39,8 @@ export function BasicsStep(props: StepProps) {
         </ChipRow>
       </View>
       <Field label={strings.pronounsLabel} value={pronouns} onChangeText={setPronouns} maxLength={30} autoCapitalize="none" />
-      <PickerField label={strings.yearLabel} value={year === null ? null : String(year)} sections={yearSections} onSelect={(v) => setYear(Number(v))} />
-      <PickerField label={strings.majorLabel} value={major} sections={majorSections} onSelect={setMajor} />
+      <PickerField testID="year-picker" label={strings.yearLabel} value={year === null ? null : String(year)} sections={yearSections} onSelect={(v) => setYear(Number(v))} />
+      <PickerField testID="major-picker" label={strings.majorLabel} value={major} sections={majorSections} onSelect={setMajor} />
       {consented ? (
         <View style={{ gap: 6 }}>
           <Body tone="muted">{strings.interestedInLabel}</Body>

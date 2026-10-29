@@ -1,0 +1,36 @@
+# F01 sign in with an email code, F02 a personal address is refused, F03 sign out.
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/new_email.js
+    env:
+      TAG: signin
+- launchApp:
+    clearState: true
+- assertVisible: Sign in
+
+# F02: a personal mail address is not a school address.
+- tapOn:
+    id: email-input
+- inputText: someone@gmail.com
+- hideKeyboard
+- tapOn: Get verification code
+- assertVisible: That is not a school email address.
+
+# F01: a school address gets a code, and the code signs in.
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../subflows/sign_in_new.yaml
+    env:
+      EMAIL: ${output.email}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Age check
+    timeout: 20000
+
+# F03: sign out brings back the sign-in screen.
+- tapOn: Sign out
+- assertVisible: Get verification code

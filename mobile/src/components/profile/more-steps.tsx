@@ -114,8 +114,8 @@ export function PromptsStep(props: StepProps) {
         const sections = [{ data: options.prompts.filter((p) => !taken.has(p.id)).map((p) => ({ value: p.id, label: p.textEn })) }];
         return (
           <View key={i} style={{ gap: 8 }}>
-            <PickerField label={strings.promptNumber(i + 1)} value={slot.promptId} placeholder={strings.choosePrompt} sections={sections} onSelect={(v) => update(i, { promptId: v })} />
-            <Field label={strings.answerPlaceholder} value={slot.answer} onChangeText={(t) => update(i, { answer: t })} maxLength={options.limits.promptAnswerLength} multiline />
+            <PickerField testID={`prompt-picker-${i}`} label={strings.promptNumber(i + 1)} value={slot.promptId} placeholder={strings.choosePrompt} sections={sections} onSelect={(v) => update(i, { promptId: v })} />
+            <Field testID={`prompt-answer-${i}`} label={strings.answerPlaceholder} value={slot.answer} onChangeText={(t) => update(i, { answer: t })} maxLength={options.limits.promptAnswerLength} multiline />
             <Body tone="muted">{strings.charsLeft(options.limits.promptAnswerLength - slot.answer.length)}</Body>
           </View>
         );
@@ -143,6 +143,7 @@ export function ValuesStep(props: StepProps) {
             {[1, 2, 3, 4, 5].map((n) => (
               <Pressable
                 key={n}
+                testID={`value-${i}-${n}`}
                 accessibilityRole="radio"
                 accessibilityState={{ checked: answers[i] === n }}
                 accessibilityLabel={`${item.textEn} ${n}: ${strings.scaleNames[n - 1]}`}

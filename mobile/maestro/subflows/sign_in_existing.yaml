@@ -1,0 +1,10 @@
+# Signs an account that already exists (and is finished) in through the app's own screens. Needs EMAIL and HELPER.
+appId: tech.overlaps.app
+---
+- launchApp:
+    clearState: true
+- runFlow:
+    file: sign_in_new.yaml
+    env:
+      EMAIL: ${EMAIL}
+      HELPER: ${HELPER}

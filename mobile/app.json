@@ -42,7 +42,8 @@
           "photosPermission": "Overlap uses your photos so you can add them to your profile.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "expo-build-properties"
     ],
     "experiments": {
       "typedRoutes": true,

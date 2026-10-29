@@ -1,0 +1,61 @@
+# F22 the waved-at-you inbox, F23 wave back (which makes a match), and the match shows in Matches (F26).
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/seed_group.js
+    env:
+      HELPER: ${HELPER}
+      TAG: back
+      COUNT: "2"
+- runScript:
+    file: ../scripts/wave_from.js
+    env:
+      HELPER: ${HELPER}
+      FROM: ${output.b}
+      TO_NAME: Alice
+      NOTE: Hello from Bobby
+- runFlow:
+    file: ../subflows/sign_in_existing.yaml
+    env:
+      EMAIL: ${output.a}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+
+# F22: the wave is in the inbox, with who sent it and what it was aimed at.
+- tapOn: Waves
+- extendedWaitUntil:
+    visible: Bobby
+    timeout: 20000
+- assertVisible: Waved at your profile
+
+# F23: waving back makes a match.
+- tapOn: Wave back
+- tapOn: Send
+- extendedWaitUntil:
+    visible: It's a match!
+    timeout: 20000
+- tapOn: OK
+- extendedWaitUntil:
+    visible: No waves yet
+    timeout: 10000
+- runScript:
+    file: ../scripts/expect_state.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      FIELD: matches
+      VALUE: "1"
+
+# F26: the new match is in the Matches list.
+- tapOn: Matches
+- extendedWaitUntil:
+    visible: Bobby
+    timeout: 20000

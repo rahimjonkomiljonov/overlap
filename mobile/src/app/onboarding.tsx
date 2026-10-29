@@ -107,9 +107,9 @@ export default function OnboardingScreen() {
             <Title>{strings.ageTitle}</Title>
             <Body tone="muted">{strings.ageBody}</Body>
             <View style={styles.dateRow}>
-              <Field label={strings.birthYear} value={year} onChangeText={(t) => setYear(digitsOnly(t))} keyboardType="number-pad" maxLength={4} placeholder="2000" />
-              <Field label={strings.birthMonth} value={month} onChangeText={(t) => setMonth(digitsOnly(t))} keyboardType="number-pad" maxLength={2} placeholder="5" />
-              <Field label={strings.birthDay} value={day} onChangeText={(t) => setDay(digitsOnly(t))} keyboardType="number-pad" maxLength={2} placeholder="17" />
+              <Field testID="birth-year" label={strings.birthYear} value={year} onChangeText={(t) => setYear(digitsOnly(t))} keyboardType="number-pad" maxLength={4} placeholder="2000" />
+              <Field testID="birth-month" label={strings.birthMonth} value={month} onChangeText={(t) => setMonth(digitsOnly(t))} keyboardType="number-pad" maxLength={2} placeholder="5" />
+              <Field testID="birth-day" label={strings.birthDay} value={day} onChangeText={(t) => setDay(digitsOnly(t))} keyboardType="number-pad" maxLength={2} placeholder="17" />
             </View>
             <Body tone="muted">{strings.birthDateNote}</Body>
             <CheckRow checked={attestedAdult} onChange={setAttestedAdult} label={strings.attestedAdult} />
@@ -138,7 +138,7 @@ export default function OnboardingScreen() {
           <>
             <Title>{strings.inviteTitle}</Title>
             <Body tone="muted">{strings.inviteBody}</Body>
-            <Field label={strings.inviteLabel} value={inviteCode} onChangeText={setInviteCode} autoCapitalize="characters" autoCorrect={false} maxLength={32} />
+            <Field testID="invite-code" label={strings.inviteLabel} value={inviteCode} onChangeText={setInviteCode} autoCapitalize="characters" autoCorrect={false} maxLength={32} />
           </>
         ) : null}
 

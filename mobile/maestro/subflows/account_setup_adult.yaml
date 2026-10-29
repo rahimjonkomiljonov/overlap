@@ -1,0 +1,21 @@
+# Finishes account setup as an adult with every optional consent left off. Starts on the age step; ends on the profile wizard.
+appId: tech.overlaps.app
+---
+- tapOn:
+    id: birth-year
+- inputText: "2000"
+- tapOn:
+    id: birth-month
+- inputText: "5"
+- tapOn:
+    id: birth-day
+- inputText: "17"
+- hideKeyboard
+- tapOn: I am 19 or older.
+- tapOn: Next
+- tapOn: "I agree to the Terms.*"
+- tapOn: Next
+- tapOn: Finish
+- extendedWaitUntil:
+    visible: Tell us about you
+    timeout: 20000

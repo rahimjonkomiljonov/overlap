@@ -166,6 +166,7 @@ export default function ChatScreen() {
       {data.canInteract ? (
         <View style={{ gap: 8 }}>
           <Field
+            testID="chat-input"
             label={strings.chatComposerPlaceholder}
             value={text}
             onChangeText={setText}

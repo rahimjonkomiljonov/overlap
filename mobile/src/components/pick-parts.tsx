@@ -78,7 +78,7 @@ export function WaveComposer({ cardId, onSettled }: { cardId: string; onSettled?
   }
   return (
     <View style={{ gap: 8 }}>
-      <Field label={strings.waveNotePlaceholder} value={note} onChangeText={(t) => setNote(t.slice(0, 140))} placeholder={strings.waveNotePlaceholder} maxLength={140} editable={!busy} />
+      <Field testID="wave-note" label={strings.waveNotePlaceholder} value={note} onChangeText={(t) => setNote(t.slice(0, 140))} placeholder={strings.waveNotePlaceholder} maxLength={140} editable={!busy} />
       {error ? <Body tone="bad">{error}</Body> : null}
       <View style={{ flexDirection: 'row', gap: 8 }}>
         <Button label={strings.wavesCancel} variant="outline" disabled={busy} onPress={() => setOpen(false)} />

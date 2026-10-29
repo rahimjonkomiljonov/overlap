@@ -69,14 +69,14 @@ export function ChipRow({ children }: { children: React.ReactNode }) {
 /** A line of text that opens a full-screen list: for the department, year and prompt choices. */
 export type PickerSection = { title?: string; data: { value: string; label: string }[] };
 
-export function PickerField({ label, value, placeholder, sections, onSelect }: { label: string; value: string | null; placeholder?: string; sections: PickerSection[]; onSelect: (value: string) => void }) {
+export function PickerField({ label, value, placeholder, sections, onSelect, testID }: { label: string; testID?: string; value: string | null; placeholder?: string; sections: PickerSection[]; onSelect: (value: string) => void }) {
   const styles = useStyles(makeStyles);
   const [open, setOpen] = useState(false);
   const shown = sections.flatMap((s) => s.data).find((item) => item.value === value)?.label;
   return (
     <View style={styles.field}>
       <Text style={styles.label}>{label}</Text>
-      <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={() => setOpen(true)} style={styles.fieldBox}>
+      <Pressable testID={testID} accessibilityRole="button" accessibilityLabel={label} onPress={() => setOpen(true)} style={styles.fieldBox}>
         <Text style={[styles.fieldText, !shown && styles.placeholder]}>{shown ?? placeholder ?? strings.choose}</Text>
       </Pressable>
       <Modal visible={open} animationType="slide" onRequestClose={() => setOpen(false)}>

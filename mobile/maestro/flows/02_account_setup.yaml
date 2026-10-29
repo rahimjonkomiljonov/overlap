@@ -1,0 +1,66 @@
+# F06 age declaration (19+), F05 Terms and Privacy consent with the sensitive consent left optional.
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/new_email.js
+    env:
+      TAG: setup
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../subflows/sign_in_new.yaml
+    env:
+      EMAIL: ${output.email}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Age check
+    timeout: 20000
+
+# F06: someone who is too young is refused, and sent back to the age step.
+- tapOn:
+    id: birth-year
+- inputText: "2010"
+- tapOn:
+    id: birth-month
+- inputText: "5"
+- tapOn:
+    id: birth-day
+- inputText: "17"
+- hideKeyboard
+- tapOn: I am 19 or older.
+- tapOn: Next
+- assertVisible: Terms
+- tapOn: "I agree to the Terms.*"
+- tapOn: Next
+- assertVisible: 'Dating mode (optional)'
+- tapOn: Finish
+- extendedWaitUntil:
+    visible: You must be 19 or older to join.
+    timeout: 20000
+- assertVisible: Age check
+
+# A grown-up date is accepted; the optional Dating-mode consent stays off, and the account is still created (F05).
+- tapOn:
+    id: birth-year
+- eraseText: 8
+- inputText: "2000"
+- hideKeyboard
+- tapOn: Next
+- assertVisible: Terms
+- tapOn: Next
+- assertVisible: 'Dating mode (optional)'
+- tapOn: Finish
+- extendedWaitUntil:
+    visible: Tell us about you
+    timeout: 20000
+
+# The database agrees: the account exists and only the birth year was kept.
+- runScript:
+    file: ../scripts/expect_state.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.email}
+      FIELD: birthYear
+      VALUE: "2000"
