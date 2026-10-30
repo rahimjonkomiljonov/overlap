@@ -1,3 +1,7 @@
 # The Expo app is built by EAS, not by the website deployment. Anchored with a leading slash: a bare
 # "mobile" would also match src/app/api/mobile and src/server/mobile and strip them from the deploy.
 /mobile
+# These two tests import the Expo app's strings and palettes from /mobile, which isn't uploaded, so they
+# would fail the build's type check. CI still runs them against the full checkout.
+/src/server/mobile/palette-contrast.test.ts
+/src/server/mobile/strings-parity.test.ts
