@@ -36,12 +36,9 @@ function SubmitButton({ label, pendingLabel }: { label: string; pendingLabel: st
 export function WaitlistForm({
   initialCount,
   referralCode,
-  devEmailMode,
 }: {
   initialCount: number;
   referralCode?: string;
-  /** True when RESEND_API_KEY is unset server-side, so codes go to the console. */
-  devEmailMode: boolean;
 }) {
   const t = useTranslations("Waitlist");
   const [count, setCount] = useState(initialCount);
@@ -99,7 +96,6 @@ export function WaitlistForm({
           waitlistId={requestState.waitlistId}
           verifyState={verifyState}
           verifyAction={verifyAction}
-          devEmailMode={devEmailMode}
           onUseDifferentEmail={() => setManualStep("request")}
         />
       ) : (
@@ -172,14 +168,12 @@ function VerifyStep({
   waitlistId,
   verifyState,
   verifyAction,
-  devEmailMode,
   onUseDifferentEmail,
 }: {
   email: string;
   waitlistId: string;
   verifyState: VerifyOtpState;
   verifyAction: (formData: FormData) => void;
-  devEmailMode: boolean;
   onUseDifferentEmail: () => void;
 }) {
   const t = useTranslations("Waitlist");
@@ -199,9 +193,6 @@ function VerifyStep({
           <div className="space-y-2">
             <Label htmlFor="waitlist-code">{t("codeLabel")}</Label>
             <p className="text-sm text-muted-foreground">{t("codeHelper", { email })}</p>
-            {devEmailMode ? (
-              <p className="text-sm text-muted-foreground italic">{t("codeHelperDev")}</p>
-            ) : null}
             <Input
               id="waitlist-code"
               name="code"

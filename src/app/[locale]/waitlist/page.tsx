@@ -23,7 +23,6 @@ export default async function WaitlistPage({
       <WaitlistForm
         initialCount={initialCount}
         referralCode={typeof ref === "string" ? ref : undefined}
-        devEmailMode={!process.env.RESEND_API_KEY}
       />
     </main>
   );

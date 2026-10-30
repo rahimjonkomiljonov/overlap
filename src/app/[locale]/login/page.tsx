@@ -22,7 +22,7 @@ export default async function LoginPage({ params }: PageProps<"/[locale]/login">
         <h1 className="text-3xl font-semibold tracking-tight">{t("title")}</h1>
         <p className="text-muted-foreground">{t("subtitle")}</p>
       </div>
-      <LoginForm devEmailMode={!process.env.RESEND_API_KEY} />
+      <LoginForm />
     </main>
   );
 }
