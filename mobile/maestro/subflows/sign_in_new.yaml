@@ -1,6 +1,11 @@
 # Signs a brand-new school address in through the app's own screens. Needs EMAIL and HELPER. Leaves the app on account setup.
 appId: tech.overlaps.app
 ---
+# A cold start on a slow (CI) emulator can take far longer than Maestro's default wait.
+- extendedWaitUntil:
+    visible:
+      id: email-input
+    timeout: 90000
 - tapOn:
     id: email-input
 - inputText: ${EMAIL}

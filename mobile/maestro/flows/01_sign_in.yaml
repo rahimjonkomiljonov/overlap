@@ -9,7 +9,9 @@ env:
       TAG: signin
 - launchApp:
     clearState: true
-- assertVisible: Sign in
+- extendedWaitUntil:
+    visible: Sign in
+    timeout: 90000
 
 # F02: a personal mail address is not a school address.
 - tapOn:

@@ -90,6 +90,24 @@ start_helper() {
   return 1
 }
 
+# diagnose NAME: prints what is needed to find out why a phase failed, into the job log itself (the artifact is easy to miss).
+diagnose() {
+  echo "---- diagnostics after phase $1 ----"
+  echo "-- can the phone reach the website? (10.0.2.2:3000, from inside the emulator)"
+  adb shell "echo 'GET /api/dev-storage/profile-photos/x HTTP/1.0\r\n\r\n' | toybox nc -w 5 10.0.2.2 3000 | head -n 1" 2>&1 | head -n 3
+  echo "-- website answers on this machine:"
+  curl -s -o /dev/null -m 5 -w '%{http_code}\n' http://localhost:3000/api/dev-storage/profile-photos/x
+  echo "-- the app's process and last errors (logcat):"
+  adb shell pidof tech.overlaps.app || echo "app is not running"
+  adb logcat -d -t 400 2>/dev/null | grep -E "AndroidRuntime|FATAL|ReactNativeJS|tech.overlaps.app|Network request failed" | tail -n 40
+  echo "-- website log (tail):"
+  tail -n 40 "$OUT/website.log" 2>/dev/null
+  echo "-- screen:"
+  adb exec-out screencap -p > "$OUT/screen-after-$1.png" 2>/dev/null
+  adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 && adb shell cat /sdcard/ui.xml | grep -o 'text="[^"]\+"' | head -n 20
+  echo "---- end diagnostics ----"
+}
+
 FAILED=""
 # run_phase NAME ARGS...: runs maestro over the flows folder with the given tag filters and records whether it passed.
 run_phase() {
@@ -100,6 +118,7 @@ run_phase() {
   else
     echo "phase $name: FAILED"
     FAILED="$FAILED $name"
+    diagnose "$name"
   fi
 }
 
