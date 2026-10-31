@@ -1,0 +1,68 @@
+# F48 deep links (signed out and signed in, a chat, an event, a link that points nowhere) and the native share sheet.
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/seed_pair.js
+    env:
+      HELPER: ${HELPER}
+      TAG: links
+# Bobby hosts an event Alice can open from a link.
+- runScript:
+    file: ../scripts/event.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: create
+      ORGANIZER: ${output.b}
+      TITLE: Link picnic
+      START: 1 day
+      END: 2 days
+
+# Signed out, a link leads to the sign-in screen.
+- launchApp:
+    clearState: true
+- openLink: overlap://matches
+- extendedWaitUntil:
+    visible: Get verification code
+    timeout: 30000
+
+# Signed in, each link opens its screen.
+- runFlow:
+    file: ../subflows/sign_in_existing.yaml
+    env:
+      EMAIL: ${output.a}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+- openLink: overlap://waves
+- extendedWaitUntil:
+    visible: .*Waved at you.*
+    timeout: 20000
+- openLink: overlap://matches
+- extendedWaitUntil:
+    visible: Bobby
+    timeout: 20000
+- openLink: overlap://chat/${output.conversation}
+- extendedWaitUntil:
+    visible: Back to matches
+    timeout: 20000
+- openLink: overlap://event/${output.event}
+- extendedWaitUntil:
+    visible: Link picnic.*
+    timeout: 20000
+
+# A link that points nowhere says so and offers the way home.
+- openLink: overlap://nothing-here
+- extendedWaitUntil:
+    visible: We can't find that page
+    timeout: 20000
+- tapOn: Go to today's picks
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 20000

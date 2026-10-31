@@ -97,20 +97,25 @@ const session = async (email) => {
 };
 
 /** A finished, verified account (account setup, the whole profile, three photos). */
-async function makeUser(email, firstName, { sensitive = false } = {}) {
+async function makeUser(email, firstName, { sensitive = false, partial = false, unverified = false, invite = undefined } = {}) {
   if (!email.startsWith(PREFIX)) throw new Error(`test accounts must start with ${PREFIX}`);
   const cookie = await session(email);
-  must(await call(cookie, "POST", "/onboarding/account", { birthYear: 2000, birthMonth: 5, birthDay: 17, attestedAdult: true, termsAccepted: true, sensitivePreference: sensitive }), "account setup");
+  must(await call(cookie, "POST", "/onboarding/account", { birthYear: 2000, birthMonth: 5, birthDay: 17, attestedAdult: true, termsAccepted: true, sensitivePreference: sensitive, ...(invite ? { inviteCode: invite } : {}) }), "account setup");
   const options = (await call(cookie, "GET", "/profile/options")).body;
   const { prompts, majorGroups } = options;
   must(await call(cookie, "PUT", "/profile/basics", { firstName, gender: "WOMAN", year: 2, major: majorGroups[1].majors[0].ko, interestedIn: sensitive ? ["MAN"] : [] }), "basics");
   must(await call(cookie, "PUT", "/profile/intents", { intents: ["FRIENDS"] }), "intents");
   must(await call(cookie, "PUT", "/profile/prompts", { promptIds: [prompts[0].id, prompts[1].id, prompts[2].id], answers: [`${firstName} one`, `${firstName} two`, `${firstName} three`] }), "prompts");
   must(await call(cookie, "PUT", "/profile/values", { answers: [3, 4, 3, 4, 3, 4, 3, 4] }), "values");
+  if (partial) {
+    // Everything but the photos and the final tap: the app's wizard picks up at the photos step.
+    const row = (await pool.query(`select id, "campusId" from users where email = $1`, [email])).rows[0];
+    return { email, id: row.id, campusId: row.campusId };
+  }
   for (let i = 0; i < 3; i++) if ((await uploadPhoto(cookie)) !== 201) throw new Error("photo upload failed");
   const done = await call(cookie, "POST", "/profile/finish");
   if (done.body.status !== "complete") throw new Error(`finish failed: ${JSON.stringify(done.body)}`);
-  await pool.query(`update users set "verifiedAt" = now() where email = $1`, [email]);
+  if (!unverified) await pool.query(`update users set "verifiedAt" = now() where email = $1`, [email]);
   const row = (await pool.query(`select id, "campusId" from users where email = $1`, [email])).rows[0];
   return { email, id: row.id, campusId: row.campusId };
 }
@@ -177,7 +182,7 @@ const routes = {
 
   /** One finished, verified account. */
   "POST /user": async (b) => {
-    const u = await makeUser(b.email, b.name, { sensitive: Boolean(b.sensitive) });
+    const u = await makeUser(b.email, b.name, { sensitive: Boolean(b.sensitive), partial: Boolean(b.partial), unverified: Boolean(b.unverified), invite: b.invite });
     return { email: u.email, id: u.id };
   },
 
@@ -266,10 +271,68 @@ const routes = {
     return { updated: r.rowCount };
   },
 
+  /** A cohort on the dev campus with one invite code (Dating closed in it), for the flows that run with cohort release on. */
+  "POST /invite": async (b) => {
+    if (!/^MAE[A-Z]{4,12}$/.test(b.code)) throw new Error("test invite codes look like MAEFLOWTEST");
+    const campusId = (await pool.query(`select id from campuses order by "createdAt" limit 1`)).rows[0].id;
+    let cohort = (await pool.query(`select id from cohorts where "campusId" = $1 and name = 'mae-maestro'`, [campusId])).rows[0];
+    if (!cohort) {
+      const id = randomUUID();
+      await pool.query(`insert into cohorts (id, "campusId", name, "datingOpen") values ($1, $2, 'mae-maestro', false)`, [id, campusId]);
+      cohort = { id };
+    }
+    await pool.query(`delete from invite_codes where code = $1`, [b.code]);
+    await pool.query(`insert into invite_codes (id, "cohortId", code, "maxUses", "useCount") values ($1, $2, $3, $4, 0)`, [randomUUID(), cohort.id, b.code, b.maxUses ?? 5]);
+    return { code: b.code };
+  },
+
+  /** What the database says about an account's cohort and an invite code (for a flow's assertions). */
+  "GET /invite/state": async (q) => {
+    const u = (await pool.query(`select "cohortId" is not null as in_cohort from users where email = $1`, [q.email])).rows[0];
+    const c = (await pool.query(`select "useCount" from invite_codes where code = $1`, [q.code])).rows[0];
+    return { inCohort: String(Boolean(u?.in_cohort)), uses: c?.useCount ?? -1 };
+  },
+
+  /** Makes `email` look like they have already sent today's eight waves (to eight throw-away accounts). */
+  "POST /wave-cap/fill": async (b) => {
+    const from = (await pool.query(`select id from users where email = $1`, [b.email])).rows[0];
+    if (!b.email.startsWith(PREFIX)) throw new Error(`test accounts must start with ${PREFIX}`);
+    for (let i = 0; i < 8; i++) {
+      const other = await makeUser(`${PREFIX}capfill${i}.${Date.now()}@test.ac.kr`, `Fill${i}`);
+      await pool.query(`insert into waves (id, "fromUserId", "toUserId", "targetElement", status, "createdAt") values ($1, $2, $3, '{"type":"profile"}'::jsonb, 'PENDING', (now() at time zone 'utc'))`, [randomUUID(), from.id, other.id]);
+    }
+    return { ok: true };
+  },
+
+  /** Ends every sign-in of an account on the server, as if its session had expired. */
+  "POST /session/expire": async (b) => {
+    if (!b.email.startsWith(PREFIX)) throw new Error(`test accounts must start with ${PREFIX}`);
+    const r = await pool.query(`delete from sessions where "userId" = (select id from users where email = $1)`, [b.email]);
+    sessions.delete(b.email);
+    return { deleted: r.rowCount };
+  },
+
+  /** A moderator's decision on an account's pending selfie: REJECTED (with a reason) or APPROVED (which verifies the account). */
+  "POST /selfie/decide": async (b) => {
+    const u = (await pool.query(`select id from users where email = $1`, [b.email])).rows[0];
+    const mod = (await pool.query(`select id from users where email like '${PREFIX}%' and id <> $1 limit 1`, [u.id])).rows[0];
+    await pool.query(`update selfies set decision = $2::"VerificationDecision", reason = $3, "decidedAt" = now(), "decidedById" = $4 where "userId" = $1 and decision = 'PENDING'`, [u.id, b.decision, b.reason ?? null, mod?.id ?? null]);
+    if (b.decision === "APPROVED") await pool.query(`update users set "verifiedAt" = now() where id = $1`, [u.id]);
+    return { ok: true };
+  },
+
+  /** What the database says about an account's selfies (for a flow's assertions). */
+  "GET /selfie/state": async (q) => {
+    const u = (await pool.query(`select id, "verifiedAt" is not null as verified from users where email = $1`, [q.email])).rows[0];
+    const rows = (await pool.query(`select decision, count(*)::int as n from selfies where "userId" = $1 group by decision`, [u.id])).rows;
+    const count = (d) => rows.find((r) => r.decision === d)?.n ?? 0;
+    return { pending: count("PENDING"), rejected: count("REJECTED"), approved: count("APPROVED"), verified: String(u.verified) };
+  },
+
   /** What the database says about one account's matching preferences, consent and requests (for a flow's assertions). */
   "GET /privacy/state": async (q) => {
     const u = (await pool.query(`select id, status, "deletedAt" is not null as deleted, "purgedAt" is not null as purged from users where email = $1`, [q.email])).rows[0];
-    const p = (await pool.query(`select "weightClasses", "weightInterests", "weightFreeTime", "interestedIn" is not null as has_interested from profiles where "userId" = $1`, [u.id])).rows[0];
+    const p = (await pool.query(`select "weightClasses", "weightInterests", "weightFreeTime", "interestedIn" is not null as has_interested, cardinality("freeTimeSlots") as free_slots, "completedAt" is not null as complete from profiles where "userId" = $1`, [u.id])).rows[0];
     const consent = (await pool.query(`select granted from consents where "userId" = $1 and type = 'SENSITIVE_PREFERENCE' order by "grantedAt" desc limit 1`, [u.id])).rows[0];
     const req = async (type) => (await pool.query(`select count(*)::int as n from data_requests where "userId" = $1 and type = $2`, [u.id, type])).rows[0].n;
     return {
@@ -278,6 +341,8 @@ const routes = {
       purged: String(u.purged),
       weights: `${p.weightClasses},${p.weightInterests},${p.weightFreeTime}`,
       hasInterestedIn: String(p.has_interested),
+      freeSlots: p.free_slots,
+      profileComplete: String(p.complete),
       sensitiveConsent: String(consent?.granted ?? "none"),
       access: await req("ACCESS"),
       withdrawal: await req("WITHDRAWAL"),
@@ -403,6 +468,7 @@ const routes = {
   /** Deletes every account this helper made (only addresses starting with `mae.`). */
   "POST /cleanup": async () => {
     const who = `(select id from users where email like '${PREFIX}%')`;
+    await pool.query(`update selfies set "decidedById" = null where "decidedById" in ${who}`);
     await pool.query(`delete from moderation_actions where "actorId" in ${who} or "targetId" in ${who}`);
     await pool.query(`delete from events where "organizerId" in ${who}`);
     await pool.query(`delete from messages where "senderId" in ${who}`);
@@ -410,6 +476,8 @@ const routes = {
     await pool.query(`delete from referrals where "referrerId" in ${who} or "referredUserId" in ${who}`);
     await pool.query(`delete from audit_log where "actorId" in ${who}`);
     const r = await pool.query(`delete from users where email like '${PREFIX}%'`);
+    await pool.query(`delete from invite_codes where code like 'MAE%' and "cohortId" in (select id from cohorts where name = 'mae-maestro')`);
+    await pool.query(`delete from cohorts where name = 'mae-maestro' and id not in (select "cohortId" from users where "cohortId" is not null)`);
     sessions.clear();
     return { deleted: r.rowCount };
   },

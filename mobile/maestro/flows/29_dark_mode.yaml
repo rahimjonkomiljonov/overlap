@@ -1,0 +1,56 @@
+# Dark mode: the app follows the phone's theme, and every tab and the main screens still work in it.
+# A flow cannot switch the phone's theme itself, so run this one with the emulator in night mode:
+#   adb shell cmd uimode night yes      (and `adb shell cmd uimode night no` afterwards)
+# and with the tag: maestro test mobile/maestro/flows --include-tags=dark
+# The screenshots it saves (in Maestro's test output folder) show the dark screens for a person to look at; colours are
+# also checked by the palette contrast test (src/server/mobile/palette-contrast.test.ts).
+appId: tech.overlaps.app
+tags:
+  - dark
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/seed_pair.js
+    env:
+      HELPER: ${HELPER}
+      TAG: dark
+- runFlow:
+    file: ../subflows/sign_in_existing.yaml
+    env:
+      EMAIL: ${output.a}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+- takeScreenshot: dark-picks
+- tapOn: Matches
+- extendedWaitUntil:
+    visible: Bobby
+    timeout: 20000
+- takeScreenshot: dark-matches
+- tapOn: Waves
+- extendedWaitUntil:
+    visible: .*Waved at you.*
+    timeout: 20000
+- takeScreenshot: dark-waves
+- tapOn: Events
+- extendedWaitUntil:
+    visible: Join meetups on campus.*
+    timeout: 20000
+- takeScreenshot: dark-events
+- tapOn: Me
+- extendedWaitUntil:
+    visible: Language
+    timeout: 20000
+- takeScreenshot: dark-me
+- tapOn: Matches
+- tapOn: Chat
+- extendedWaitUntil:
+    visible: Need a way to start?
+    timeout: 20000
+- takeScreenshot: dark-chat

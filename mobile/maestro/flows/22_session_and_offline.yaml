@@ -1,0 +1,61 @@
+# F03 a session that ends on the server sends the person back to sign in, F49 the offline, empty and retry states.
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/seed_pair.js
+    env:
+      HELPER: ${HELPER}
+      TAG: session
+- runFlow:
+    file: ../subflows/sign_in_existing.yaml
+    env:
+      EMAIL: ${output.a}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+
+# F49: an empty list says so (the match list below is not empty, the waves inbox is).
+- tapOn: Waves
+- extendedWaitUntil:
+    visible: .*Waves.*
+    timeout: 20000
+- tapOn: Matches
+- extendedWaitUntil:
+    visible: Bobby
+    timeout: 20000
+
+# F49: with the phone offline, a screen that needs the network says so and offers to try again; going back online recovers.
+- setAirplaneMode: enabled
+- tapOn: Events
+- extendedWaitUntil:
+    visible: .*connection.*
+    timeout: 30000
+- assertVisible: Try again
+- setAirplaneMode: disabled
+- tapOn: Try again
+- extendedWaitUntil:
+    visible: Join meetups on campus.*
+    timeout: 60000
+
+# F03: the server ends her session; the next screen that asks for data sends her back to sign in.
+- runScript:
+    file: ../scripts/account.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: expire-session
+      EMAIL: ${output.a}
+- tapOn: Me
+- scrollUntilVisible:
+    element:
+      text: Privacy and account
+- tapOn: Privacy and account
+- extendedWaitUntil:
+    visible: Get verification code
+    timeout: 60000

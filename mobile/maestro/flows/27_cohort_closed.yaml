@@ -1,0 +1,46 @@
+# F20 cohort-closed state (website running with cohort release on): Dating is closed for a group that is still small, and the
+# profile says so instead of offering it. Needs the website started with COHORT_RELEASE=on.
+appId: tech.overlaps.app
+tags:
+  - cohort
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/invite.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: create
+      CODE: MAEFLOWTEST
+# Alice gave the Dating consent and joined with the invite code, so only the group's size keeps Dating closed. She is at the photos step.
+- runScript:
+    file: ../scripts/seed_user.js
+    env:
+      HELPER: ${HELPER}
+      TAG: closed
+      SENSITIVE: yes
+      PARTIAL: yes
+      INVITE: MAEFLOWTEST
+- runFlow:
+    file: ../subflows/sign_in_existing.yaml
+    env:
+      EMAIL: ${output.a}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Add your photos
+    timeout: 30000
+- repeat:
+    times: 12
+    while:
+      notVisible: Dating mode opens once enough people in your group join.
+    commands:
+      - scrollUntilVisible:
+          element:
+            text: Back
+      - tapOn: Back
+- assertVisible: Dating mode opens once enough people in your group join.
+- assertVisible: What you're here for.*

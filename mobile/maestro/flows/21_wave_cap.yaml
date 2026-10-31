@@ -1,0 +1,54 @@
+# F25 the daily wave cap: after eight waves today, a ninth is refused with a plain message and nothing is sent.
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/seed_group.js
+    env:
+      HELPER: ${HELPER}
+      TAG: cap
+      COUNT: "2"
+# Alice has already used her eight waves today.
+- runScript:
+    file: ../scripts/account.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: wave-cap
+      EMAIL: ${output.a}
+- runFlow:
+    file: ../subflows/sign_in_existing.yaml
+    env:
+      EMAIL: ${output.a}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+- extendedWaitUntil:
+    visible: Bobby
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: Wave
+- tapOn: Wave
+- scrollUntilVisible:
+    element:
+      id: wave-note
+- scrollUntilVisible:
+    element:
+      text: Send
+- tapOn: Send
+- scrollUntilVisible:
+    element:
+      text: .*today's wave limit.*
+- runScript:
+    file: ../scripts/expect_state.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      FIELD: waves
+      VALUE: "8"

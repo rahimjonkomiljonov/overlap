@@ -24,6 +24,17 @@ what the database says.
 | `16_suspended_appeal` | F38 a suspended account sees why and appeals once |
 | `17_preferences` | F43 pick preferences (three levels, saved) |
 | `18_privacy_account` | F39 data export, F40 consent withdrawal, F42 notifications text, F41 account deletion and sign-out |
+| `19_profile_photos_and_edit` | F12 photos from the system picker (and removing one), F11 free-time grid, F14 going back to edit and finishing, F15 the sensitive question |
+| `20_selfie` | F13 selfie through the phone's camera: waiting, rejected with a reason, verified |
+| `21_wave_cap` | F25 the ninth wave of the day is refused |
+| `22_session_and_offline` | F03 an ended session sends the person to sign in, F49 offline state, empty lists, Try again |
+| `23_language` | F47 switch to Korean and back |
+| `24_links_and_share` | F48 deep links (signed out and in, chat, event, a link that points nowhere) |
+| `25_share_and_external` | F48 the native share sheet, F19 the page that opens outside the app |
+| `26_invite_code` | F07 invite code (tag `cohort`: needs `COHORT_RELEASE=on` on the website) |
+| `27_cohort_closed` | F20 Dating closed for a small group (tag `cohort`) |
+| `28_upgrade_gate` | F04 the update message (tag `upgrade`: needs `MIN_APP_VERSION=9.0.0` on the website) |
+| `29_dark_mode` | dark mode: every tab and the chat open and work with the emulator in night mode (tag `dark`; see the flow's header) |
 
 ## How it works
 
@@ -55,7 +66,9 @@ Needs the Android SDK and JDK 17 (see `mobile/README.md`) and Maestro unpacked s
    `OVERLAP_TEST_BUILD=1 EXPO_PUBLIC_API_URL=http://10.0.2.2:3000 ./gradlew assembleRelease -PreactNativeArchitectures=x86_64`
    (put `sdk.dir=C:/Users/<you>/android-sdk` in `mobile/android/local.properties` first), then
    `adb install -r app/build/outputs/apk/release/app-release.apk`.
-5. Run: `maestro test mobile/maestro/flows` (all, about 10 minutes) or `maestro test mobile/maestro/flows/05_wave_with_note.yaml`.
+5. Put a few pictures on the phone for the photo flow: `adb push e2e/fixtures/photo-with-exif.jpg /sdcard/Pictures/maestro-photo-1.jpg`, then `adb shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file:///sdcard/Pictures/maestro-photo-1.jpg` (use `MSYS_NO_PATHCONV=1` in Git Bash). The emulator's own gallery pictures also work.
+6. Run the normal flows: `maestro test mobile/maestro/flows --exclude-tags=cohort,upgrade,dark` (25 flows, about 45 minutes) or one flow, `maestro test mobile/maestro/flows/05_wave_with_note.yaml`.
+7. The tagged flows need the website started differently, so run them on their own: start the website with `COHORT_RELEASE=on` and run `--include-tags=cohort`; start it with `MIN_APP_VERSION=9.0.0` and run `--include-tags=upgrade` (the helper cannot sign anyone up in that mode, the flow needs none). Restart the website normally afterwards.
 
 `10.0.2.2` is how the emulator reaches the computer; the Maestro scripts run on the computer and use `localhost`.
 

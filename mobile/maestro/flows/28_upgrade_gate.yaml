@@ -1,0 +1,15 @@
+# F04 force-upgrade gate: when the server's minimum app version is above this app's, the person sees an update message and nothing else.
+# Needs the website started with MIN_APP_VERSION=9.0.0 (this build is 0.1.0).
+appId: tech.overlaps.app
+tags:
+  - upgrade
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: Please update Overlap
+    timeout: 60000
+- assertVisible: .*too old to work with our servers.*
+# No way past it: no sign-in, no tabs.
+- assertNotVisible: Get verification code
+- assertNotVisible: Today's picks

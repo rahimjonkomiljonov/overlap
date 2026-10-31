@@ -1,0 +1,161 @@
+# F12 photos from the system picker (and removing one), F11 free-time grid, F14 going back to edit and finishing, F15 the sensitive field's gate.
+# The account is finished except for photos, so the wizard resumes at the photos step.
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/seed_user.js
+    env:
+      HELPER: ${HELPER}
+      TAG: photos
+      SENSITIVE: yes
+      PARTIAL: yes
+- runFlow:
+    file: ../subflows/sign_in_existing.yaml
+    env:
+      EMAIL: ${output.a}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Add your photos
+    timeout: 30000
+- assertVisible: 0 of 6 photos
+
+# F12: three pictures from the phone's own photo picker.
+- tapOn: Choose from library
+- extendedWaitUntil:
+    notVisible: Add your photos
+    timeout: 15000
+- tapOn:
+    text: Dismiss
+    optional: true
+- tapOn:
+    text: Photo taken on.*
+    index: 0
+- tapOn:
+    text: Photo taken on.*
+    index: 1
+- tapOn:
+    text: Photo taken on.*
+    index: 2
+- tapOn: Done
+- extendedWaitUntil:
+    visible: 3 of 6 photos
+    timeout: 60000
+- runScript:
+    file: ../scripts/expect_state.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      FIELD: photos
+      VALUE: 3
+
+# Removing a picture works while the profile is being built (the three-photo minimum applies once it is finished) ...
+- tapOn: Remove Photo 1
+- extendedWaitUntil:
+    visible: 2 of 6 photos
+    timeout: 30000
+- runScript:
+    file: ../scripts/expect_state.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      FIELD: photos
+      VALUE: 2
+
+# ... and one more from the picker brings it back to three.
+- tapOn: Choose from library
+- extendedWaitUntil:
+    notVisible: Add your photos
+    timeout: 15000
+- tapOn:
+    text: Photo taken on.*
+    index: 0
+- tapOn: Done
+- extendedWaitUntil:
+    visible: 3 of 6 photos
+    timeout: 60000
+- runScript:
+    file: ../scripts/expect_state.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      FIELD: photos
+      VALUE: 3
+
+# F14 and F11: Back four steps (values, prompts, interests) to the free-time grid; Monday noon to four.
+- scrollUntilVisible:
+    element:
+      text: Back
+- tapOn: Back
+- scrollUntilVisible:
+    element:
+      text: Back
+- tapOn: Back
+- scrollUntilVisible:
+    element:
+      text: Back
+- tapOn: Back
+- scrollUntilVisible:
+    element:
+      text: Back
+- tapOn: Back
+- extendedWaitUntil:
+    visible: When are you free\?
+    timeout: 20000
+- tapOn: 12.2pm
+- tapOn: 2.4pm
+- assertVisible: 2 free time blocks chosen
+- tapOn: Next
+- runScript:
+    file: ../scripts/expect_privacy.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      FIELD: freeSlots
+      VALUE: 2
+
+# F15: back at the start, the sensitive question is there (this account gave the consent) with its privacy hint.
+- repeat:
+    times: 12
+    while:
+      notVisible: Who would you like to meet\?
+    commands:
+      - scrollUntilVisible:
+          element:
+            text: Back
+      - tapOn: Back
+- assertVisible: Who would you like to meet\?
+- assertVisible: This is encrypted.*never shown to anyone else.
+
+# F14: going forward again keeps every answer, and the preview shows the finished profile.
+- repeat:
+    times: 14
+    while:
+      notVisible: How others see you
+    commands:
+      - scrollUntilVisible:
+          element:
+            text: Next
+      - tapOn:
+          text: Next
+- assertVisible: How others see you
+- assertVisible: Alice
+- scrollUntilVisible:
+    element:
+      text: Finish
+- tapOn: Finish
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+- runScript:
+    file: ../scripts/expect_privacy.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      FIELD: profileComplete
+      VALUE: true

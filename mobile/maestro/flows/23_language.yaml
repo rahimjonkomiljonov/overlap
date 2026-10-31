@@ -1,0 +1,48 @@
+# F47 Korean and English: the language can be switched in the app and everything on screen follows (Korean is matched with \u escapes).
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/seed_user.js
+    env:
+      HELPER: ${HELPER}
+      TAG: language
+- runFlow:
+    file: ../subflows/sign_in_existing.yaml
+    env:
+      EMAIL: ${output.a}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+- tapOn: Me
+- extendedWaitUntil:
+    visible: Language
+    timeout: 20000
+
+# Switch to Korean: the screen the person is on comes back in Korean, and no English heading is left.
+- tapOn: \uD55C\uAD6D\uC5B4
+- extendedWaitUntil:
+    visible: \uC5B8\uC5B4
+    timeout: 20000
+- assertNotVisible: Language
+- assertVisible: \uB0B4 \uC815\uBCF4
+- tapOn: \uCD94\uCC9C
+- extendedWaitUntil:
+    visible: \uC624\uB298\uC758 \uCD94\uCC9C
+    timeout: 20000
+- assertNotVisible: Today's picks
+
+# And back to English.
+- tapOn: \uB0B4 \uC815\uBCF4
+- tapOn: English
+- extendedWaitUntil:
+    visible: Language
+    timeout: 20000
+- assertNotVisible: \uC5B8\uC5B4
+- assertVisible: Me

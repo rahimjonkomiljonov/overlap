@@ -1,0 +1,54 @@
+# F48 the native share sheet (sending my data), F19 "How your picks are chosen" opens the website outside the app and Back returns.
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/seed_user.js
+    env:
+      HELPER: ${HELPER}
+      TAG: share
+- runFlow:
+    file: ../subflows/sign_in_existing.yaml
+    env:
+      EMAIL: ${output.a}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+
+# F19: the link leaves the app (the heading is no longer on screen); the phone's Back button returns to it.
+- tapOn: How your picks are chosen
+- extendedWaitUntil:
+    notVisible: Today's picks
+    timeout: 30000
+- back
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+
+# F48: Send my data opens the phone's share sheet; closing it returns to the screen.
+- tapOn: Me
+- scrollUntilVisible:
+    element:
+      text: Privacy and account
+- tapOn: Privacy and account
+- extendedWaitUntil:
+    visible: Your data
+    timeout: 20000
+- tapOn: Download my data
+- scrollUntilVisible:
+    element:
+      text: Send my data
+- tapOn: Send my data
+- extendedWaitUntil:
+    visible: Sharing text
+    timeout: 20000
+- back
+- extendedWaitUntil:
+    visible: Privacy and account
+    timeout: 20000

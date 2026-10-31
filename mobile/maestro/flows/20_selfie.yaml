@@ -1,0 +1,106 @@
+# F13 selfie verification: the phone's camera, then waiting, rejected with a reason (and trying again), and verified.
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/seed_user.js
+    env:
+      HELPER: ${HELPER}
+      TAG: selfie
+      UNVERIFIED: yes
+- runFlow:
+    file: ../subflows/sign_in_existing.yaml
+    env:
+      EMAIL: ${output.a}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+- tapOn: Me
+- scrollUntilVisible:
+    element:
+      text: Verify yourself
+- tapOn: Verify yourself
+- extendedWaitUntil:
+    visible: You have not verified yet.
+    timeout: 20000
+
+# The phone's camera opens; take the picture and keep it.
+- tapOn: Take a selfie
+- extendedWaitUntil:
+    visible: Shutter
+    timeout: 20000
+- tapOn: Shutter
+- extendedWaitUntil:
+    visible: Done
+    timeout: 20000
+- tapOn: Done
+
+# Uploaded: it now waits for a moderator.
+- extendedWaitUntil:
+    visible: Your selfie is waiting for a moderator.*
+    timeout: 60000
+- runScript:
+    file: ../scripts/selfie.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: expect
+      EMAIL: ${output.a}
+      FIELD: pending
+      VALUE: 1
+
+# A moderator rejects it with a reason; the screen shows the reason and offers another try.
+- runScript:
+    file: ../scripts/selfie.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: decide
+      EMAIL: ${output.a}
+      DECISION: REJECTED
+      REASON: face not visible
+- back
+- tapOn: Verify yourself
+- extendedWaitUntil:
+    visible: Your selfie was not accepted.*face not visible
+    timeout: 20000
+- assertVisible: Take a selfie
+
+# A moderator approves the next one: the account is verified.
+- tapOn: Take a selfie
+- extendedWaitUntil:
+    visible: Shutter
+    timeout: 20000
+- tapOn: Shutter
+- extendedWaitUntil:
+    visible: Done
+    timeout: 20000
+- tapOn: Done
+- extendedWaitUntil:
+    visible: Your selfie is waiting for a moderator.*
+    timeout: 60000
+- runScript:
+    file: ../scripts/selfie.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: decide
+      EMAIL: ${output.a}
+      DECISION: APPROVED
+- back
+- tapOn: Verify yourself
+- extendedWaitUntil:
+    visible: You are verified.
+    timeout: 20000
+- assertNotVisible: Take a selfie
+- runScript:
+    file: ../scripts/selfie.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: expect
+      EMAIL: ${output.a}
+      FIELD: verified
+      VALUE: true

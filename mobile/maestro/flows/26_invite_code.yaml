@@ -1,0 +1,99 @@
+# F07 invite code (website running with cohort release on): a wrong code is refused, a valid one puts the person in its cohort.
+# Needs the website started with COHORT_RELEASE=on.
+appId: tech.overlaps.app
+tags:
+  - cohort
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/invite.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: create
+      CODE: MAEFLOWTEST
+- runScript:
+    file: ../scripts/new_email.js
+    env:
+      TAG: invite
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../subflows/sign_in_new.yaml
+    env:
+      EMAIL: ${output.email}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Age check
+    timeout: 20000
+- tapOn:
+    id: birth-year
+- inputText: "2000"
+- tapOn:
+    id: birth-month
+- inputText: "5"
+- tapOn:
+    id: birth-day
+- inputText: "17"
+- hideKeyboard
+- tapOn: I am 19 or older.
+- tapOn: Next
+- tapOn: "I agree to the Terms.*"
+- tapOn: Next
+- assertVisible: 'Dating mode (optional)'
+- tapOn: Next
+
+# The invite step: nothing can be sent empty, and a code that does not exist is refused with a plain message.
+- extendedWaitUntil:
+    visible: Invite code
+    timeout: 20000
+- tapOn:
+    id: invite-code
+- inputText: WRONGCODE
+- hideKeyboard
+- tapOn: Finish
+- extendedWaitUntil:
+    visible: .*isn't valid or has already been used up.*
+    timeout: 20000
+- runScript:
+    file: ../scripts/invite.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: expect
+      EMAIL: ${output.email}
+      CODE: MAEFLOWTEST
+      FIELD: uses
+      VALUE: 0
+
+# The real code works: the account is created, the code is used once and the person is in its cohort.
+- tapOn:
+    id: invite-code
+- eraseText: 20
+- inputText: MAEFLOWTEST
+- hideKeyboard
+- tapOn: Finish
+- extendedWaitUntil:
+    visible: Tell us about you
+    timeout: 20000
+- runScript:
+    file: ../scripts/invite.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: expect
+      EMAIL: ${output.email}
+      CODE: MAEFLOWTEST
+      FIELD: uses
+      VALUE: 1
+- runScript:
+    file: ../scripts/invite.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: expect
+      EMAIL: ${output.email}
+      CODE: MAEFLOWTEST
+      FIELD: inCohort
+      VALUE: true

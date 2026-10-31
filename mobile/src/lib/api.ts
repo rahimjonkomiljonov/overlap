@@ -70,6 +70,9 @@ async function apiRequest<T>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', path: st
   if (response.ok) return { ok: true, data: (await response.json()) as T };
   const failure = (await response.json().catch(() => null)) as { error?: string; reason?: string } | null;
   const code = failure?.error && KNOWN_CODES.includes(failure.error) ? (failure.error as ApiErrorCode) : 'INTERNAL';
+  // The server no longer knows this sign-in (it expired or was ended): have the auth client look at the session again, which
+  // finds none and sends the person to the sign-in screen instead of leaving them on a "check your connection" message.
+  if (code === 'UNAUTHENTICATED') authClient.$store.notify('$sessionSignal');
   return { ok: false, code, reason: failure?.reason };
 }
 
