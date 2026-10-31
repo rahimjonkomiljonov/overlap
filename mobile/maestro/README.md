@@ -72,6 +72,17 @@ Needs the Android SDK and JDK 17 (see `mobile/README.md`) and Maestro unpacked s
 
 `10.0.2.2` is how the emulator reaches the computer; the Maestro scripts run on the computer and use `localhost`.
 
+## In CI
+
+`.github/workflows/mobile-e2e.yml` (workflow name "Mobile e2e") builds the website and the app, starts an Android 16 emulator and runs
+`mobile/maestro/ci-run.sh`, which starts the website and the helper itself and runs the four phases (normal, cohort, upgrade, dark)
+described at the top of that script. It takes about an hour, so it runs on pull requests that touch `mobile/`, the mobile API or the
+database, and by hand (Actions > Mobile e2e > Run workflow). The script also works on this computer once the website is built
+(`npm run build`) and the emulator is running: `PHASES="cohort upgrade dark" bash mobile/maestro/ci-run.sh`, or
+`FLOWS_ONLY=mobile/maestro/flows/05_wave_with_note.yaml bash mobile/maestro/ci-run.sh` for one flow. **Careful on this computer:**
+`next start` also reads `.env.production.local`, which holds the production email and push keys, so the script blanks them
+(`RESEND_API_KEY`, `VAPID_PRIVATE_KEY`) and turns `COHORT_RELEASE` off itself. Do not start the production build by hand for these tests.
+
 ## Writing a flow
 
 - Start with `cleanup.js` if the flow makes people, so the previous run's accounts cannot appear in its picks.

@@ -1,0 +1,117 @@
+name: Mobile e2e
+
+# M16c: the Maestro flows (mobile/maestro/flows) against a real build of the Expo app on an Android emulator, the
+# website built from this commit, and a throw-away Postgres. It takes about an hour, so it does not run on every push:
+# it runs on pull requests that touch the mobile app, the mobile API or the database, and by hand (Actions > Mobile e2e > Run workflow).
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "mobile/**"
+      - "src/server/mobile/**"
+      - "src/app/api/mobile/**"
+      - "prisma/**"
+      - ".github/workflows/mobile-e2e.yml"
+
+concurrency:
+  group: mobile-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  flows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    services:
+      # Throwaway Postgres for this run only: the helper refuses to run against anything that is not on localhost.
+      # Its clock is UTC (the image default), as production's is: raw SQL `now()` in the test helper relies on that.
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      # All dummy, CI-only values (the same ones as the e2e job in ci.yml): not our real project's secrets.
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/postgres
+      EMAIL_HASH_PEPPER: ci-only-dummy-pepper-never-used-for-real-data-000000
+      FIELD_ENCRYPTION_KEY_V1: Ee/hV3KueyPxUUxpNfi4REpz2B16L5mszNl/f7lNlsM=
+      CRON_SECRET: ci-only-dummy-cron-secret-0000000000000000
+      BETTER_AUTH_SECRET: ci-only-dummy-better-auth-secret-000000000000000000000000
+      BETTER_AUTH_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # The website, built from this commit.
+      - run: npm ci
+      - run: npx prisma migrate deploy
+      - run: npx prisma db seed
+      - run: npm run db:import-reference -- --dir reference-data/shared --domain test.ac.kr
+      - run: npm run db:import-reference -- --dir reference-data/sample --domain test.ac.kr
+      - run: npm run build
+
+      # The app: a release-style build with its JavaScript bundled in (no Metro), pointed at the emulator's name for this computer.
+      # OVERLAP_TEST_BUILD only adds permission for plain http to that computer; a normal build never allows it.
+      - run: npm ci
+        working-directory: mobile
+      - run: npx expo prebuild --platform android --no-install
+        working-directory: mobile
+        env:
+          OVERLAP_TEST_BUILD: "1"
+          CI: "1"
+      - run: ./gradlew assembleRelease -PreactNativeArchitectures=x86_64
+        working-directory: mobile/android
+        env:
+          OVERLAP_TEST_BUILD: "1"
+          EXPO_PUBLIC_API_URL: http://10.0.2.2:3000
+
+      # Maestro, pinned to the version the flows were written against.
+      - name: Install Maestro
+        run: |
+          export MAESTRO_VERSION=2.12.0
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      # Android 16 with Google APIs, like the phone the flows were written on. The camera is left on (the selfie flow uses it).
+      - name: Run the Maestro flows
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7
+          ram-size: 4096M
+          disk-size: 8192M
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          disable-animations: true
+          script: bash mobile/maestro/ci-run.sh
+
+      - uses: actions/upload-artifact@v5
+        if: ${{ !cancelled() }}
+        with:
+          name: maestro-results
+          path: maestro-results/
+          retention-days: 14
