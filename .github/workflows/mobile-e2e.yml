@@ -51,6 +51,13 @@ jobs:
       BETTER_AUTH_SECRET: ci-only-dummy-better-auth-secret-000000000000000000000000
       BETTER_AUTH_URL: http://localhost:3000
     steps:
+      # The runner's disk is tight: the website build, the app build and the emulator image together overflowed it once
+      # ("No space left on device" while unpacking the system image). Remove big tools this job never uses.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost /usr/local/lib/node_modules "$AGENT_TOOLSDIRECTORY/CodeQL" /usr/local/.ghcup /usr/share/swift
+          df -h /
+
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
@@ -83,6 +90,13 @@ jobs:
         env:
           OVERLAP_TEST_BUILD: "1"
           EXPO_PUBLIC_API_URL: http://10.0.2.2:3000
+
+      # The APK is built; the app's own build leftovers are not needed any more and take several GB.
+      - name: Free disk space after the app build
+        run: |
+          rm -rf ~/.gradle mobile/node_modules mobile/android/.gradle mobile/android/build mobile/android/app/build/intermediates mobile/android/app/.cxx
+          ls -l mobile/android/app/build/outputs/apk/release/app-release.apk
+          df -h /
 
       # Maestro, pinned to the version the flows were written against.
       - name: Install Maestro
