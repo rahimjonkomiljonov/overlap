@@ -97,7 +97,14 @@ export default function PocketsScreen() {
         </Card>
       ) : (
         <>
-          <VisibilityToggle data={state.data} onChanged={(next) => setState({ phase: 'ready', data: next })} />
+          {/* The counts depend on being visible (nobody is listed while it is off), so they are fetched again after every switch. */}
+          <VisibilityToggle
+            data={state.data}
+            onChanged={(next) => {
+              setState({ phase: 'ready', data: next });
+              reload();
+            }}
+          />
 
           {state.data.pockets.length === 0 ? (
             <Card>

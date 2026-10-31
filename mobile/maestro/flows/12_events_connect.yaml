@@ -1,0 +1,143 @@
+# F58 the 48-hour connect window after an event: a one-sided pick stays private, a mutual pick makes a match.
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/seed_group.js
+    env:
+      HELPER: ${HELPER}
+      TAG: connect
+      COUNT: 3
+# Study night: all three went and chose to be listed, and it ended a few hours ago (inside the 48-hour window).
+- runScript:
+    file: ../scripts/event.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: create
+      ORGANIZER: ${output.b}
+      TITLE: Study night
+      START: 1 hour
+      END: 3 hours
+- evalScript: ${output.night = output.event}
+- runScript:
+    file: ../scripts/event.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: rsvp
+      FROM: ${output.a}
+      EVENT: ${output.night}
+      GOING: yes
+      LISTED: yes
+- runScript:
+    file: ../scripts/event.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: rsvp
+      FROM: ${output.b}
+      EVENT: ${output.night}
+      GOING: yes
+      LISTED: yes
+- runScript:
+    file: ../scripts/event.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: rsvp
+      FROM: ${output.c}
+      EVENT: ${output.night}
+      GOING: yes
+      LISTED: yes
+- runScript:
+    file: ../scripts/event.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: ended
+      EVENT: ${output.night}
+# Bobby already picked Alice.
+- runScript:
+    file: ../scripts/event.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: connect
+      FROM: ${output.b}
+      EVENT: ${output.night}
+      TO: ${output.a}
+- runFlow:
+    file: ../subflows/sign_in_existing.yaml
+    env:
+      EMAIL: ${output.a}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+- tapOn: Events
+- extendedWaitUntil:
+    visible: Join meetups on campus.*
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      text: Study night.*
+- tapOn: Study night.*
+
+# The event is over, so the window is open: no RSVP any more, a "We met" button per listed guest.
+- extendedWaitUntil:
+    visible: Pick people you met \(48h\)
+    timeout: 20000
+- assertNotVisible: Not going
+- scrollUntilVisible:
+    element:
+      text: Carla
+- scrollUntilVisible:
+    element:
+      text: Bobby
+
+# Pick both guests. Bobby already picked Alice, so that pick is a match; Carla has not picked back, so hers stays private.
+# (The first "We met" button belongs to whoever is listed first, and each button is replaced once it is used.)
+- tapOn: We met
+- extendedWaitUntil:
+    visible: Picked|It's a match!.*
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      text: We met
+- tapOn: We met
+- scrollUntilVisible:
+    element:
+      text: It's a match!.*
+- scrollUntilVisible:
+    element:
+      text: Matched
+- scrollUntilVisible:
+    element:
+      text: Picked
+- runScript:
+    file: ../scripts/expect_event.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      EVENT: ${output.night}
+      FIELD: picks
+      VALUE: 2
+- runScript:
+    file: ../scripts/expect_event.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      EVENT: ${output.night}
+      FIELD: matches
+      VALUE: 1
+
+# The match is in the Matches tab, with its chat.
+- back
+- tapOn: Matches
+- extendedWaitUntil:
+    visible: Bobby
+    timeout: 20000
+- tapOn: Chat
+- extendedWaitUntil:
+    visible: Need a way to start?
+    timeout: 20000

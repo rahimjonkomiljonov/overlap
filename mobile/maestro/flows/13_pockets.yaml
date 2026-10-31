@@ -1,0 +1,95 @@
+# F51 the visibility switch (off until chosen), F52 the pockets list with counts, F53 people filtered to opted-in ones, F54 a wave from a pocket.
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/seed_group.js
+    env:
+      HELPER: ${HELPER}
+      TAG: pockets
+      COUNT: 3
+# Bobby has turned Pockets on; Carla has not (and shares the same course).
+- runScript:
+    file: ../scripts/pockets.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: visible
+      FROM: ${output.b}
+- runFlow:
+    file: ../subflows/sign_in_existing.yaml
+    env:
+      EMAIL: ${output.a}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+- tapOn: Me
+- scrollUntilVisible:
+    element:
+      text: Campus Pockets
+- tapOn: Campus Pockets
+
+# F51: it is off for Alice until she turns it on, and nothing is listed while it is off.
+- extendedWaitUntil:
+    visible: Visible in Pockets
+    timeout: 20000
+- assertVisible: Turn on
+- scrollUntilVisible:
+    element:
+      text: Turn on "Visible in Pockets" above to browse.
+- runScript:
+    file: ../scripts/pockets.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: expect
+      EMAIL: ${output.a}
+      VISIBLE: false
+- scrollUntilVisible:
+    direction: UP
+    element:
+      text: Turn on
+- tapOn: Turn on
+- extendedWaitUntil:
+    visible: Turn off
+    timeout: 20000
+- runScript:
+    file: ../scripts/pockets.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: expect
+      EMAIL: ${output.a}
+      VISIBLE: true
+
+# F52: her course is listed as a pocket, with the one person she could meet (Bobby; Carla is not visible).
+- scrollUntilVisible:
+    element:
+      text: 1 person
+- assertVisible: Course
+
+# F53: opening it lists Bobby and not Carla.
+- tapOn: 1 person
+- extendedWaitUntil:
+    visible: Back to Pockets
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      text: Bobby
+- assertNotVisible: Carla
+
+# F54: waving from the pocket sends a wave, and the card says Waved.
+- tapOn: Wave
+- extendedWaitUntil:
+    visible: Waved
+    timeout: 20000
+- runScript:
+    file: ../scripts/expect_state.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      FIELD: waves
+      VALUE: 1

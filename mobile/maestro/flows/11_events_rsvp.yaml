@@ -1,0 +1,165 @@
+# F55 events list and detail, F56 RSVP with the opt-in (and a full event), F57 who is going (opted-in guests only).
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/seed_group.js
+    env:
+      HELPER: ${HELPER}
+      TAG: events
+      COUNT: 3
+# Bobby organises a picnic and, as a second event, a tiny dinner with one place that he already takes.
+- runScript:
+    file: ../scripts/event.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: create
+      ORGANIZER: ${output.b}
+      TITLE: Picnic
+      START: 1 day
+      END: 2 days
+- evalScript: ${output.picnic = output.event}
+- runScript:
+    file: ../scripts/event.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: create
+      ORGANIZER: ${output.b}
+      TITLE: Tiny dinner
+      START: 2 days
+      END: 3 days
+      CAPACITY: 1
+- evalScript: ${output.dinner = output.event}
+- runScript:
+    file: ../scripts/event.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: rsvp
+      FROM: ${output.b}
+      EVENT: ${output.dinner}
+      GOING: yes
+# Bobby goes to the picnic and lets people see it; Carla goes but stays unlisted.
+- runScript:
+    file: ../scripts/event.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: rsvp
+      FROM: ${output.b}
+      EVENT: ${output.picnic}
+      GOING: yes
+      LISTED: yes
+- runScript:
+    file: ../scripts/event.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: rsvp
+      FROM: ${output.c}
+      EVENT: ${output.picnic}
+      GOING: yes
+- runFlow:
+    file: ../subflows/sign_in_existing.yaml
+    env:
+      EMAIL: ${output.a}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+
+# F55: the Events tab lists both, with how many are going.
+- tapOn: Events
+- extendedWaitUntil:
+    visible: Join meetups on campus.*
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      text: Picnic.*
+- scrollUntilVisible:
+    element:
+      text: 1/1 going
+
+# Opening the picnic shows its description and the RSVP card.
+- scrollUntilVisible:
+    direction: UP
+    element:
+      text: Picnic.*
+- tapOn: Picnic.*
+- extendedWaitUntil:
+    visible: Join us for Picnic.*
+    timeout: 20000
+- assertVisible: RSVP
+
+# F56: going reveals the opt-in, which is off until chosen and says you can go without it.
+- tapOn: I'm going
+- scrollUntilVisible:
+    element:
+      text: Show me in the guest list
+- scrollUntilVisible:
+    element:
+      text: .*You can go without it.
+- tapOn: Show me in the guest list
+- scrollUntilVisible:
+    element:
+      text: Save
+- tapOn: Save
+- scrollUntilVisible:
+    element:
+      text: Saved.
+    timeout: 20000
+- scrollUntilVisible:
+    direction: UP
+    element:
+      text: You're going
+- runScript:
+    file: ../scripts/expect_event.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      EVENT: ${output.picnic}
+      FIELD: listed
+      VALUE: true
+
+# F57: the guest list shows Bobby (who chose to be listed) and not Carla (who did not).
+- scrollUntilVisible:
+    element:
+      text: 3 going
+- scrollUntilVisible:
+    element:
+      text: Bobby
+- assertNotVisible: Carla
+- scrollUntilVisible:
+    element:
+      text: .*in common.*
+
+# F56: a full event refuses going and says so.
+- back
+- extendedWaitUntil:
+    visible: Join meetups on campus.*
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      text: Tiny dinner.*
+- tapOn: Tiny dinner.*
+- extendedWaitUntil:
+    visible: Join us for Tiny dinner.*
+    timeout: 20000
+- tapOn: I'm going
+- scrollUntilVisible:
+    element:
+      text: Save
+- tapOn: Save
+- scrollUntilVisible:
+    element:
+      text: This event is full.
+- runScript:
+    file: ../scripts/expect_event.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      EVENT: ${output.dinner}
+      FIELD: rsvp
+      VALUE: none

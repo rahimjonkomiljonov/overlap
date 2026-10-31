@@ -14,6 +14,16 @@ what the database says.
 | `06_wave_back` | F22 waved-at-you inbox, F23 wave back (makes a match), F26 matches list |
 | `07_decline_wave` | F24 decline a wave |
 | `08_matches_and_chat` | F26 matches, F28 icebreakers, F27 chat send and receive, F29 unmatch |
+| `09_meetup_propose` | F32 suggested times and public Safe Spots, F30 propose a time, F34 emergency card, F33 plan share link |
+| `10_meetup_respond` | F31 decline, accept, the private check-in, cancel and reschedule |
+| `11_events_rsvp` | F55 events list and detail, F56 RSVP with the opt-in (and a full event), F57 who is going |
+| `12_events_connect` | F58 the 48-hour connect window and the mutual pick that makes a match |
+| `13_pockets` | F51 visibility switch, F52 pockets list with counts, F53 opted-in people only, F54 wave from a pocket |
+| `14_report_and_block` | F35 report with category and detail, F36 block with a confirm step |
+| `15_safety_settings` | F38 pause and incognito, F37 hide a course and one person by email, then Unhide |
+| `16_suspended_appeal` | F38 a suspended account sees why and appeals once |
+| `17_preferences` | F43 pick preferences (three levels, saved) |
+| `18_privacy_account` | F39 data export, F40 consent withdrawal, F42 notifications text, F41 account deletion and sign-out |
 
 ## How it works
 
@@ -55,3 +65,7 @@ Needs the Android SDK and JDK 17 (see `mobile/README.md`) and Maestro unpacked s
 - A card in Today's picks is taller than the screen: use `scrollUntilVisible` before tapping a button lower down.
 - Keep JSON out of Maestro variables (quotes break its templating): build the body inside a script from plain variables.
 - Order of cards in a list is not fixed, so give a flow one other person at a time, or assert through the helper.
+- A regex must match a whole text, and the app often joins words into one text (`Given · Needed to use Overlap`, `Thanks for reporting. This account is now hidden...`): use a leading and trailing `.*`. Keep non-ASCII characters out of the YAML (Windows reads it in the wrong encoding): match them with `.`.
+- A value with a colon needs quotes (`text: "Reason: repeated spam"`).
+- Two buttons with the same label (`Hide` for a course and for an email) need `index`; a swipe that starts on a button can press it, so scroll from the left edge (`start: 3%, 70%`) over a list of buttons; `pressKey: Escape` closes the keyboard, `hideKeyboard` can press Back and leave the screen.
+- The helper checks the database for up to ten seconds (`scripts/safety.js`, `expect_privacy.js`), because the app's request lands a moment after the tap.

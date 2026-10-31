@@ -1,0 +1,137 @@
+# F35 report a person (with the last messages as evidence), F36 block (with a confirm step).
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/seed_pair.js
+    env:
+      HELPER: ${HELPER}
+      TAG: report
+- runScript:
+    file: ../scripts/send_message.js
+    env:
+      HELPER: ${HELPER}
+      FROM: ${output.b}
+      CONVERSATION: ${output.conversation}
+      TEXT: hey there
+- runScript:
+    file: ../scripts/send_message.js
+    env:
+      HELPER: ${HELPER}
+      FROM: ${output.b}
+      CONVERSATION: ${output.conversation}
+      TEXT: please stop
+- runFlow:
+    file: ../subflows/sign_in_existing.yaml
+    env:
+      EMAIL: ${output.a}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+- tapOn: Matches
+- extendedWaitUntil:
+    visible: Bobby
+    timeout: 20000
+
+# F35: Report opens a panel with the categories; nothing can be sent until one is picked.
+- scrollUntilVisible:
+    element:
+      text: Report
+- tapOn: Report
+- extendedWaitUntil:
+    visible: What's happening?
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      text: Harassment
+- waitForAnimationToEnd
+- tapOn: Harassment
+# Scroll from the left edge (outside the card): a swipe that starts on a category button can select it.
+- swipe:
+    start: 3%, 70%
+    end: 3%, 40%
+- tapOn: Add more detail.*
+- inputText: Kept messaging me
+- pressKey: Escape
+- swipe:
+    start: 3%, 70%
+    end: 3%, 30%
+- swipe:
+    start: 3%, 70%
+    end: 3%, 30%
+- swipe:
+    start: 3%, 70%
+    end: 3%, 30%
+- tapOn: Send report
+- scrollUntilVisible:
+    element:
+      text: .*This account is now hidden from you.*
+- runScript:
+    file: ../scripts/safety.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: expect
+      EMAIL: ${output.a}
+      OTHER: ${output.b}
+      FIELD: reportCategory
+      VALUE: HARASSMENT
+- runScript:
+    file: ../scripts/safety.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: expect
+      EMAIL: ${output.a}
+      OTHER: ${output.b}
+      FIELD: reportText
+      VALUE: Kept messaging me
+- runScript:
+    file: ../scripts/safety.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: expect
+      EMAIL: ${output.a}
+      OTHER: ${output.b}
+      FIELD: hides
+      VALUE: 1
+
+# F36: Block asks first ("You'll become invisible to each other."); only the second tap blocks.
+- scrollUntilVisible:
+    element:
+      text: Chat
+- tapOn: Chat
+- extendedWaitUntil:
+    visible: please stop
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      text: Block
+- tapOn: Block
+- assertVisible: .*invisible to each other.
+- runScript:
+    file: ../scripts/safety.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: expect
+      EMAIL: ${output.a}
+      OTHER: ${output.b}
+      FIELD: blocks
+      VALUE: 0
+- tapOn: Block
+- extendedWaitUntil:
+    visible: No matches yet
+    timeout: 20000
+- runScript:
+    file: ../scripts/safety.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: expect
+      EMAIL: ${output.a}
+      OTHER: ${output.b}
+      FIELD: blocks
+      VALUE: 1

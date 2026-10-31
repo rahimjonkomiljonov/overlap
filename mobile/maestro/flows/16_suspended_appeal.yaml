@@ -1,0 +1,74 @@
+# F38 restrictions and appeals: a suspended person sees why, cannot change the switches, and can appeal once.
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/seed_pair.js
+    env:
+      HELPER: ${HELPER}
+      TAG: appeal
+- runFlow:
+    file: ../subflows/sign_in_existing.yaml
+    env:
+      EMAIL: ${output.a}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+# Bobby reports Alice and a moderator suspends her for seven days.
+- runScript:
+    file: ../scripts/safety.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: suspend
+      TARGET: ${output.a}
+      REPORTER: ${output.b}
+      ACTOR: ${output.b}
+- tapOn: Me
+- scrollUntilVisible:
+    element:
+      text: Safety
+- tapOn: Safety
+
+# She is told she is suspended and until when, with the action and its reason listed.
+- extendedWaitUntil:
+    visible: Your account is suspended\. The suspension ends.*
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      text: .*A restricted account can't change this setting.
+- scrollUntilVisible:
+    element:
+      text: Suspended \(7 days\)
+- scrollUntilVisible:
+    element:
+      text: "Reason: repeated spam"
+
+# She can appeal, with a note.
+- scrollUntilVisible:
+    element:
+      text: Appeal
+- tapOn: Appeal
+- tapOn: Explain why you're appealing
+- inputText: I was not spamming
+- pressKey: Escape
+- scrollUntilVisible:
+    element:
+      text: Submit appeal
+- tapOn: Submit appeal
+- scrollUntilVisible:
+    element:
+      text: "Appeal submitted: I was not spamming"
+- runScript:
+    file: ../scripts/safety.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: expect
+      EMAIL: ${output.a}
+      FIELD: appealNote
+      VALUE: I was not spamming

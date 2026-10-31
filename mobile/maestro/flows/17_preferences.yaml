@@ -1,0 +1,64 @@
+# F43 pick preferences: three levels, saved, applied from tomorrow.
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/seed_user.js
+    env:
+      HELPER: ${HELPER}
+      TAG: prefs
+- runFlow:
+    file: ../subflows/sign_in_existing.yaml
+    env:
+      EMAIL: ${output.a}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+- tapOn: Me
+- scrollUntilVisible:
+    element:
+      text: What matters to you
+- tapOn: What matters to you
+
+# Three rows, all at Normal to begin with, and it says this never hides anyone.
+- extendedWaitUntil:
+    visible: Shared classes
+    timeout: 20000
+- assertVisible: Shared interests
+- assertVisible: Shared free time
+- assertVisible: .*never hides anyone.*
+- runScript:
+    file: ../scripts/expect_privacy.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      FIELD: weights
+      VALUE: 1,1,1
+
+# Classes "Much more" (first row), interests "Less" (second row), then save.
+- tapOn:
+    text: Much more
+    index: 0
+- tapOn:
+    text: Less
+    index: 1
+- scrollUntilVisible:
+    element:
+      text: Save
+- tapOn: Save
+- scrollUntilVisible:
+    element:
+      text: Saved. It applies from tomorrow's picks.
+- runScript:
+    file: ../scripts/expect_privacy.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      FIELD: weights
+      VALUE: 1.5,0.75,1

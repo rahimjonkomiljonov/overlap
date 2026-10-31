@@ -1,0 +1,152 @@
+# F38 safety settings (pause, incognito), F37 hide from one person and take it back.
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/seed_pair.js
+    env:
+      HELPER: ${HELPER}
+      TAG: safety
+- runFlow:
+    file: ../subflows/sign_in_existing.yaml
+    env:
+      EMAIL: ${output.a}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+- tapOn: Me
+- scrollUntilVisible:
+    element:
+      text: Safety
+- tapOn: Safety
+- extendedWaitUntil:
+    visible: Safety settings
+    timeout: 20000
+
+# Pausing the profile is stored, shown at the top, and can be turned off again.
+- tapOn: Pause profile
+- runScript:
+    file: ../scripts/safety.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: expect
+      EMAIL: ${output.a}
+      FIELD: status
+      VALUE: PAUSED
+- scrollUntilVisible:
+    direction: UP
+    element:
+      text: Your profile is paused.
+- tapOn: Pause profile
+- runScript:
+    file: ../scripts/safety.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: expect
+      EMAIL: ${output.a}
+      FIELD: status
+      VALUE: ACTIVE
+
+# Incognito is stored on the profile and can be turned off again.
+- tapOn: Incognito mode
+- runScript:
+    file: ../scripts/safety.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: expect
+      EMAIL: ${output.a}
+      FIELD: incognito
+      VALUE: true
+- tapOn: Incognito mode
+- runScript:
+    file: ../scripts/safety.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: expect
+      EMAIL: ${output.a}
+      FIELD: incognito
+      VALUE: false
+
+# F37: hiding a whole course hides the people in it (here Bobby, who shares it), listed under Hidden; Unhide takes it back.
+- scrollUntilVisible:
+    element:
+      text: A course
+- tapOn: A course
+- tapOn: '[A-Z]{3}[0-9]{4} .*'
+- scrollUntilVisible:
+    element:
+      text: Hide
+- tapOn:
+    text: Hide
+    index: 0
+- scrollUntilVisible:
+    element:
+      text: Hid 1 person.
+- runScript:
+    file: ../scripts/safety.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: expect
+      EMAIL: ${output.a}
+      OTHER: ${output.b}
+      FIELD: hides
+      VALUE: 1
+- scrollUntilVisible:
+    element:
+      text: Unhide
+- tapOn: Unhide
+- runScript:
+    file: ../scripts/safety.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: expect
+      EMAIL: ${output.a}
+      OTHER: ${output.b}
+      FIELD: hides
+      VALUE: 0
+
+# F37: hiding one person by email is stored, listed under Hidden, and Unhide takes it back.
+- scrollUntilVisible:
+    element:
+      text: One person, by email
+- tapOn: One person, by email
+- tapOn: Email address to hide from
+- inputText: ${output.b}
+- pressKey: Escape
+- scrollUntilVisible:
+    element:
+      text: Hide
+- tapOn:
+    text: Hide
+    index: 1
+- scrollUntilVisible:
+    element:
+      text: Hid 1 person.
+- runScript:
+    file: ../scripts/safety.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: expect
+      EMAIL: ${output.a}
+      OTHER: ${output.b}
+      FIELD: hides
+      VALUE: 1
+- scrollUntilVisible:
+    element:
+      text: Unhide
+- tapOn: Unhide
+- runScript:
+    file: ../scripts/safety.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: expect
+      EMAIL: ${output.a}
+      OTHER: ${output.b}
+      FIELD: hides
+      VALUE: 0

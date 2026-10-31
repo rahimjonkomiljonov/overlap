@@ -1,0 +1,125 @@
+# F32 public spots and both-free times, F30 meetup proposal, F34 emergency card, F33 plan share link.
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/seed_pair.js
+    env:
+      HELPER: ${HELPER}
+      TAG: meetup
+      FREE_TIME: yes
+- runFlow:
+    file: ../subflows/sign_in_existing.yaml
+    env:
+      EMAIL: ${output.a}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+
+# Into the chat, then the planner.
+- tapOn: Matches
+- extendedWaitUntil:
+    visible: Bobby
+    timeout: 20000
+- tapOn: Chat
+- extendedWaitUntil:
+    visible: Need a way to start?
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      text: Plan a meetup
+- tapOn: Plan a meetup
+
+# F32: it names the other person, tells you to meet in public, and lists times and Safe Spots both are free for.
+- extendedWaitUntil:
+    visible: Meetup with Bobby
+    timeout: 20000
+- assertVisible: Pick one of these
+- scrollUntilVisible:
+    element:
+      text: Meet in a busy, public place.
+- scrollUntilVisible:
+    direction: UP
+    element:
+      text: Pick one of these
+- assertVisible: .+ . .+ . .+
+
+# F30: choosing a time proposes it, and the card says who it is waiting for.
+- tapOn: .+ . .+ . .+
+- tapOn: Propose this time
+- extendedWaitUntil:
+    visible: Waiting for Bobby to answer.
+    timeout: 20000
+- assertVisible: Withdraw proposal
+- runScript:
+    file: ../scripts/expect_meetup.js
+    env:
+      HELPER: ${HELPER}
+      MATCH: ${output.match}
+      FIELD: last
+      VALUE: PROPOSED
+
+# F34: the emergency card has the real numbers, and the one still being checked says so instead of showing a made-up number.
+- scrollUntilVisible:
+    element:
+      text: Emergency contacts
+- tapOn: Emergency contacts
+- scrollUntilVisible:
+    element:
+      text: If this is an emergency.*
+- scrollUntilVisible:
+    element:
+      text: Call Police \(112\)
+- scrollUntilVisible:
+    element:
+      text: Call Ambulance \(119\)
+- scrollUntilVisible:
+    element:
+      text: .*\(1366\).*
+- scrollUntilVisible:
+    element:
+      text: Phone number pending verification.*
+
+# Bobby accepts; the planner shows it confirmed.
+- runScript:
+    file: ../scripts/meetup.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: respond
+      FROM: ${output.b}
+      MATCH: ${output.match}
+      DECISION: ACCEPT
+- back
+- extendedWaitUntil:
+    visible: Need a way to start?
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      text: Plan a meetup
+- tapOn: Plan a meetup
+- extendedWaitUntil:
+    visible: Confirmed
+    timeout: 20000
+
+# F33: sharing the plan makes one link, with a Send link button.
+- scrollUntilVisible:
+    element:
+      text: Share my plans
+- tapOn: Share my plans
+- scrollUntilVisible:
+    element:
+      text: Your share link is ready.*
+- assertVisible: Send link
+- runScript:
+    file: ../scripts/expect_meetup.js
+    env:
+      HELPER: ${HELPER}
+      MATCH: ${output.match}
+      FIELD: links
+      VALUE: 1

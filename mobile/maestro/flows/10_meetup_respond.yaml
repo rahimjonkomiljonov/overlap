@@ -1,0 +1,140 @@
+# F31 decline, accept and reschedule a meetup (plus the private check-in afterwards).
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/seed_pair.js
+    env:
+      HELPER: ${HELPER}
+      TAG: respond
+      FREE_TIME: yes
+# Bobby suggests a time first.
+- runScript:
+    file: ../scripts/meetup.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: propose
+      FROM: ${output.b}
+      MATCH: ${output.match}
+- runFlow:
+    file: ../subflows/sign_in_existing.yaml
+    env:
+      EMAIL: ${output.a}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+- tapOn: Matches
+- extendedWaitUntil:
+    visible: Bobby
+    timeout: 20000
+- tapOn: Chat
+- extendedWaitUntil:
+    visible: Need a way to start?
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      text: Plan a meetup
+- tapOn: Plan a meetup
+
+# Alice is asked, and can accept or decline.
+- extendedWaitUntil:
+    visible: Bobby suggested this time.
+    timeout: 20000
+- assertVisible: Accept
+- assertVisible: Decline
+
+# Declining closes it and the planner offers times again.
+- tapOn: Decline
+- extendedWaitUntil:
+    visible: Pick one of these
+    timeout: 20000
+- runScript:
+    file: ../scripts/expect_meetup.js
+    env:
+      HELPER: ${HELPER}
+      MATCH: ${output.match}
+      FIELD: last
+      VALUE: DECLINED
+
+# Bobby suggests another time; accepting it confirms the meetup.
+- runScript:
+    file: ../scripts/meetup.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: propose
+      FROM: ${output.b}
+      MATCH: ${output.match}
+- back
+- extendedWaitUntil:
+    visible: Need a way to start?
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      text: Plan a meetup
+- tapOn: Plan a meetup
+- extendedWaitUntil:
+    visible: Bobby suggested this time.
+    timeout: 20000
+- tapOn: Accept
+- extendedWaitUntil:
+    visible: Confirmed
+    timeout: 20000
+- runScript:
+    file: ../scripts/expect_meetup.js
+    env:
+      HELPER: ${HELPER}
+      MATCH: ${output.match}
+      FIELD: last
+      VALUE: ACCEPTED
+
+# Once the time has passed, a private "How did it go?" question appears.
+- runScript:
+    file: ../scripts/meetup.js
+    env:
+      HELPER: ${HELPER}
+      ACTION: past
+      MATCH: ${output.match}
+- back
+- extendedWaitUntil:
+    visible: Need a way to start?
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      text: Plan a meetup
+- tapOn: Plan a meetup
+- scrollUntilVisible:
+    element:
+      text: How did it go?
+- tapOn: Great
+- extendedWaitUntil:
+    visible: Thanks for the feedback.
+    timeout: 20000
+- runScript:
+    file: ../scripts/expect_meetup.js
+    env:
+      HELPER: ${HELPER}
+      MATCH: ${output.match}
+      FIELD: feedback
+      VALUE: GREAT
+
+# Rescheduling: cancelling the meetup puts the planner back to suggesting times.
+- scrollUntilVisible:
+    element:
+      text: Cancel meetup
+- tapOn: Cancel meetup
+- extendedWaitUntil:
+    visible: Pick one of these
+    timeout: 20000
+- runScript:
+    file: ../scripts/expect_meetup.js
+    env:
+      HELPER: ${HELPER}
+      MATCH: ${output.match}
+      FIELD: last
+      VALUE: CANCELLED

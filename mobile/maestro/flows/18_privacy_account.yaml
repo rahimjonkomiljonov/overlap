@@ -1,0 +1,152 @@
+# F39 data export, F40 consent withdrawal, F42 what notifications are sent, F41 account deletion with its 30-day grace.
+appId: tech.overlaps.app
+env:
+  HELPER: http://localhost:3999
+---
+- runScript:
+    file: ../scripts/cleanup.js
+    env:
+      HELPER: ${HELPER}
+- runScript:
+    file: ../scripts/seed_user.js
+    env:
+      HELPER: ${HELPER}
+      TAG: privacy
+      SENSITIVE: yes
+- runFlow:
+    file: ../subflows/sign_in_existing.yaml
+    env:
+      EMAIL: ${output.a}
+      HELPER: ${HELPER}
+- extendedWaitUntil:
+    visible: Today's picks
+    timeout: 30000
+- tapOn: Me
+- scrollUntilVisible:
+    element:
+      text: Privacy and account
+- tapOn: Privacy and account
+
+# F39: nothing is requested until she asks; then the data is ready to send.
+- extendedWaitUntil:
+    visible: Your data
+    timeout: 20000
+- runScript:
+    file: ../scripts/expect_privacy.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      FIELD: access
+      VALUE: 0
+- tapOn: Download my data
+- scrollUntilVisible:
+    element:
+      text: Your data is ready.
+- scrollUntilVisible:
+    element:
+      text: Send my data
+- runScript:
+    file: ../scripts/expect_privacy.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      FIELD: access
+      VALUE: 1
+
+# F40: the required consents say so; the sensitive one can be withdrawn, which deletes the stored "who I'd like to meet".
+- scrollUntilVisible:
+    element:
+      text: Terms of Service
+- scrollUntilVisible:
+    element:
+      text: .*Needed to use Overlap
+- scrollUntilVisible:
+    element:
+      text: Who I'd like to meet \(sensitive\)
+- scrollUntilVisible:
+    element:
+      text: .*closes Dating until you agree again.*
+- runScript:
+    file: ../scripts/expect_privacy.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      FIELD: hasInterestedIn
+      VALUE: true
+- tapOn: Withdraw
+- scrollUntilVisible:
+    element:
+      text: Withdrawn
+- runScript:
+    file: ../scripts/expect_privacy.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      FIELD: hasInterestedIn
+      VALUE: false
+- runScript:
+    file: ../scripts/expect_privacy.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      FIELD: withdrawal
+      VALUE: 1
+
+# F42: what is sent and the quiet hours are stated (nothing to switch, the website only has a push toggle).
+- scrollUntilVisible:
+    element:
+      text: Notifications
+- scrollUntilVisible:
+    element:
+      text: .*between 21:00 and 08:00.*
+
+# F41: deleting needs a confirm step, and Cancel changes nothing.
+- scrollUntilVisible:
+    element:
+      text: Delete my account
+- tapOn:
+    text: Delete my account
+    index: 1
+- scrollUntilVisible:
+    element:
+      text: Delete your account\?.*
+- runScript:
+    file: ../scripts/expect_privacy.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      FIELD: status
+      VALUE: ACTIVE
+- tapOn: Cancel
+- assertNotVisible: Delete your account\?.*
+- tapOn:
+    text: Delete my account
+    index: 1
+- scrollUntilVisible:
+    element:
+      text: Yes, delete my account
+- tapOn: Yes, delete my account
+
+# The account closes now (details kept 30 days), the app says when they are erased, and OK signs the phone out.
+- extendedWaitUntil:
+    visible: Your account is closed
+    timeout: 20000
+- assertVisible: Your details will be erased on.*
+- runScript:
+    file: ../scripts/expect_privacy.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      FIELD: status
+      VALUE: DELETED
+- runScript:
+    file: ../scripts/expect_privacy.js
+    env:
+      HELPER: ${HELPER}
+      EMAIL: ${output.a}
+      FIELD: purged
+      VALUE: false
+- tapOn: OK
+- extendedWaitUntil:
+    visible: Get verification code
+    timeout: 20000
