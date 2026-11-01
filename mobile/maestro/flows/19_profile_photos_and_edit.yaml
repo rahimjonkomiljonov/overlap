@@ -42,7 +42,7 @@ env:
 - tapOn:
     text: Photo taken on.*
     index: 2
-- tapOn: "Done|Add \(\d+\)"
+- tapOn: 'Done|Add \(\d+\)'
 - extendedWaitUntil:
     visible: 3 of 6 photos
     timeout: 60000
@@ -75,7 +75,7 @@ env:
 - tapOn:
     text: Photo taken on.*
     index: 0
-- tapOn: "Done|Add \(\d+\)"
+- tapOn: 'Done|Add \(\d+\)'
 - extendedWaitUntil:
     visible: 3 of 6 photos
     timeout: 60000
