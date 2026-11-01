@@ -10,9 +10,6 @@ on:
         description: "Run just this one flow file (for a quick try), for example mobile/maestro/flows/01_sign_in.yaml. Empty runs everything."
         required: false
         default: ""
-  # Temporary: lets a push to this branch start the job, for proving it on GitHub's runner (remove once it has passed).
-  push:
-    branches: [m16c-ci]
   pull_request:
     paths:
       - "mobile/**"

@@ -74,7 +74,7 @@ Needs the Android SDK and JDK 17 (see `mobile/README.md`) and Maestro unpacked s
 
 ## In CI
 
-`.github/workflows/mobile-e2e.yml` (workflow name "Mobile e2e") builds the website and the app, starts an Android 16 emulator and runs
+`.github/workflows/mobile-e2e.yml` (workflow name "Mobile e2e") builds the website and the app, starts an Android 14 emulator (Android 16 froze on the runner) and runs
 `mobile/maestro/ci-run.sh`, which starts the website and the helper itself and runs the four phases (normal, cohort, upgrade, dark)
 described at the top of that script. It takes about an hour, so it runs on pull requests that touch `mobile/`, the mobile API or the
 database, and by hand (Actions > Mobile e2e > Run workflow). The script also works on this computer once the website is built
