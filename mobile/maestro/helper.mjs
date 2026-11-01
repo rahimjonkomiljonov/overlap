@@ -56,9 +56,11 @@ const readCode = (email, since) => {
 /** Signs in through the real sign-in API (the same code path as the app) and returns the session cookie. */
 async function signIn(email) {
   const started = Date.now() - 1000;
-  await fetch(`${BASE}/api/auth/email-otp/send-verification-otp`, { method: "POST", headers: AUTH, body: JSON.stringify({ email, type: "sign-in" }) });
+  // A slow machine (the CI runner) can take well over the usual second or two on its first requests: wait up to 40 s, and say why if it still fails.
+  const sent = await fetch(`${BASE}/api/auth/email-otp/send-verification-otp`, { method: "POST", headers: AUTH, body: JSON.stringify({ email, type: "sign-in" }) });
+  if (!sent.ok) console.error(`send code for ${email}: HTTP ${sent.status} ${(await sent.text()).slice(0, 200)}`);
   let code = null;
-  for (let i = 0; i < 20 && !code; i++) {
+  for (let i = 0; i < 100 && !code; i++) {
     await sleep(400);
     code = readCode(email, started);
   }

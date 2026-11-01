@@ -102,6 +102,8 @@ diagnose() {
   adb logcat -d -t 400 2>/dev/null | grep -E "AndroidRuntime|FATAL|ReactNativeJS|tech.overlaps.app|Network request failed" | tail -n 40
   echo "-- website log (tail):"
   tail -n 40 "$OUT/website.log" 2>/dev/null
+  echo "-- the helper's log (tail):"
+  tail -n 15 "$OUT/helper.log" 2>/dev/null
   echo "-- screen:"
   adb exec-out screencap -p > "$OUT/screen-after-$1.png" 2>/dev/null
   adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 && adb shell cat /sdcard/ui.xml | grep -o 'text="[^"]\+"' | head -n 20

@@ -117,6 +117,9 @@ env:
       EMAIL: ${output.a}
       FIELD: status
       VALUE: ACTIVE
+- scrollUntilVisible:
+    element:
+      text: Cancel
 - tapOn: Cancel
 - assertNotVisible: Delete your account\?.*
 - tapOn:
