@@ -40,6 +40,10 @@ export const auth = betterAuth({
   emailAndPassword: { enabled: false },
   // The mobile apps send requests from the "overlap://" scheme instead of a web origin.
   trustedOrigins: ["overlap://"],
+  // Better Auth's own per-address limit (3 code requests a minute) applies only to a production build. The automated phone tests
+  // (mobile/maestro/ci-run.sh) sign several people in from one address in quick succession, so they switch it off with this variable.
+  // It is ignored on a real Vercel production deployment, and our own per-email limit (guard.ts) stays on either way.
+  rateLimit: { enabled: !(process.env.OVERLAP_TEST_NO_AUTH_RATE_LIMIT === "1" && process.env.VERCEL_ENV !== "production") && process.env.NODE_ENV === "production" },
   session: {
     expiresIn: 60 * 60 * 24 * 30, // 30 days; fine for Month-1 traffic
   },

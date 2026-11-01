@@ -38,6 +38,8 @@ export RESEND_API_KEY=""
 export VAPID_PRIVATE_KEY=""
 # Git Bash rewrites paths like /sdcard/... into Windows paths; this switches that off (it does nothing on Linux).
 export MSYS_NO_PATHCONV=1
+# Better Auth limits code requests to 3 a minute per address in a production build; the tests sign in many people from one address.
+export OVERLAP_TEST_NO_AUTH_RATE_LIMIT=1
 export HELPER_PORT="${HELPER_PORT:-3999}"
 
 WEB_PID=""
