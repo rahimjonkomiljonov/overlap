@@ -17,6 +17,7 @@
         "foregroundImage": "./assets/images/android-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false,
+      "allowBackup": false,
       "package": "tech.overlaps.app"
     },
     "web": {
