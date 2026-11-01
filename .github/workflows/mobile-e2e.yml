@@ -131,8 +131,8 @@ jobs:
           disable-animations: true
           script: bash mobile/maestro/ci-run.sh
         env:
-          # A push to the proving branch runs only the first flow (about 15 minutes instead of an hour) until the whole job is known to work.
-          FLOWS_ONLY: ${{ inputs.flows_only || (github.event_name == 'push' && 'mobile/maestro/flows/01_sign_in.yaml') || '' }}
+          # Empty runs every flow; a manual run can name just one (see the flows_only input above).
+          FLOWS_ONLY: ${{ inputs.flows_only || '' }}
 
       - uses: actions/upload-artifact@v5
         if: ${{ !cancelled() }}

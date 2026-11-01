@@ -134,10 +134,10 @@ warm_up() {
   sleep 20
   adb shell am start -n tech.overlaps.app/.MainActivity >/dev/null 2>&1 || adb shell monkey -p tech.overlaps.app -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
   local start=$SECONDS xml wait_bounds
-  while [ $((SECONDS - start)) -lt 240 ]; do
+  while [ $((SECONDS - start)) -lt 120 ]; do
     adb shell uiautomator dump /sdcard/warm.xml >/dev/null 2>&1
     xml="$(adb shell cat /sdcard/warm.xml 2>/dev/null)"
-    if echo "$xml" | grep -q 'text="Sign in"'; then echo "first screen drawn after $((SECONDS - start)) s"; adb shell am force-stop tech.overlaps.app; return 0; fi
+    if echo "$xml" | grep -q 'package="tech.overlaps.app"'; then echo "first screen drawn after $((SECONDS - start)) s"; adb shell am force-stop tech.overlaps.app; return 0; fi
     wait_bounds="$(echo "$xml" | grep -o 'text="Wait"[^>]*bounds="\[[0-9]*,[0-9]*\]\[[0-9]*,[0-9]*\]"' | grep -o '\[[0-9]*,[0-9]*\]\[[0-9]*,[0-9]*\]' | head -n 1)"
     if [ -n "$wait_bounds" ]; then
       echo "a 'not responding' dialog is up; tapping Wait"
@@ -145,7 +145,7 @@ warm_up() {
     fi
     sleep 3
   done
-  echo "the first screen did NOT draw within 240 s"
+  echo "the first screen did NOT draw within 120 s"
   adb shell am force-stop tech.overlaps.app
   return 1
 }
