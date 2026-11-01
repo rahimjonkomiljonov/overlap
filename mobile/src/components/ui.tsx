@@ -50,10 +50,11 @@ export function Notice({ children }: { children: ReactNode }) {
 }
 
 /** 52 pt tall, above the 44 pt minimum for a comfortable tap. */
-export function Button({ label, onPress, disabled, variant = 'solid' }: { label: string; onPress: () => void; disabled?: boolean; variant?: 'solid' | 'outline' | 'link' }) {
+export function Button({ label, onPress, disabled, variant = 'solid', testID }: { label: string; onPress: () => void; disabled?: boolean; variant?: 'solid' | 'outline' | 'link'; testID?: string }) {
   const styles = useStyles(makeStyles);
   return (
     <Pressable
+      testID={testID}
       accessibilityRole="button"
       accessibilityState={{ disabled: !!disabled }}
       disabled={disabled}

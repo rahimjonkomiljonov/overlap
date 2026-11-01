@@ -103,10 +103,9 @@ env:
 # F41: deleting needs a confirm step, and Cancel changes nothing.
 - scrollUntilVisible:
     element:
-      text: Delete my account
+      id: delete-account
 - tapOn:
-    text: Delete my account
-    index: 1
+    id: delete-account
 - scrollUntilVisible:
     element:
       text: Delete your account\?.*
@@ -122,9 +121,11 @@ env:
       text: Cancel
 - tapOn: Cancel
 - assertNotVisible: Delete your account\?.*
+- scrollUntilVisible:
+    element:
+      id: delete-account
 - tapOn:
-    text: Delete my account
-    index: 1
+    id: delete-account
 - scrollUntilVisible:
     element:
       text: Yes, delete my account

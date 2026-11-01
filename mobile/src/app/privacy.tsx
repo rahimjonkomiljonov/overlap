@@ -123,7 +123,7 @@ function DeleteCard() {
           </View>
         </View>
       ) : (
-        <Button label={strings.privacyDeleteButton} variant="outline" onPress={() => setConfirming(true)} />
+        <Button testID="delete-account" label={strings.privacyDeleteButton} variant="outline" onPress={() => setConfirming(true)} />
       )}
       {error ? <Body tone="bad">{error}</Body> : null}
     </Card>
