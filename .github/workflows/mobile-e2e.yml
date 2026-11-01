@@ -5,6 +5,11 @@ name: Mobile e2e
 # it runs on pull requests that touch the mobile app, the mobile API or the database, and by hand (Actions > Mobile e2e > Run workflow).
 on:
   workflow_dispatch:
+    inputs:
+      flows_only:
+        description: "Run just this one flow file (for a quick try), for example mobile/maestro/flows/01_sign_in.yaml. Empty runs everything."
+        required: false
+        default: ""
   # Temporary: lets a push to this branch start the job, for proving it on GitHub's runner (remove once it has passed).
   push:
     branches: [m16c-ci]
@@ -115,16 +120,19 @@ jobs:
       - name: Run the Maestro flows
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 36
+          api-level: 34
           target: google_apis
           arch: x86_64
-          profile: pixel_7
-          ram-size: 4096M
+          profile: pixel_6
+          ram-size: 3072M
           disk-size: 8192M
           force-avd-creation: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          emulator-options: -no-window -cores 2 -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
           disable-animations: true
           script: bash mobile/maestro/ci-run.sh
+        env:
+          # A push to the proving branch runs only the first flow (about 15 minutes instead of an hour) until the whole job is known to work.
+          FLOWS_ONLY: ${{ inputs.flows_only || (github.event_name == 'push' && 'mobile/maestro/flows/01_sign_in.yaml') || '' }}
 
       - uses: actions/upload-artifact@v5
         if: ${{ !cancelled() }}

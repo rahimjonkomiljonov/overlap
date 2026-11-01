@@ -125,6 +125,32 @@ run_phase() {
 log "installing the app"
 adb install -r "$APK" || { echo "could not install $APK" >&2; exit 1; }
 
+# A slow (CI) emulator can still be busy after boot: Android's own UI may freeze ("System UI isn't responding") and the app
+# then never draws. Wait for the boot to finish, start the app once and time how long its first screen takes, tapping "Wait"
+# on an ANR dialog. This also warms the app up, and prints a number to read in the job log.
+warm_up() {
+  log "warming up the phone"
+  until [ "$(adb shell getprop sys.boot_completed | tr -d '')" = "1" ]; do sleep 2; done
+  sleep 20
+  adb shell am start -n tech.overlaps.app/.MainActivity >/dev/null 2>&1 || adb shell monkey -p tech.overlaps.app -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
+  local start=$SECONDS xml wait_bounds
+  while [ $((SECONDS - start)) -lt 240 ]; do
+    adb shell uiautomator dump /sdcard/warm.xml >/dev/null 2>&1
+    xml="$(adb shell cat /sdcard/warm.xml 2>/dev/null)"
+    if echo "$xml" | grep -q 'text="Sign in"'; then echo "first screen drawn after $((SECONDS - start)) s"; adb shell am force-stop tech.overlaps.app; return 0; fi
+    wait_bounds="$(echo "$xml" | grep -o 'text="Wait"[^>]*bounds="\[[0-9]*,[0-9]*\]\[[0-9]*,[0-9]*\]"' | grep -o '\[[0-9]*,[0-9]*\]\[[0-9]*,[0-9]*\]' | head -n 1)"
+    if [ -n "$wait_bounds" ]; then
+      echo "a 'not responding' dialog is up; tapping Wait"
+      adb shell input tap $(echo "$wait_bounds" | sed 's/\]\[/,/; s/[][]//g' | awk -F, '{printf "%d %d", ($1+$3)/2, ($2+$4)/2}') >/dev/null 2>&1
+    fi
+    sleep 3
+  done
+  echo "the first screen did NOT draw within 240 s"
+  adb shell am force-stop tech.overlaps.app
+  return 1
+}
+warm_up || diagnose warm-up
+
 # A few pictures for the flow that picks photos from the phone's own picker (the picker lists what is in the media store).
 log "putting test pictures on the phone"
 for i in 1 2 3 4; do
@@ -138,7 +164,7 @@ start_helper || exit 1
 if [ -n "${FLOWS_ONLY:-}" ]; then
   log "starting the website"
   start_web || exit 1
-  if maestro test --test-output-dir="$OUT/only" --format junit --output "$OUT/only.xml" "$FLOWS_ONLY"; then echo "passed"; exit 0; else echo "FAILED"; exit 1; fi
+  if maestro test --test-output-dir="$OUT/only" --format junit --output "$OUT/only.xml" "$FLOWS_ONLY"; then echo "passed"; exit 0; else echo "FAILED"; diagnose only; exit 1; fi
 fi
 
 for phase in $PHASES; do
