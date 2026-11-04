@@ -194,7 +194,7 @@ model User {
 
   @@index([campusId])
   @@index([cohortId])
-
+  @@index([inviteCodeId])
   @@map("users")
 }
 
@@ -713,6 +713,7 @@ model ProfileCourse {
 
   @@unique([profileId, courseId])
   @@index([courseId])
+  @@index([sectionId])
   @@map("profile_courses")
 }
 
@@ -837,6 +838,7 @@ model Selfie {
 
   @@index([userId])
   @@index([decision, submittedAt])
+  @@index([decidedById])
   @@map("selfies")
 }
 
@@ -918,6 +920,7 @@ model HideRule {
   createdAt DateTime @default(now())
 
   @@unique([userId, hiddenUserId])
+  @@index([hiddenUserId])
   @@map("hide_rules")
 }
 
@@ -1064,6 +1067,7 @@ model Match {
   meetProposals MeetProposal[]
 
   @@unique([userAId, userBId])
+  @@index([userBId])
   @@map("matches")
 }
 
@@ -1124,6 +1128,7 @@ model Message {
   createdAt DateTime @default(now())
 
   @@index([conversationId, createdAt])
+  @@index([senderId])
   @@map("messages")
 }
 
@@ -1199,6 +1204,8 @@ model Report {
 
   @@index([status, priority, createdAt])
   @@index([targetId])
+  @@index([conversationId])
+  @@index([reporterId])
   @@map("reports")
 }
 
@@ -1227,6 +1234,8 @@ model ModerationAction {
   createdAt DateTime @default(now())
 
   @@index([targetId])
+  @@index([actorId])
+  @@index([reportId])
   @@map("moderation_actions")
 }
 
@@ -1293,6 +1302,8 @@ model MeetProposal {
   shareLinks PlanShareLink[]
 
   @@index([matchId])
+  @@index([proposedByUserId])
+  @@index([spotId])
   @@map("meet_proposals")
 }
 
@@ -1312,6 +1323,7 @@ model MeetupFeedbackEntry {
   createdAt DateTime @default(now())
 
   @@unique([proposalId, userId])
+  @@index([userId])
   @@map("meetup_feedback_entries")
 }
 
@@ -1334,6 +1346,7 @@ model PlanShareLink {
 
   createdAt DateTime @default(now())
 
+  @@index([proposalId])
   @@map("plan_share_links")
 }
 
@@ -1464,6 +1477,8 @@ model Event {
   connects EventConnect[]
 
   @@index([campusId, startsAt])
+  @@index([organizerId])
+  @@index([spotId])
   @@map("events")
 }
 
@@ -1497,6 +1512,7 @@ model EventConnect {
 
   @@unique([eventId, fromUserId, toUserId])
   @@index([toUserId])
+  @@index([fromUserId])
   @@map("event_connects")
 }
 
@@ -1547,5 +1563,6 @@ model TrustAppeal {
 
   @@index([status, createdAt])
   @@index([userId])
+  @@index([reviewerId])
   @@map("trust_appeals")
 }

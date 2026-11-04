@@ -83,16 +83,6 @@ const upload = async (cookie, bytes) => {
   });
   return { status: res.status, body: await res.json().catch(() => ({})) };
 };
-const setup = (cookie) =>
-  call(cookie, "POST", "/onboarding/account", {
-    birthYear: 2000,
-    birthMonth: 5,
-    birthDay: 17,
-    attestedAdult: true,
-    termsAccepted: true,
-    sensitivePreference: false,
-  });
-
 async function finishProfile(cookie, firstName, options, photo) {
   const { prompts, majorGroups } = options;
   const steps = [

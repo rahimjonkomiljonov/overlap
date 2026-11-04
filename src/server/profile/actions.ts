@@ -177,7 +177,6 @@ export type FinishState =
   | { status: "incomplete"; missing: string[] }
   | { status: "error"; code: string };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- useActionState signature; this step needs no form fields
 export async function finishProfile(_prev: FinishState, _formData: FormData): Promise<FinishState> {
   const actor = await getActor();
   if (!actor) return { status: "error", code: "UNAUTHENTICATED" };
