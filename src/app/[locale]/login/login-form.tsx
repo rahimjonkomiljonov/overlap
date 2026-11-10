@@ -27,7 +27,7 @@ function SubmitButton({ label, pendingLabel }: { label: string; pendingLabel: st
   );
 }
 
-export function LoginForm({ devEmailMode }: { devEmailMode: boolean }) {
+export function LoginForm() {
   const t = useTranslations("Login");
   const router = useRouter();
   const [requestState, requestAction] = useActionState(requestLoginOtp, initialRequestState);
@@ -85,9 +85,6 @@ export function LoginForm({ devEmailMode }: { devEmailMode: boolean }) {
               <p className="text-sm text-muted-foreground">
                 {t("codeHelper", { email: requestState.email })}
               </p>
-              {devEmailMode ? (
-                <p className="text-sm text-muted-foreground italic">{t("codeHelperDev")}</p>
-              ) : null}
               <Input
                 id="login-code"
                 name="code"
