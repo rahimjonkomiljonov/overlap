@@ -4,7 +4,8 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Design tokens. Two hues that overlap: teal (primary) and amber ("overlap").
+ * Design tokens. The look is a student's timetable: white paper, ballpoint-blue ink (primary), and two
+ * highlighters, yellow for "you" and blue for "them". Where the two cross, the ink turns green ("overlap").
  * Every foreground/background pair below is checked by axe on /dev/ui (WCAG AA).
  */
 @theme inline {
@@ -13,9 +14,10 @@
     var(--font-latin), -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic",
     "Noto Sans KR", "Noto Sans CJK KR", system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --font-heading: var(--font-sans);
-  /* The landing headline. Georgia ships with Windows and macOS; other systems get their own serif. */
-  --font-display: Georgia, "Times New Roman", "Noto Serif", serif;
+  --font-heading: var(--font-display);
+  /* Headlines and the wordmark: Bricolage Grotesque (Latin only, self-hosted by next/font). Korean falls
+     through to the UI font. */
+  --font-display: var(--font-bricolage), var(--font-sans);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -33,6 +35,11 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-overlap: var(--overlap);
   --color-overlap-foreground: var(--overlap-foreground);
+  --color-overlap-soft: var(--overlap-soft);
+  --color-you: var(--you);
+  --color-you-soft: var(--you-soft);
+  --color-them: var(--them);
+  --color-them-soft: var(--them-soft);
   --color-friends: var(--friends);
   --color-friends-soft: var(--friends-soft);
   --color-friends-foreground: var(--friends-foreground);
@@ -63,26 +70,33 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
 
-  --shadow-soft: 0 1px 2px oklch(0.2 0.02 260 / 0.06), 0 6px 20px oklch(0.2 0.02 260 / 0.07);
+  --shadow-soft: 0 1px 2px oklch(0.23 0.06 268 / 0.06), 0 8px 24px oklch(0.23 0.06 268 / 0.08);
 }
 
 :root {
-  --background: oklch(0.985 0.006 85);
-  --foreground: oklch(0.22 0.02 260);
+  --background: oklch(0.99 0.004 255);
+  --foreground: oklch(0.23 0.06 268);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.02 260);
+  --card-foreground: oklch(0.23 0.06 268);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.02 260);
-  --primary: oklch(0.5 0.09 190);
-  --primary-foreground: oklch(0.99 0.003 85);
-  --secondary: oklch(0.945 0.02 85);
-  --secondary-foreground: oklch(0.25 0.03 260);
-  --muted: oklch(0.96 0.008 85);
-  --muted-foreground: oklch(0.46 0.02 260);
-  --accent: oklch(0.94 0.035 190);
-  --accent-foreground: oklch(0.3 0.06 200);
-  --overlap: oklch(0.84 0.14 80);
-  --overlap-foreground: oklch(0.28 0.05 60);
+  --popover-foreground: oklch(0.23 0.06 268);
+  --primary: oklch(0.42 0.19 268);
+  --primary-foreground: oklch(0.99 0.004 255);
+  --secondary: oklch(0.95 0.014 262);
+  --secondary-foreground: oklch(0.25 0.07 268);
+  --muted: oklch(0.965 0.007 262);
+  --muted-foreground: oklch(0.46 0.035 266);
+  --accent: oklch(0.945 0.03 268);
+  --accent-foreground: oklch(0.32 0.14 268);
+  /* The three inks. Solid fills always carry dark text (--overlap-foreground); the "-soft" tints carry
+     the page's own text colour. */
+  --overlap: oklch(0.8 0.17 148);
+  --overlap-foreground: oklch(0.23 0.06 268);
+  --overlap-soft: oklch(0.945 0.07 148);
+  --you: oklch(0.91 0.16 100);
+  --you-soft: oklch(0.965 0.08 100);
+  --them: oklch(0.8 0.1 238);
+  --them-soft: oklch(0.945 0.04 238);
   /* One hue per way of meeting. "-soft" is a tint for chips and badges, "-foreground" is the
      text colour that sits on it (both pairs pass WCAG AA), and the plain colour is for
      solid fills and icons. */
@@ -99,34 +113,39 @@
   --open-soft: oklch(0.96 0.05 85);
   --open-foreground: oklch(0.4 0.09 70);
   --success: oklch(0.5 0.12 150);
-  --success-foreground: oklch(0.99 0.003 85);
+  --success-foreground: oklch(0.99 0.004 255);
   --warning: oklch(0.86 0.15 90);
   --warning-foreground: oklch(0.28 0.05 70);
   --destructive: oklch(0.52 0.2 27);
-  --destructive-foreground: oklch(0.99 0.003 85);
-  --border: oklch(0.9 0.01 85);
-  --input: oklch(0.86 0.012 85);
-  --ring: oklch(0.55 0.1 195);
-  --radius: 0.875rem;
+  --destructive-foreground: oklch(0.99 0.004 255);
+  --border: oklch(0.9 0.014 265);
+  --input: oklch(0.8 0.025 265);
+  --ring: oklch(0.55 0.18 268);
+  --radius: 0.625rem;
 }
 
 .dark {
-  --background: oklch(0.18 0.02 260);
-  --foreground: oklch(0.96 0.005 85);
-  --card: oklch(0.22 0.02 260);
-  --card-foreground: oklch(0.96 0.005 85);
-  --popover: oklch(0.22 0.02 260);
-  --popover-foreground: oklch(0.96 0.005 85);
-  --primary: oklch(0.76 0.1 190);
-  --primary-foreground: oklch(0.18 0.03 220);
-  --secondary: oklch(0.27 0.02 260);
-  --secondary-foreground: oklch(0.96 0.005 85);
-  --muted: oklch(0.26 0.02 260);
-  --muted-foreground: oklch(0.72 0.02 260);
-  --accent: oklch(0.3 0.04 200);
-  --accent-foreground: oklch(0.92 0.03 190);
-  --overlap: oklch(0.8 0.13 80);
-  --overlap-foreground: oklch(0.24 0.05 60);
+  --background: oklch(0.18 0.035 268);
+  --foreground: oklch(0.95 0.01 262);
+  --card: oklch(0.225 0.04 268);
+  --card-foreground: oklch(0.95 0.01 262);
+  --popover: oklch(0.225 0.04 268);
+  --popover-foreground: oklch(0.95 0.01 262);
+  --primary: oklch(0.76 0.12 268);
+  --primary-foreground: oklch(0.17 0.05 268);
+  --secondary: oklch(0.28 0.04 268);
+  --secondary-foreground: oklch(0.95 0.01 262);
+  --muted: oklch(0.26 0.035 268);
+  --muted-foreground: oklch(0.74 0.03 265);
+  --accent: oklch(0.31 0.07 268);
+  --accent-foreground: oklch(0.9 0.05 266);
+  --overlap: oklch(0.8 0.17 148);
+  --overlap-foreground: oklch(0.2 0.05 268);
+  --overlap-soft: oklch(0.33 0.07 150);
+  --you: oklch(0.88 0.15 100);
+  --you-soft: oklch(0.36 0.06 98);
+  --them: oklch(0.74 0.11 238);
+  --them-soft: oklch(0.33 0.06 245);
   --friends: oklch(0.74 0.12 235);
   --friends-soft: oklch(0.3 0.05 235);
   --friends-foreground: oklch(0.88 0.06 235);
@@ -147,7 +166,7 @@
   --destructive-foreground: oklch(0.2 0.04 25);
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 16%);
-  --ring: oklch(0.7 0.1 195);
+  --ring: oklch(0.76 0.12 268);
 }
 
 @layer base {
@@ -160,6 +179,11 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  /* Page and section titles are set in the display face everywhere; size and weight stay with each page. */
+  h1,
+  h2 {
+    font-family: var(--font-display);
   }
   /* Korean wraps at word boundaries instead of mid-word. */
   html:lang(ko) body {
@@ -178,11 +202,10 @@
   }
 }
 
-/* Georgia has no Hangul, so Korean headlines use the regular UI font. Unlayered on purpose, like the
-   rule below: it has to beat Tailwind's `font-display` utility. */
+/* Bricolage has no Hangul, so Korean headlines are set in the UI font, pulled a little tighter. Unlayered
+   on purpose, like the rule below: it has to beat Tailwind's `font-display` utility. */
 html:lang(ko) .font-display {
-  font-family: var(--font-sans);
-  letter-spacing: -0.045em;
+  letter-spacing: -0.04em;
 }
 
 /* Mobile Safari zooms the whole page in when a field with text under 16px gets focus.
@@ -226,33 +249,38 @@ summary {
   animation: meetup-dot-blink 1.2s steps(1, end) infinite;
 }
 
-/* The landing page's one animation: the two circles slide together. Plays once. */
-@keyframes overlap-slide-left {
+/* The landing page's one animation: the other student's timetable slides over yours, then the shared
+   blocks turn green. Plays once. */
+@keyframes timetable-them-in {
   from {
-    transform: translateX(-18%);
+    opacity: 0;
+    transform: translate(22%, -10%);
   }
   to {
-    transform: translateX(0);
+    opacity: 1;
+    transform: translate(0, 0);
   }
 }
-@keyframes overlap-slide-right {
+@keyframes timetable-overlap-in {
   from {
-    transform: translateX(18%);
+    opacity: 0;
+    transform: scale(0.92);
   }
   to {
-    transform: translateX(0);
+    opacity: 1;
+    transform: scale(1);
   }
 }
-.overlap-circle-left {
-  animation: overlap-slide-left 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+.timetable-them {
+  animation: timetable-them-in 1s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both;
 }
-.overlap-circle-right {
-  animation: overlap-slide-right 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+.timetable-overlap {
+  animation: timetable-overlap-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) 1.15s both;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .overlap-circle-left,
-  .overlap-circle-right {
+  .timetable-them,
+  .timetable-overlap {
     animation: none;
   }
   .meetup-dot-blink {

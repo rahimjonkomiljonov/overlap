@@ -15,21 +15,21 @@ export type ReactTarget =
   { type: "photo"; photoId: string } | { type: "promptAnswer"; promptAnswerId: string };
 
 /**
- * Each kind of overlap gets its own icon and colour so the reasons can be read at a glance
- * rather than as a row of identical grey pills. The colours reuse the app's four mode hues.
+ * Each kind of overlap gets its own icon. They all share one colour, the green that marks an overlap
+ * everywhere else in the app (the landing timetable, the logo), so a reason reads as "this is shared".
  */
-const REASON_STYLE: Record<ResolvedReason["type"], { icon: LucideIcon; chip: string }> = {
-  course: { icon: BookOpen, chip: "bg-study-soft text-study-foreground" },
-  club: { icon: Users, chip: "bg-friends-soft text-friends-foreground" },
-  interest: { icon: Sparkles, chip: "bg-dating-soft text-dating-foreground" },
-  freeTime: { icon: Clock, chip: "bg-open-soft text-open-foreground" },
-  values: { icon: Compass, chip: "bg-accent text-accent-foreground" },
+const REASON_ICON: Record<ResolvedReason["type"], LucideIcon> = {
+  course: BookOpen,
+  club: Users,
+  interest: Sparkles,
+  freeTime: Clock,
+  values: Compass,
 };
 
 function ReasonChip({ reason }: { reason: ResolvedReason }) {
   const t = useTranslations("Picks");
   const tFreeTime = useTranslations("ProfileOnboarding.freeTime");
-  const { icon: Icon, chip } = REASON_STYLE[reason.type];
+  const Icon = REASON_ICON[reason.type];
 
   let text: string;
   if (reason.type === "freeTime") {
@@ -47,7 +47,7 @@ function ReasonChip({ reason }: { reason: ResolvedReason }) {
   }
 
   return (
-    <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium", chip)}>
+    <span className="inline-flex items-center gap-1.5 rounded-md bg-overlap-soft px-2 py-1 text-sm font-medium text-foreground">
       <Icon className="size-3.5 shrink-0" aria-hidden="true" />
       {text}
     </span>
@@ -107,7 +107,7 @@ export function PickCard({
 
       <div className="space-y-1">
         <div className="flex flex-wrap items-center gap-2">
-          <p className="text-xl font-semibold tracking-tight">{pick.firstName}</p>
+          <p className="font-display text-2xl font-extrabold tracking-tight">{pick.firstName}</p>
           {pick.secondChance && <Badge variant="secondary">{t("secondChance")}</Badge>}
         </div>
         <p className="text-sm text-muted-foreground">
@@ -117,7 +117,7 @@ export function PickCard({
 
       {pick.reasons.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground">{t("reasonsHeading")}</p>
+          <p className="text-sm font-semibold">{t("reasonsHeading")}</p>
           <div className="flex flex-wrap gap-1.5">
             {pick.reasons.map((reason, i) => (
               <ReasonChip key={i} reason={reason} />

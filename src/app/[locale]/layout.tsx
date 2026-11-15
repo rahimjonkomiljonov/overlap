@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { Bricolage_Grotesque } from "next/font/google";
 import localFont from "next/font/local";
 import { notFound } from "next/navigation";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -19,6 +20,15 @@ const pretendardLatin = localFont({
   declarations: [{ prop: "unicode-range", value: "U+0020-007E" }],
 });
 
+// Headlines and the wordmark. Downloaded at build time and served from our own origin (the CSP allows no
+// other font source). Latin only: Korean headlines use the system font.
+const bricolage = Bricolage_Grotesque({
+  subsets: ["latin"],
+  variable: "--font-bricolage",
+  display: "swap",
+  axes: ["opsz", "wdth"],
+});
+
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
@@ -29,8 +39,8 @@ export const viewport: Viewport = {
   viewportFit: "cover",
   interactiveWidget: "resizes-content",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f9f7f2" },
-    { media: "(prefers-color-scheme: dark)", color: "#14171f" },
+    { media: "(prefers-color-scheme: light)", color: "#fbfcfe" },
+    { media: "(prefers-color-scheme: dark)", color: "#0e1226" },
   ],
 };
 
@@ -56,7 +66,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
   return (
     <html
       lang={locale}
-      className={`${pretendardLatin.variable} h-full antialiased`}
+      className={`${pretendardLatin.variable} ${bricolage.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col">

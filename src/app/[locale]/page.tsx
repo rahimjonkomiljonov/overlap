@@ -1,6 +1,7 @@
 import { ShieldCheck } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { LogoMark } from "@/components/logo";
+import { OverlapTimetable } from "@/components/landing/overlap-timetable";
+import { Logo } from "@/components/logo";
 import { buttonVariants } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -15,23 +16,34 @@ const LANGUAGES = [
   { code: "en", name: "English", href: "/" },
 ] as const;
 
+const STEPS = ["step1", "step2", "step3"] as const;
+
+const FOOTER_LINKS = [
+  ["/how-it-works", "footerHowItWorks"],
+  ["/safety", "footerSafety"],
+  ["/community-guidelines", "footerGuidelines"],
+  ["/terms", "footerTerms"],
+  ["/privacy", "footerPrivacy"],
+  ["/contact", "footerContact"],
+] as const;
+
 export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("Home");
+  const how = await getTranslations("HowItWorks");
 
   const navLink =
-    "inline-flex min-h-11 items-center text-lg font-semibold whitespace-nowrap underline-offset-4 hover:text-primary hover:underline";
+    "inline-flex min-h-11 items-center font-semibold whitespace-nowrap underline-offset-4 hover:text-primary hover:underline";
 
   return (
     <>
-      <header className="mx-auto flex w-full max-w-[120rem] items-center justify-between gap-2 px-4 py-4 sm:gap-4 sm:px-8 sm:py-6">
-        <Link href="/" className="inline-flex min-h-11 shrink-0 items-center gap-2 text-2xl font-extrabold tracking-tight text-primary sm:gap-3 sm:text-3xl">
-          <LogoMark className="h-6 w-10 sm:h-7 sm:w-12" blend />
-          <span>overlap</span>
+      <header className="mx-auto flex w-full max-w-7xl items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:px-8 sm:py-5">
+        <Link href="/" className="inline-flex min-h-11 shrink-0 items-center">
+          <Logo className="text-2xl" />
         </Link>
 
-        <nav aria-label={t("navLabel")} className="hidden items-center gap-10 lg:flex">
+        <nav aria-label={t("navLabel")} className="hidden items-center gap-8 lg:flex">
           <Link href="/how-it-works" className={navLink}>
             {t("navHow")}
           </Link>
@@ -46,8 +58,8 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           </Link>
         </nav>
 
-        <div className="flex shrink-0 items-center gap-2 sm:gap-6">
-          <nav aria-label={t("languageLabel")} className="flex items-center gap-1 text-sm font-bold whitespace-nowrap sm:text-base">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-5">
+          <nav aria-label={t("languageLabel")} className="flex items-center gap-1 text-sm font-semibold whitespace-nowrap">
             {LANGUAGES.map(({ code, name, href }, index) => (
               <span key={code} className={cn("items-center gap-1", code === locale ? "hidden sm:inline-flex" : "inline-flex")}>
                 {index > 0 && (
@@ -70,78 +82,77 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               </span>
             ))}
           </nav>
-          <Link href="/login" className={cn(buttonVariants({ size: "lg" }), "rounded-full px-4 font-bold sm:px-6")}>
+          <Link href="/login" className={cn(buttonVariants({ variant: "outline" }), "px-4 sm:px-5")}>
             {t("login")}
           </Link>
         </div>
       </header>
 
       <main id="main" className="flex flex-1 flex-col">
-        <section className="relative isolate flex min-h-[34rem] flex-col items-center justify-center overflow-hidden px-4 pt-8 pb-56 text-center sm:min-h-[calc(100svh-6rem)] sm:pb-72">
-          <h1 className="font-display text-[clamp(3.25rem,11.5vw,10.5rem)] leading-[0.98] font-extrabold tracking-[-0.035em] text-balance text-primary">
-            {t("heroTitle")}
-          </h1>
-          <p className="mt-6 max-w-[56rem] text-lg text-pretty text-muted-foreground sm:mt-8 sm:text-2xl/relaxed">
-            {t("heroSubtitle")}
-          </p>
-          <div className="relative z-10 mt-8 flex w-full max-w-xs flex-col-reverse items-stretch gap-3 sm:mt-10 sm:w-auto sm:max-w-none sm:flex-row sm:items-center sm:justify-center sm:gap-2.5">
-            <Link
-              href="/how-it-works"
-              className={cn(buttonVariants({ variant: "secondary", size: "lg" }), "h-14 w-full rounded-full px-7 text-lg font-bold sm:w-auto")}
-            >
-              {t("ctaHow")}
-            </Link>
-            <Link
-              href="/waitlist"
-              className={cn(
-                buttonVariants({ size: "lg" }),
-                "h-14 w-full rounded-full bg-foreground px-7 text-lg font-bold text-background hover:bg-foreground/85 sm:w-auto",
-              )}
-            >
-              {t("cta")}
-            </Link>
+        <section className="mx-auto grid w-full max-w-7xl items-center gap-10 px-4 pt-6 pb-14 sm:px-8 sm:pt-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-14 lg:pt-14 lg:pb-24">
+          <div>
+            <h1 className="font-display text-[clamp(3.25rem,13vw,4.75rem)] leading-[0.94] font-extrabold tracking-[-0.02em] text-balance [font-variation-settings:'wdth'_92] lg:text-[clamp(4.75rem,7.4vw,7.5rem)]">
+              {t("heroTitle")}
+            </h1>
+            <p className="mt-5 max-w-[34rem] text-lg text-pretty text-muted-foreground sm:mt-7 sm:text-xl/relaxed">
+              {t("heroSubtitle")}
+            </p>
+            <div className="mt-7 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:items-center">
+              <Link href="/waitlist" className={cn(buttonVariants({ size: "lg" }), "h-13 px-7 text-base")}>
+                {t("cta")}
+              </Link>
+              <Link href="/how-it-works" className={cn(buttonVariants({ variant: "secondary", size: "lg" }), "h-13 px-7 text-base")}>
+                {t("ctaHow")}
+              </Link>
+            </div>
+            <p className="mt-4 max-w-md text-sm text-muted-foreground">{t("statusNote")}</p>
           </div>
-          <p className="relative z-10 mt-5 max-w-md text-sm text-muted-foreground">{t("statusNote")}</p>
 
-          {/* The brand idea, drawn big: two circles that overlap, cropped by the bottom of the first screen. */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute bottom-[calc(var(--d)*-0.6)] left-1/2 -z-10 h-(--d) w-[calc(var(--d)*1.7)] -translate-x-1/2 [--d:clamp(14rem,27vw,32.5rem)]"
-          >
-            <span className="overlap-circle-left absolute top-0 left-0 size-(--d) rounded-full bg-primary opacity-90" />
-            <span className="overlap-circle-right absolute top-0 left-[calc(var(--d)*0.7)] size-(--d) rounded-full bg-overlap mix-blend-multiply dark:mix-blend-screen" />
+          <OverlapTimetable />
+        </section>
+
+        <section aria-labelledby="steps-title" className="border-y bg-card">
+          <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-8 sm:py-16">
+            <h2 id="steps-title" className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
+              {t("stepsTitle")}
+            </h2>
+            <ol className="mt-8 grid gap-8 md:grid-cols-3 md:gap-10">
+              {STEPS.map((step, index) => (
+                <li key={step} className="border-t-2 border-foreground pt-4">
+                  <span aria-hidden="true" className="font-display text-5xl font-extrabold text-primary tabular-nums">
+                    {index + 1}
+                  </span>
+                  <h3 className="mt-3 text-lg font-semibold">{how(`${step}Title`)}</h3>
+                  <p className="mt-1 max-w-prose text-muted-foreground">{how(`${step}Body`)}</p>
+                </li>
+              ))}
+            </ol>
           </div>
         </section>
 
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-16 px-4 pt-12 pb-[calc(3rem+env(safe-area-inset-bottom))] sm:py-16">
-          <section className="flex items-start gap-3 rounded-2xl bg-accent px-5 py-4 text-accent-foreground">
-            <ShieldCheck className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+        <div className="mx-auto w-full max-w-7xl px-4 pt-12 pb-[calc(2rem+env(safe-area-inset-bottom))] sm:px-8 sm:pt-16">
+          <section className="flex max-w-3xl items-start gap-4">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-overlap text-overlap-foreground">
+              <ShieldCheck className="size-6" aria-hidden="true" />
+            </span>
             <div className="space-y-1">
-              <h2 className="font-semibold">{t("safetyTitle")}</h2>
-              <p className="max-w-prose text-sm">{t("safetyBody")}</p>
+              <h2 className="font-display text-2xl font-bold tracking-tight">{t("safetyTitle")}</h2>
+              <p className="max-w-prose text-muted-foreground">{t("safetyBody")}</p>
             </div>
           </section>
 
-          <footer className="border-t border-border pt-6 text-sm text-muted-foreground">
-            <nav aria-label={t("footerLabel")} className="flex flex-wrap gap-x-5">
-              <Link href="/how-it-works" className="inline-flex min-h-11 min-w-11 items-center justify-center px-1 underline-offset-4 hover:text-foreground hover:underline">
-                {t("footerHowItWorks")}
-              </Link>
-              <Link href="/safety" className="inline-flex min-h-11 min-w-11 items-center justify-center px-1 underline-offset-4 hover:text-foreground hover:underline">
-                {t("footerSafety")}
-              </Link>
-              <Link href="/community-guidelines" className="inline-flex min-h-11 min-w-11 items-center justify-center px-1 underline-offset-4 hover:text-foreground hover:underline">
-                {t("footerGuidelines")}
-              </Link>
-              <Link href="/terms" className="inline-flex min-h-11 min-w-11 items-center justify-center px-1 underline-offset-4 hover:text-foreground hover:underline">
-                {t("footerTerms")}
-              </Link>
-              <Link href="/privacy" className="inline-flex min-h-11 min-w-11 items-center justify-center px-1 underline-offset-4 hover:text-foreground hover:underline">
-                {t("footerPrivacy")}
-              </Link>
-              <Link href="/contact" className="inline-flex min-h-11 min-w-11 items-center justify-center px-1 underline-offset-4 hover:text-foreground hover:underline">
-                {t("footerContact")}
-              </Link>
+          <footer className="mt-12 flex flex-col gap-3 border-t pt-5 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <Logo className="text-base text-foreground" />
+            <nav aria-label={t("footerLabel")} className="-mx-1 flex flex-wrap gap-x-4">
+              {FOOTER_LINKS.map(([href, key]) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="inline-flex min-h-11 min-w-11 items-center justify-center px-1 underline-offset-4 hover:text-foreground hover:underline"
+                >
+                  {t(key)}
+                </Link>
+              ))}
             </nav>
           </footer>
         </div>

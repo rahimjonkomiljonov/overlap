@@ -46,7 +46,7 @@ export const INTENT_STYLE: Record<
 export function IntentIcon({ intent, className }: { intent: IntentKey; className?: string }) {
   const { icon: Icon, chip } = INTENT_STYLE[intent];
   return (
-    <span className={cn("inline-flex size-8 shrink-0 items-center justify-center rounded-full", chip, className)}>
+    <span className={cn("inline-flex size-8 shrink-0 items-center justify-center rounded-md", chip, className)}>
       <Icon className="size-4" aria-hidden="true" />
     </span>
   );
@@ -56,7 +56,7 @@ export function IntentIcon({ intent, className }: { intent: IntentKey; className
 export function IntentBadge({ intent, label, className }: { intent: IntentKey; label: string; className?: string }) {
   const { icon: Icon, chip } = INTENT_STYLE[intent];
   return (
-    <span className={cn("inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-base font-semibold", chip, className)}>
+    <span className={cn("inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-base font-semibold", chip, className)}>
       <Icon className="size-4.5" aria-hidden="true" />
       {label}
     </span>

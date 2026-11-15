@@ -19,16 +19,16 @@ export function EmptyState({
   return (
     <section
       className={cn(
-        "flex flex-col items-center gap-3 rounded-2xl border border-dashed bg-card px-6 py-12 text-center",
+        "flex flex-col items-start gap-3 rounded-xl border border-dashed border-input px-6 py-10",
         className,
       )}
     >
-      <span className="flex size-14 items-center justify-center rounded-full bg-accent text-accent-foreground">
-        <Icon className="size-7" aria-hidden="true" />
+      <span className="flex size-12 items-center justify-center rounded-lg bg-you text-overlap-foreground">
+        <Icon className="size-6" aria-hidden="true" />
       </span>
-      <h2 className="text-lg font-semibold">{title}</h2>
+      <h2 className="font-display text-xl font-bold tracking-tight">{title}</h2>
       {description ? <p className="max-w-sm text-muted-foreground">{description}</p> : null}
-      {action ? <div className="mt-2">{action}</div> : null}
+      {action ? <div className="mt-1">{action}</div> : null}
     </section>
   );
 }
