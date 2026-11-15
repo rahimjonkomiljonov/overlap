@@ -11,6 +11,7 @@ export default async function MatchingPreferencesPage({ params }: PageProps<"/[l
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("MatchingPreferences");
+  const tNav = await getTranslations("Nav");
 
   const actor = await getActor();
   if (!actor) {
@@ -21,7 +22,7 @@ export default async function MatchingPreferencesPage({ params }: PageProps<"/[l
 
   return (
     <>
-      <PageHeader title={t("title")} description={t("description")} />
+      <PageHeader backHref="/me" backLabel={tNav("me")} title={t("title")} description={t("description")} />
       <Card>
         <CardContent className="space-y-4">
           <WeightSlidersForm initial={sliders} />

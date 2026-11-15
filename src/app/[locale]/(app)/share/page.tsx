@@ -16,6 +16,7 @@ export default async function SharePage({ params }: PageProps<"/[locale]/share">
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("Share");
+  const tNav = await getTranslations("Nav");
 
   const actor = await getActor();
   if (!actor) {
@@ -26,7 +27,7 @@ export default async function SharePage({ params }: PageProps<"/[locale]/share">
 
   return (
     <>
-      <PageHeader title={t("title")} description={t("description", { min: MIN_SHAREABLE_COUNT })} />
+      <PageHeader backHref="/me" backLabel={tNav("me")} title={t("title")} description={t("description", { min: MIN_SHAREABLE_COUNT })} />
       {groups.length === 0 ? (
         <EmptyState icon={Share2} title={t("emptyTitle")} description={t("emptyBody")} />
       ) : (

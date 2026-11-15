@@ -180,7 +180,7 @@ export function ChatThread({
             {otherPhotoUrl && <AvatarImage src={otherPhotoUrl} alt="" />}
             <AvatarFallback>{otherFirstName?.[0] ?? "?"}</AvatarFallback>
           </Avatar>
-          <p className="truncate font-medium">{otherFirstName}</p>
+          <p className="truncate font-display text-lg font-bold tracking-tight">{otherFirstName}</p>
         </Link>
         <ReportButton targetUserId={otherUserId} conversationId={conversationId} />
         <BlockButton targetUserId={otherUserId} onBlocked={() => router.push("/matches")} />
@@ -228,12 +228,12 @@ export function ChatThread({
               <div
                 className={
                   mine
-                    ? "max-w-[80%] rounded-2xl bg-primary px-4 py-2 text-primary-foreground"
-                    : "max-w-[80%] rounded-2xl bg-muted px-4 py-2"
+                    ? "max-w-[80%] rounded-xl rounded-br-sm bg-you px-3.5 py-2 text-overlap-foreground"
+                    : "max-w-[80%] rounded-xl rounded-bl-sm bg-them-soft px-3.5 py-2"
                 }
               >
-                <p className="text-sm whitespace-pre-wrap">{message.text}</p>
-                <p className={mine ? "mt-1 text-right text-xs text-primary-foreground" : "mt-1 text-right text-xs text-muted-foreground"}>
+                <p className="text-[0.9375rem] whitespace-pre-wrap">{message.text}</p>
+                <p className={"mt-1 text-right text-xs tabular-nums"}>
                   {timeFormatter.format(new Date(message.createdAt))}
                 </p>
               </div>

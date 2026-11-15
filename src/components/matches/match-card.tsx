@@ -42,11 +42,11 @@ export function MatchCard({
           aria-label={t("openProfile", { name: match.firstName ?? "" })}
           className="flex min-h-11 min-w-0 items-center gap-4 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <Avatar size="lg">
+          <Avatar size="lg" className="size-14">
             {match.photoUrl && <AvatarImage src={match.photoUrl} alt="" />}
             <AvatarFallback>{match.firstName?.[0] ?? "?"}</AvatarFallback>
           </Avatar>
-          <p className="truncate font-medium">{match.firstName}</p>
+          <p className="truncate font-display text-xl font-bold tracking-tight">{match.firstName}</p>
         </Link>
         {match.meetup && (
           <Badge
@@ -84,7 +84,7 @@ export function MatchCard({
           </div>
         ) : (
           <div className="flex items-center justify-between gap-3">
-            <Button type="button" variant="outline" onClick={() => setConfirming(true)}>
+            <Button type="button" variant="ghost" className="text-muted-foreground" onClick={() => setConfirming(true)}>
               {t("unmatch")}
             </Button>
             <div className="flex gap-2">

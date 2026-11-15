@@ -8,6 +8,7 @@ export default async function VerifyPage({ params }: PageProps<"/[locale]/verify
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("Verify");
+  const tNav = await getTranslations("Nav");
 
   // The (app) layout already redirects signed-out visitors, so an actor always exists here.
   const actor = await getActor();
@@ -15,7 +16,7 @@ export default async function VerifyPage({ params }: PageProps<"/[locale]/verify
 
   return (
     <>
-      <PageHeader title={t("title")} description={t("hint")} />
+      <PageHeader backHref="/me" backLabel={tNav("me")} title={t("title")} description={t("hint")} />
       {status && <VerifyForm initialStatus={status} />}
     </>
   );

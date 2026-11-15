@@ -10,6 +10,7 @@ export default async function PrivacySettingsPage({ params }: PageProps<"/[local
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("PrivacySettings");
+  const tNav = await getTranslations("Nav");
 
   // The (app) layout already redirects signed-out visitors, so this only fires in
   // practice if the session expired between the layout check and this render.
@@ -23,7 +24,7 @@ export default async function PrivacySettingsPage({ params }: PageProps<"/[local
 
   return (
     <>
-      <PageHeader title={t("title")} />
+      <PageHeader backHref="/me" backLabel={tNav("me")} title={t("title")} />
       <PrivacySettings overview={overview} />
     </>
   );

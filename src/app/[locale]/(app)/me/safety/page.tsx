@@ -14,6 +14,7 @@ export default async function SafetySettingsPage({ params }: PageProps<"/[locale
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("SafetySettings");
+  const tNav = await getTranslations("Nav");
 
   // The (app) layout already redirects signed-out visitors, so this only fires in
   // practice if the session expired between the layout check and this render.
@@ -34,7 +35,7 @@ export default async function SafetySettingsPage({ params }: PageProps<"/[locale
 
   return (
     <>
-      <PageHeader title={t("title")} />
+      <PageHeader backHref="/me" backLabel={tNav("me")} title={t("title")} />
       <div className="mb-4">
         <TrustCard
           trust={{

@@ -1,15 +1,26 @@
+import {
+  BadgeCheck,
+  ChevronRight,
+  Lock,
+  Megaphone,
+  Share2,
+  ShieldCheck,
+  SlidersHorizontal,
+  UserRound,
+  type LucideIcon,
+} from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageHeader } from "@/components/states/page-header";
 import { PushToggle } from "@/components/push/push-toggle";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link, redirect } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { signOutEverywhere } from "@/server/auth/actions";
 import { can, Role } from "@/server/auth/authz";
 import { getActor } from "@/server/auth/session";
+import { cn } from "@/lib/utils";
 import { getDatingStatus } from "@/server/cohorts/release";
 import { prisma } from "@/server/db";
 import { getVapidPublicKey } from "@/server/push/send";
@@ -38,134 +49,90 @@ export default async function MePage({ params }: PageProps<"/[locale]/me">) {
     redirect({ href: "/login", locale });
   }
 
+  const rows: { icon: LucideIcon; tint: string; title: string; cta: string; href: string }[] = [
+    { icon: UserRound, tint: "bg-you", title: t("editProfileTitle"), cta: t("editProfileCta"), href: "/me/profile" },
+    { icon: SlidersHorizontal, tint: "bg-them", title: t("matchingTitle"), cta: t("matchingCta"), href: "/me/matching" },
+    { icon: Share2, tint: "bg-overlap", title: t("shareTitle"), cta: t("shareCta"), href: "/share" },
+    { icon: ShieldCheck, tint: "bg-you", title: t("safetyTitle"), cta: t("safetyCta"), href: "/me/safety" },
+    { icon: Lock, tint: "bg-them", title: t("privacyTitle"), cta: t("privacyCta"), href: "/me/privacy" },
+    ...(actor && can(actor, Role.AMBASSADOR)
+      ? [{ icon: Megaphone, tint: "bg-overlap", title: t("ambassadorTitle"), cta: t("ambassadorCta"), href: "/ambassador" }]
+      : []),
+  ];
+
   return (
     <>
       <PageHeader title={t("title")} />
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("display")}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-5">
-          <div className="space-y-2">
-            <p className="text-sm font-medium">{t("theme")}</p>
-            <ThemeToggle />
-          </div>
-          <div className="space-y-2">
-            <p className="text-sm font-medium">{t("language")}</p>
-            <Link
-              href="/me"
-              locale={otherLocale}
-              className={buttonVariants({ variant: "outline" })}
-            >
-              {t("switchLanguage")}
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-      <Card className="mt-4">
-        <CardHeader>
-          <CardTitle>{t("editProfileTitle")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Link href="/me/profile" className={buttonVariants({ variant: "outline" })}>
-            {t("editProfileCta")}
-          </Link>
-        </CardContent>
-      </Card>
-      <Card className="mt-4">
-        <CardHeader>
-          <CardTitle>{t("account")}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Badge variant={datingStatus === "available" ? "default" : "secondary"}>
-            {t(datingLabel[datingStatus])}
-          </Badge>
-          <form action={signOutAction}>
-            <Button type="submit" variant="outline">
-              {t("signOutEverywhere")}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-      {actor && can(actor, Role.AMBASSADOR) && (
-        <Card className="mt-4">
-          <CardHeader>
-            <CardTitle>{t("ambassadorTitle")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Link href="/ambassador" className={buttonVariants({ variant: "outline" })}>
-              {t("ambassadorCta")}
-            </Link>
-          </CardContent>
-        </Card>
-      )}
-      <Card className="mt-4">
-        <CardHeader>
-          <CardTitle>{t("notificationsTitle")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <PushToggle vapidPublicKey={getVapidPublicKey()} />
-        </CardContent>
-      </Card>
-      <Card className="mt-4">
-        <CardHeader>
-          <CardTitle>{t("shareTitle")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Link href="/share" className={buttonVariants({ variant: "outline" })}>
-            {t("shareCta")}
-          </Link>
-        </CardContent>
-      </Card>
-      <Card className="mt-4">
-        <CardHeader>
-          <CardTitle>{t("matchingTitle")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Link href="/me/matching" className={buttonVariants({ variant: "outline" })}>
-            {t("matchingCta")}
-          </Link>
-        </CardContent>
-      </Card>
-      <Card className="mt-4">
-        <CardHeader>
-          <CardTitle>{t("safetyTitle")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Link href="/me/safety" className={buttonVariants({ variant: "outline" })}>
-            {t("safetyCta")}
-          </Link>
-        </CardContent>
-      </Card>
-      <Card className="mt-4">
-        <CardHeader>
-          <CardTitle>{t("privacyTitle")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Link href="/me/privacy" className={buttonVariants({ variant: "outline" })}>
-            {t("privacyCta")}
-          </Link>
-        </CardContent>
-      </Card>
-      {verification && (
-        <Card className="mt-4">
-          <CardHeader>
-            <CardTitle>{t("verificationTitle")}</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between gap-4">
-            <Badge variant={verification.state === "verified" ? "default" : "secondary"}>
-              {tVerify(`status_${verification.state}`, {
-                reason: verification.state === "rejected" ? (verification.reason ?? "") : "",
-              })}
-            </Badge>
+
+      {/* One list instead of a card per link: each row is a single tap target, named by its link. */}
+      <ul className="divide-y overflow-hidden rounded-xl border bg-card">
+        {rows.map(({ icon: Icon, tint, title, cta, href }) => (
+          <li key={href} className="relative flex min-h-18 items-center gap-3.5 px-4 py-3 transition-colors hover:bg-muted/60">
+            <span aria-hidden="true" className={cn("flex size-10 shrink-0 items-center justify-center rounded-lg text-overlap-foreground", tint)}>
+              <Icon className="size-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold">{title}</p>
+              <Link
+                href={href}
+                className="text-sm text-muted-foreground outline-none after:absolute after:inset-0 after:content-[''] focus-visible:after:rounded-xl focus-visible:after:ring-2 focus-visible:after:ring-ring focus-visible:after:ring-inset"
+              >
+                {cta}
+              </Link>
+            </div>
+            <ChevronRight aria-hidden="true" className="size-5 shrink-0 text-muted-foreground" />
+          </li>
+        ))}
+        {verification && (
+          <li className="flex min-h-18 items-center gap-3.5 px-4 py-3">
+            <span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-overlap text-overlap-foreground">
+              <BadgeCheck className="size-5" />
+            </span>
+            <div className="min-w-0 flex-1 space-y-1">
+              <p className="font-semibold">{t("verificationTitle")}</p>
+              <Badge variant={verification.state === "verified" ? "default" : "secondary"}>
+                {tVerify(`status_${verification.state}`, {
+                  reason: verification.state === "rejected" ? (verification.reason ?? "") : "",
+                })}
+              </Badge>
+            </div>
             {verification.state !== "verified" && (
               <Link href="/verify" className={buttonVariants({ variant: "outline", size: "sm" })}>
                 {t("verificationCta")}
               </Link>
             )}
-          </CardContent>
-        </Card>
-      )}
+          </li>
+        )}
+      </ul>
+
+      <section className="mt-8 space-y-5">
+        <h2 className="text-xl font-bold tracking-tight">{t("display")}</h2>
+        <div className="space-y-2">
+          <p className="text-sm font-medium">{t("theme")}</p>
+          <ThemeToggle />
+        </div>
+        <div className="space-y-2">
+          <p className="text-sm font-medium">{t("language")}</p>
+          <Link href="/me" locale={otherLocale} className={buttonVariants({ variant: "outline" })}>
+            {t("switchLanguage")}
+          </Link>
+        </div>
+      </section>
+
+      <section className="mt-8 space-y-3 border-t pt-6">
+        <h2 className="text-xl font-bold tracking-tight">{t("notificationsTitle")}</h2>
+        <PushToggle vapidPublicKey={getVapidPublicKey()} />
+      </section>
+
+      <section className="mt-8 space-y-4 border-t pt-6">
+        <h2 className="text-xl font-bold tracking-tight">{t("account")}</h2>
+        <Badge variant={datingStatus === "available" ? "default" : "secondary"}>{t(datingLabel[datingStatus])}</Badge>
+        <form action={signOutAction}>
+          <Button type="submit" variant="outline">
+            {t("signOutEverywhere")}
+          </Button>
+        </form>
+      </section>
     </>
   );
 }

@@ -14,6 +14,7 @@ export default async function PocketsPage({ params }: PageProps<"/[locale]/pocke
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("Pockets");
+  const tNav = await getTranslations("Nav");
 
   // The (app) layout already redirects signed-out/not-yet-onboarded visitors.
   const actor = await getActor();
@@ -33,7 +34,7 @@ export default async function PocketsPage({ params }: PageProps<"/[locale]/pocke
 
   return (
     <>
-      <PageHeader title={t("title")} description={t("description")} />
+      <PageHeader backHref="/picks" backLabel={tNav("picks")} title={t("title")} description={t("description")} />
       <div className="space-y-6">
         <Card>
           <CardContent className="space-y-3">
@@ -53,10 +54,14 @@ export default async function PocketsPage({ params }: PageProps<"/[locale]/pocke
                   className="block rounded-xl focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                 >
                   <Card className="transition-colors hover:bg-muted/50">
-                    <CardContent className="flex items-center justify-between gap-3">
-                      <div className="min-w-0">
+                    <CardContent className="flex items-center gap-3">
+                      <span
+                        aria-hidden="true"
+                        className={pocket.kind === "course" ? "h-11 w-1.5 shrink-0 rounded-full bg-you" : "h-11 w-1.5 shrink-0 rounded-full bg-them"}
+                      />
+                      <div className="min-w-0 flex-1">
                         <Badge variant="secondary">{t(`kind.${pocket.kind}`)}</Badge>
-                        <p className="mt-2 truncate font-medium">{pocket.label}</p>
+                        <p className="mt-1.5 truncate font-semibold">{pocket.label}</p>
                       </div>
                       <p className="shrink-0 text-sm text-muted-foreground">
                         {t("memberCount", { count: pocket.memberCount })}

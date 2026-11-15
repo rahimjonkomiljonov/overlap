@@ -17,6 +17,7 @@ export default async function EditProfilePage({ params }: PageProps<"/[locale]/m
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("ProfileEdit");
+  const tNav = await getTranslations("Nav");
 
   const actor = await getActor();
   if (!actor) {
@@ -36,7 +37,7 @@ export default async function EditProfilePage({ params }: PageProps<"/[locale]/m
 
   return (
     <>
-      <PageHeader title={t("title")} description={t("description")} />
+      <PageHeader backHref="/me" backLabel={tNav("me")} title={t("title")} description={t("description")} />
       <ProfileEditor
         initial={wizardState}
         locale={locale}

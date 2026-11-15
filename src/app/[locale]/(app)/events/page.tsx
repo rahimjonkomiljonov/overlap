@@ -16,6 +16,7 @@ export default async function EventsPage({ params }: PageProps<"/[locale]/events
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("Events");
+  const tNav = await getTranslations("Nav");
 
   // The (app) layout already redirects signed-out/not-yet-onboarded visitors.
   const actor = await getActor();
@@ -26,7 +27,7 @@ export default async function EventsPage({ params }: PageProps<"/[locale]/events
 
   return (
     <>
-      <PageHeader
+      <PageHeader backHref="/picks" backLabel={tNav("picks")}
         title={t("title")}
         description={t("description")}
         action={

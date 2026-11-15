@@ -50,14 +50,14 @@ export function WaveInboxCard({
   return (
     <Card>
       <CardContent className="flex items-start gap-4">
-        <Avatar size="lg">
+        <Avatar size="lg" className="size-14">
           {wave.photoUrl && <AvatarImage src={wave.photoUrl} alt="" />}
           <AvatarFallback>{wave.firstName?.[0] ?? "?"}</AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1 space-y-1">
-          <p className="font-medium">{wave.firstName}</p>
+          <p className="font-display text-xl font-bold tracking-tight">{wave.firstName}</p>
           <p className="text-sm text-muted-foreground">{t(targetLabelKey(wave.targetElement))}</p>
-          {wave.note && <p className="text-sm">&ldquo;{wave.note}&rdquo;</p>}
+          {wave.note && <p className="mt-2 inline-block rounded-md bg-them-soft px-2.5 py-1.5 text-sm">&ldquo;{wave.note}&rdquo;</p>}
         </div>
       </CardContent>
 

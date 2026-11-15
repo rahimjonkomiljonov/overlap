@@ -72,7 +72,9 @@
     "picks": "Picks",
     "waves": "Waves",
     "matches": "Matches",
-    "me": "Me"
+    "me": "Me",
+    "themeToDark": "Switch to dark mode",
+    "themeToLight": "Switch to light mode"
   },
   "Picks": {
     "title": "Today's picks",

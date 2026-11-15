@@ -20,6 +20,7 @@ export default async function AmbassadorPage({ params }: PageProps<"/[locale]/am
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("Ambassador");
+  const tNav = await getTranslations("Nav");
 
   const actor = await getActor();
   if (!actor || !can(actor, Role.AMBASSADOR)) {
@@ -31,7 +32,7 @@ export default async function AmbassadorPage({ params }: PageProps<"/[locale]/am
 
   return (
     <>
-      <PageHeader title={t("title")} description={t("description")} />
+      <PageHeader backHref="/me" backLabel={tNav("me")} title={t("title")} description={t("description")} />
       <div className="space-y-4">
         <Card>
           <CardHeader>
